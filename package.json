@@ -1,0 +1,54 @@
+{
+  "name": "ttfiles",
+  "version": "0.0.1",
+  "description": "The Texas Tribune Files App",
+  "private": true,
+  "scripts": {
+    "test": "jest --coverage -i --verbose --bail --ci",
+    "test:basic": "jest -i"
+  },
+  "devDependencies": {
+    "babel-core": "^6.3.26",
+    "babel-jest": "^21.2.0",
+    "babel-loader": "7.1.3",
+    "babel-preset-env": "^1.6.1",
+    "jest": "^21.2.1"
+  },
+  "dependencies": {},
+  "files": [
+    "v*"
+  ],
+  "jest": {
+    "collectCoverageFrom": [
+      "**/*.{js,jsx}",
+      "!**/node_modules/**",
+      "!**/vendor/**"
+    ],
+    "coverageReporters": [
+      "json",
+      "html"
+    ],
+    "coverageDirectory": "reports/js",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/reports/"
+    ],
+    "globals": {
+      "NODE_ENV": "test"
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/reports/"
+    ],
+    "modulePathIgnorePatterns": [
+      "/static_root/",
+      "/reports/"
+    ],
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ]
+  }
+}

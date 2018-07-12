@@ -1,0 +1,24 @@
+@import "icons.css";
+
+.desktop {
+  display: flex;
+}
+
+.desktop > .icon {
+  cursor: pointer;
+  vertical-align: middle;
+  margin: 5px;
+}
+
+.desktop > .icon {
+  height: 50px;
+}
+
+
+.desktop > .icon svg {
+  display: block;
+  margin: auto;
+  width: var(--icon-size-large);
+  height: var(--icon-size-large);
+  fill: var(--icon-color);
+}

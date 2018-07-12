@@ -1,0 +1,126 @@
+:root {
+  --dialog-header-height: 28px;
+  --dialog-header-text-color: black;
+  --dialog-item-text-color: #5c6873;
+  --button-color: white;
+  --button-hover-color: #999;
+  --button-height: 30px;
+  --button-min-width: 50px;
+  --delete-button: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gMUEDkZeUosOwAAAtJJREFUWMPNmL9PFEEUxz+7IfzQkHCGQlBC7uzuYiWUlIaWno20a71/x9ROCxl7WmJ5JViZozwERCyIZ0ICQsFa+Nasm52ZvRXO+yab7CVv5r47853ve28CKiCKE4xW2fsrYA1YBzrAUiH8FOgBe0DXaPWxOIcLQRUiUZw8AjaA99TDW2DbaHXtIxZUIPMG2OZ+sGW02nGRCjxk9oEV7hcHRqtVGykboQZwDkzxMLgBFoxWAyehKE4AGsB3RoMF4Ft+pcKSk3TO6PBZpPE3oYJmpkZIaCqKk/08qSC3Qq7TlEpsB/gALFb8w6/Aa/Gl1HGqt4xWOwCBMJsBrhxkboG20aofxUkAHAHLHjLHQNNolUZx0gIOgUkHqcfAVSi62fKYZxvo5wi2gIFjzEBiUvndlzlcRrxhtPodEMVJ6gjsGK0OS6xhBvghX53HLTBntLouGdOW7SuF0SoIJDcdeHTwHEiLRiakzsQqspV5ViQjsgiALx79rYSSKF1YFM2EJV90DcyLXo6B+bKVkbFHFQ7DWihZ24dl4EJWpIg74KU8d5atvahwCADWgyhOTkpKCBus+rCkIJvObDgNPIK2naB54M6WsUUzoaxMY5jJwxru2pBjPOuImZWYxrCT1yH0oKhDKDO9S0fMZQXzLHfhcRP1hDjnUsWVsZlepqfLvNClhp4rmKcLvVC6Ax98pvdJHp95+rAXAt0KJUSzgun5zLMpc7nQHbvkOiHvm46eqxfFyQugn6vsQtFFmVgngbMoTv6Yp4xpuchI70YowbuOwFSKq1auPvKZXmaeWf2TFWiundiO4mT8Sth8kb/jqIuyiXpDkMlKl56nSz7IutlikZ91Hj9H2HncGK2m811sWaP4dIS92RNgkDfTsWulbcl1YLSa9tTa/3LZMG1LvKHFoDJNrXpapDrXMatDX8eUCH1GiL2rSWQT2DVaXdW+sPpfV3q/AM0PYtQhZQVnAAAAAElFTkSuQmCC);
+  --expand-button: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gYHEhUdzt4g4wAAAlJJREFUWMPtmLFr20AUxn+6Oq7imoQUCs2QvyCDh9TQJVshayBbY+rVhUIH/xnlhnbJrTGXbKVdM3XwEmgyZAhkLHhIoVDToXbT0KbLU1CPk6zIqqOhHwgZcXr+9O5J7/teQAa0Ol2s0dHvNWAd2ABWgRVn+QA4BQ6AvjX62I2RhiALkVanWwM2gT3y4Tmwa40eTyIWZCDzDNilGLSt0b00UsEEMh+BRxSLI2t0M4lUEqEl4By4y7/BBbBsjR6mEmp1ugBLwFdmg2XgczxTyvMmnTM7fJLS+DtDE2rmDPgAhMDClAQWgQbwIKmmgliGfG/TGbAl5wC4MyWhqsR75ZBqW6N7AIGkax4YeQLsAC+A3wVuUx14Bzxxrt8DRkrqpp1wc+gU/pw85U2PuViMn8A3z39tWqOpxDLhw4Js0y+gArwEHufIyiHwGrhMWbMH7FekN2WBEjJbObfqTYaeuaakUZYF60q6dlmwoURClAWryqNnbhMripLhP6EshAYl4jNQIsjLglMl7qAsOFBAv0SE+iryTWWANfo46vbbGTzXlXTtPDiU+yd5t2uBVgO+exa9BZ6Khon0UJCD0FVMelSBfY9qqAHjigi0UavTbXsk7KIEiAhdFrAzVYnrGsjx9YdRBHYPOHIWNuRJ6jmVonvUJV7DEfm9yHkEHrf6wzGIX4CTBNk5reu4sEaHcRfrM4oPZ+jN7gPDuFEsnZVOaq5Da3Toqamihg0hMMzc7SN7a41uplikvOOY5o3HMZ5CnxdiOzmJbAPvrdGj3AOr2xrp/QFWN+Jth0cnawAAAABJRU5ErkJggg==);
+}
+
+.dialog {
+  background: var(--browser-background);
+  box-shadow: var(--browser-shadow);
+  z-index: 10;
+  font-family: var(--browser-font);
+  font-weight: bold;
+  border: 1px solid black;
+}
+
+.dialog > .header {
+  box-sizing: border-box;
+  height: var(--dialog-header-height);
+  padding-left: 4px;
+  background-color: var(--focus-item-color);
+  color: var(--dialog-header-text-color);
+  cursor: move;
+}
+
+.dialog > .header > .name{
+  line-height: var(--dialog-header-height);
+  margin-left: 4px;
+  font-size: 14px;
+}
+
+.dialog > .header > .dialog-button {
+  width: var(--dialog-header-height);
+  height: var(--dialog-header-height);
+}
+
+.dialog .items {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog .dialog-item{
+  display: block;
+  padding: 12px;
+  cursor: pointer;
+  color: var(--dialog-item-text-color);
+}
+
+.dialog .dialog-item input[type="checkbox"] {
+  float: right;
+}
+
+.dialog .dialog-item.drag-element {
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  width: 15px;
+  height: 15px;
+  top: 0;
+  left: 0;
+  cursor: move;
+  font-size: 15px;
+  line-height: 15px;
+  text-align: center;
+}
+
+
+/* Should be the same as .file-browser-container .button */
+.dialog > .button {
+  position: relative;
+  box-sizing: border-box;
+  text-align: center;
+  min-width: var(--button-min-width);
+  padding: 0 5px;
+  overflow: hidden;
+  text-transform: uppercase;
+  border-radius: 4px;
+  outline-color: #ccc;
+  background-color: var(--button-color);
+  line-height: var(--button-height);
+  height: var(--button-height);
+
+  float: right;
+  margin: 10px;
+}
+
+/* Should be the same as .file-browser-container .button:hover */
+.dialog > .button:hover {
+  cursor: pointer;
+  background-color: var(--button-hover-color);
+}
+
+.dialog-button {
+  display: inline-block;
+  float: right;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.dialog-button.expand::after {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  background-size: 18px 18px;
+  background-image: var(--expand-button);
+  background-repeat: no-repeat;
+  background-position: center;
+  content: "";
+}
+
+.dialog-button.delete::after {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  background-size: 18px 18px;
+  background-image: var(--delete-button);
+  background-repeat: no-repeat;
+  background-position: center;
+  content: "";
+}

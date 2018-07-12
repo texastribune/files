@@ -1,0 +1,26 @@
+:root {
+  --icon-color: #5c6873;
+  --action-icon-color: #5c6873;
+  --icon-size: 22px;
+  --icon-size-small: 12px;
+  --icon-size-large: 32px;
+}
+
+.file-browser-container .icon {
+  display: inline-block;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  vertical-align: middle;
+  margin: 5px;
+  fill: var(--icon-color);
+}
+
+.file-browser-container .icon.small {
+  width: var(--icon-size-small);
+  height: var(--icon-size-small);
+}
+
+.file-browser-container .icon.large {
+  width: var(--icon-size-large);
+  height: var(--icon-size-large);
+}
