@@ -1,0 +1,18 @@
+{
+  "presets": [
+    ["env", { "modules": false }]
+  ],
+
+  "plugins": [],
+
+  "env": {
+    "production": {
+      "plugins": []
+    },
+
+    "test": {
+      "presets": ["env"],
+      "plugins": []
+    }
+  }
+}
