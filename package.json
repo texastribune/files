@@ -5,16 +5,19 @@
   "private": true,
   "scripts": {
     "test": "jest --coverage -i --verbose --bail --ci",
-    "test:basic": "jest -i"
+    "test:basic": "jest -i",
+    "docs": "./node_modules/.bin/jsdoc -d ./doc ./v1.3/js/**/*.js"
   },
   "devDependencies": {
     "babel-core": "^6.3.26",
     "babel-jest": "^21.2.0",
     "babel-loader": "7.1.3",
     "babel-preset-env": "^1.6.1",
-    "jest": "^21.2.1"
+    "jest": "^21.2.1",
+    "jsdoc": "^3.5.5"
   },
-  "dependencies": {},
+  "dependencies": {
+  },
   "files": [
     "v*"
   ],
