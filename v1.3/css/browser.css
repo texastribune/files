@@ -101,7 +101,6 @@
 }
 
 .file-browser-table-container .table .row {
-  position: relative;
   display: block;
   height: var(--table-row-height);
   line-height: var(--table-row-height);
@@ -354,16 +353,6 @@
 .drag-img > * {
   background-color: black;
   border: 1px solid white;
-}
-
-.drag-img > .row {
-  background-color: var(--selected-item-color);
-  color: #fff;
-  position: relative;
-  display: block;
-  width: 400px;
-  height: 25px;
-  line-height: 25px;
 }
 
 .drag-img > .column-row {

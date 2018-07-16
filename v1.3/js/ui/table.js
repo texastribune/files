@@ -251,7 +251,6 @@ class Table extends DroppableMixin(Element) {
     this._bodyClassName = 'body';
     this._rowClassName = 'row';
     this._selectedRowClassName = 'selected';
-    this._dragImgDivClassName = 'drag-img';
 
     this.header.className = this._headerClassName;
     this.body.className = this._bodyClassName;
