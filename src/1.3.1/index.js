@@ -1,28 +1,28 @@
-import {FileAPIFileStorage} from "./files/storages/remote.js";
-import {MemoryFileStorage} from "./files/storages/memory.js";
-import {LocalStorageFileStorage} from "./files/storages/local.js";
-import {FileSystem} from "./files/systems.js";
+import {FileAPIFileStorage} from "./js/files/storages/remote.js";
+import {MemoryFileStorage} from "./js/files/storages/memory.js";
+import {LocalStorageFileStorage} from "./js/files/storages/local.js";
+import {FileSystem} from "./js/files/systems.js";
 
-import * as browserModule from './ui/browser.js';
-import * as configModule from './ui/config.js';
-import * as dialogModule from './ui/dialog.js';
-import * as messageModule from './ui/messages.js';
-import * as tableModule from './ui/table.js';
-import * as utilsModule from './utils.js';
+import * as browserModule from './js/ui/browser.js';
+import * as configModule from './js/ui/config.js';
+import * as dialogModule from './js/ui/dialog.js';
+import * as messageModule from './js/ui/messages.js';
+import * as tableModule from './js/ui/table.js';
+import * as utilsModule from './js/utils.js';
 
-import alert from './bin/alert.js';
-import archive from './bin/archive.js';
-import browser from './bin/browser.js';
-import cd from './bin/cd.js';
-import find from './bin/find.js';
-import ls from './bin/ls.js';
-import terminal from './bin/terminal.js';
-import mount from './bin/mount.js';
-import mountFileAPI from './bin/mount.fileapi.js';
-import mountPhotoshelter from './bin/mount.photoshelter.js';
+import alert from './js/bin/alert.js';
+import archive from './js/bin/archive.js';
+import browser from './js/bin/browser.js';
+import cd from './js/bin/cd.js';
+import find from './js/bin/find.js';
+import ls from './js/bin/ls.js';
+import terminal from './js/bin/terminal.js';
+import mount from './js/bin/mount.js';
+import mountFileAPI from './js/bin/mount.fileapi.js';
+import mountPhotoshelter from './js/bin/mount.photoshelter.js';
 
 
-export class StandardFileSystem extends FileSystem {
+export default class StandardFileSystem extends FileSystem {
   constructor(){
     let local = new LocalStorageFileStorage();
     super(local);
@@ -79,18 +79,5 @@ export class StandardFileSystem extends FileSystem {
     }
     let filename = `${name}.js`;
     this.apiStorage.addFile(this.apiStorage.rootFileNode, new File([text], filename, {type: 'application/javascript'}), filename);
-  }
-
-  clone(){
-    // TODO Make file system stateless and move state into browser so this is not so ugly.
-    let clone = new this.constructor();
-    clone._path = this._path;
-    clone._currentDirectory = this._currentDirectory;
-    clone._data = Object.assign({}, this._data);
-    clone.trackState = false;
-    for (let mount of this._mounts){
-      clone.mount(mount.fileObject, mount.fileStorage, mount.name);
-    }
-    return clone;
   }
 }

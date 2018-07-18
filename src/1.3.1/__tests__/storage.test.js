@@ -1,8 +1,8 @@
 /* eslint-disable import/first */
 /* global jest, test, expect, describe */
 
-import {MemoryFileStorage} from "../v1.3/js/files/storages/memory.js";
-import {parseTextFile} from "../v1.3/js/utils.js";
+import {MemoryFileStorage} from "../js/files/storages/memory.js";
+import {parseTextFile} from "../js/utils.js";
 
 
 describe('Test memory file storage', () => {

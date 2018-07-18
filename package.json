@@ -1,12 +1,13 @@
 {
   "name": "ttfiles",
-  "version": "0.0.1",
+  "version": "1.3.1",
   "description": "The Texas Tribune Files App",
   "private": true,
   "scripts": {
+    "build": "webpack",
     "test": "jest --coverage -i --verbose --bail --ci",
     "test:basic": "jest -i",
-    "docs": "./node_modules/.bin/jsdoc -d ./doc ./v1.3/js/**/*.js"
+    "docs": "./node_modules/.bin/jsdoc -d ./doc ./src/**/*.js"
   },
   "devDependencies": {
     "babel-core": "^6.3.26",
@@ -14,17 +15,17 @@
     "babel-loader": "7.1.3",
     "babel-preset-env": "^1.6.1",
     "jest": "^21.2.1",
-    "jsdoc": "^3.5.5"
+    "jsdoc": "^3.5.5",
+    "webpack": "^4.4.1",
+    "webpack-cli": "^2.0.13"
   },
-  "dependencies": {
-  },
-  "files": [
-    "v*"
-  ],
+  "dependencies": {},
   "jest": {
     "collectCoverageFrom": [
       "**/*.{js,jsx}",
       "!**/node_modules/**",
+      "!**/dist/**",
+      "!**/doc/**",
       "!**/vendor/**"
     ],
     "coverageReporters": [
@@ -34,7 +35,9 @@
     "coverageDirectory": "reports/js",
     "coveragePathIgnorePatterns": [
       "/node_modules/",
-      "/reports/"
+      "/reports/",
+      "/doc/",
+      "/dist/"
     ],
     "globals": {
       "NODE_ENV": "test"

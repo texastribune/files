@@ -1,16 +1,16 @@
 /* eslint-disable import/first */
 /* global jest, test, expect, describe */
 
-import {MemoryFileStorage} from "../v1.3/js/files/storages/memory.js";
+import {MemoryFileStorage} from "../js/files/storages/memory.js";
 import {
   BaseFileSystem,
   MountStorageMixin,
   StateMixin,
   HiddenReferenceLinkMixin,
   ExecutableMixin
-} from "../v1.3/js/files/systems.js";
-import {FileObject} from "../v1.3/js/files/objects.js";
-import {parseTextFile} from "../v1.3/js/utils.js";
+} from "../js/files/systems.js";
+import {FileObject} from "../js/files/objects.js";
+import {parseTextFile} from "../js/utils.js";
 
 const dir1Name = 'dir1';
 const file1Name = 'file1';

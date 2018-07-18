@@ -1,10 +1,10 @@
 /* eslint-disable import/first */
 /* global jest, test, expect, describe */
 
-import {MemoryFileStorage} from "../v1.3/js/files/storages/memory.js";
-import {BaseFileSystem, StateMixin} from "../v1.3/js/files/systems.js";
-import {FileBrowser} from "../v1.3/js/ui/browser.js";
-import {Table, Column} from "../v1.3/js/ui/table.js";
+import {MemoryFileStorage} from "../js/files/storages/memory.js";
+import {BaseFileSystem, StateMixin} from "../js/files/systems.js";
+import {FileBrowser} from "../js/ui/browser.js";
+import {Table, Column} from "../js/ui/table.js";
 
 const dir1Name = 'dir1';
 const file1Name = 'file1';

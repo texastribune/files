@@ -9,10 +9,10 @@
         <div class="icon" data-name="Browser" data-icon="folderIcon" data-command="browser"></div>
         <div class="icon" data-name="Terminal" data-icon="folderIcon" data-command="terminal"></div>
         <script type="module">
-            import {StandardFileSystem} from "./js/index.js";
+            import FileSystem from "./index.js";
             import * as icons from "./js/ui/icons.js";
 
-            window.__fileSystem = new StandardFileSystem();
+            window.__fileSystem = new FileSystem();
 
             function createIcon(element){
               element.innerHTML = icons[element.dataset.icon];
