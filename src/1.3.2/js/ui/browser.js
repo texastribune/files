@@ -142,7 +142,6 @@ export class FileBrowser extends Element {
               expandedImg = document.createElement('img');
               expandedImg.className = 'hover-image';
               expandedImg.style.display = 'none';
-              expandedImg.width = 300;
 
               icon.onmouseover = (event) => {
                 if (expandedImg) {

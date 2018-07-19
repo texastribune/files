@@ -51,6 +51,8 @@
 .file-browser-table-container .hover-image {
   position: absolute;
   z-index: 99999;
+  top: calc(2 * var(--table-row-height));
+  height: calc(100% - 3 * var(--table-row-height));
 }
 
 .file-browser-table-container .table {
@@ -349,24 +351,6 @@
 }
 
 /* Drag Image */
-
-.drag-img > * {
-  background-color: black;
-  border: 1px solid white;
-}
-
-.drag-img > .column-row {
-  display: block;
-  float: left;
-  padding: 0;
-  height: 100%;
-  text-align: start;
-  font-size: calc(4px + .75vw);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 
 .pending-action {
   animation-name: pending-action;
