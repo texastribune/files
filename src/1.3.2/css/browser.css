@@ -50,9 +50,12 @@
 
 .file-browser-table-container .hover-image {
   position: absolute;
-  z-index: 99999;
   top: calc(2 * var(--table-row-height));
   max-height: calc(100% - 3 * var(--table-row-height));
+  z-index: 99999;
+  background-color: white;
+  border: 1px solid black;
+  box-shadow: var(--browser-shadow);
 }
 
 .file-browser-table-container .table {
