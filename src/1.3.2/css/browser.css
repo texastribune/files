@@ -52,7 +52,7 @@
   position: absolute;
   z-index: 99999;
   top: calc(2 * var(--table-row-height));
-  height: calc(100% - 3 * var(--table-row-height));
+  max-height: calc(100% - 3 * var(--table-row-height));
 }
 
 .file-browser-table-container .table {
