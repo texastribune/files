@@ -12,5 +12,10 @@
         "recurse": true,
         "tutorials": "./docs/tutorials",
         "readme": "./README.md"
+    },
+    "templates": {
+        "default": {
+            "includeDate": false
+        }
     }
 }
