@@ -1,0 +1,16 @@
+{
+    "plugins": [],
+    "recurseDepth": 10,
+    "source": {
+        "include": ["./src", "./docs/tutorials"],
+        "exclude": "**/__tests__/"
+    },
+    "opts": {
+        "template": "templates/default",
+        "encoding": "utf8",
+        "destination": "./docs/",
+        "recurse": true,
+        "tutorials": "./docs/tutorials",
+        "readme": "./README.md"
+    }
+}

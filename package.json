@@ -7,7 +7,7 @@
     "build": "webpack",
     "test": "jest --coverage -i --verbose --bail --ci",
     "test:basic": "jest -i",
-    "docs": "./node_modules/.bin/jsdoc -c ./docs/conf.json"
+    "docs": "./node_modules/.bin/jsdoc -c ./docs-conf.json"
   },
   "devDependencies": {
     "babel-core": "^6.3.26",

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: files/storages/base.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: files/storages/base.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {parseJsonFile} from "../../utils.js";
+
+
+export class FileNotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = this.constructor.name;
+  }
+}
+
+export class AbstractFileStorage {
+  /**
+   * The base class to use for building and implementation of a file system. It allows for
+   * interaction with a hierarchical tree structure of files connected by directories. The
+   * file system maintains a current directory and the data in that directory.
+   */
+  constructor() {
+  }
+
+  /**
+   * Return a javascript Object mapping file names to file objects for each file in the
+   * directory represented by the given fileObject.
+   * @async
+   * @param {FileNode} fileNode - FileNode referring to the directory to list.
+   * @returns {Object} - Object mapping filename to FileNode for each file in the given directory.
+   */
+  async listDirectory(fileNode) {
+    let directoryFile = await this.readFileNode(fileNode);
+    return await parseJsonFile(directoryFile);
+  }
+
+  // Abstract methods.
+
+  /**
+   * The file object representing the root directory.
+   * @abstract
+   * @returns {FileNode} - FileNode representing the root directory.
+   */
+  get rootFileNode() {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Read the file.
+   * @async
+   * @abstract
+   * @param {FileNode} fileNode - FileNode referring to the file to be read.
+   * @param {Object} params - Query params to read with.
+   * @returns {Blob} - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+   */
+  async readFileNode(fileNode, params) {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Write to the file.
+   * @async
+   * @abstract
+   * @param {FileNode} fileNode - FileNode referring to the file to be read.
+   * @param {File|Blob} data - File or Blob to write.
+   * @returns {Blob} - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+   */
+  async writeFileNode(fileNode, data) {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Add a file to the current directory.
+   * @async
+   * @abstract
+   * @param {FileNode} parentNode - FileNode representing the parent directory for the new file
+   * @param {File|string} file - The file or a dataUrl of a file to be added to the current directory.
+   * @param {string} [filename] - A name for the new file.
+   * @returns {FileNode} - The data for the newly created directory
+   */
+  async addFile(parentNode, file, filename) {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Add a directory to the current directory.
+   * @async
+   * @abstract
+   * @param {FileNode} parentNode - FileNode representing the parent directory for the new directory
+   * @param {string} name - A name for the new directory.
+   * @returns {FileNode} - The data for the newly created directory
+   */
+  async addDirectory(parentNode, name) {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Rename a file in the current directory.
+   * @async
+   * @abstract
+   * @param {FileNode} fileNode - The name of the file to rename. Must be in current directory.
+   * @param {string} newName - The name to change the filename to.
+   */
+  async rename(fileNode, newName) {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Delete a file in the current directory.
+   * @async
+   * @abstract
+   * @param {FileNode} fileNode - The name of the file to be deleted. Must be in current directory.
+   */
+  async delete(fileNode) {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Copy a file into the current directory.
+   * @async
+   * @abstract
+   * @param {fileNode} source - The file node of the file to be copied to targetParent.
+   * @param {fileNode} targetParent - The target directory to put the file.
+   */
+  async copy(source, targetParent) {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Move a file into the current directory.
+   * @async
+   * @abstract
+   * @param {fileNode} source - The file node of the file to be moved.
+   * @param {fileNode} targetParent - The target directory to put the file.
+   */
+  async move(source, targetParent) {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Search the current directory and its subdirectories recursively for files matching the given search term.
+   * @async
+   * @abstract
+   * @param {fileNode} fileNode - The file node of the file to be searched.
+   * @param {string} query - Search terms.
+   * @returns {FileNode[]} - The data for the newly created directory
+   */
+  async search(fileNode, query) {
+    throw new Error("Not implemented")
+  }
+
+  /**
+   * Create a duplicate instance of this file system.
+   * @abstract
+   * @returns {AbstractFileStorage} - A new instance with the same state.
+   */
+  clone() {
+    throw new Error("Not implemented")
+  };
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AbstractFileStorage_AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem_BaseFileSystem.html">BaseFileSystem</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage_FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject_FileObject.html">FileObject</a></li><li><a href="Link_Link.html">Link</a></li><li><a href="LocalStorageFileStorage_LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage_MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="PhotoshelterStorage_PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-QuickStartTutorial.html">Quick Start</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CacheMixin">CacheMixin</a></li><li><a href="global.html#changeDirectory">changeDirectory</a></li><li><a href="global.html#data">data</a></li><li><a href="global.html#dataUrlToBlob">dataUrlToBlob</a></li><li><a href="global.html#DraggableMixin">DraggableMixin</a></li><li><a href="global.html#DroppableMixin">DroppableMixin</a></li><li><a href="global.html#exec">exec</a></li><li><a href="global.html#execFileObject">execFileObject</a></li><li><a href="global.html#ExecutableMixin">ExecutableMixin</a></li><li><a href="global.html#executablePath">executablePath</a></li><li><a href="global.html#fileToDataUrl">fileToDataUrl</a></li><li><a href="global.html#HiddenFileAPIMixin">HiddenFileAPIMixin</a></li><li><a href="global.html#HiddenReferenceLinkMixin">HiddenReferenceLinkMixin</a></li><li><a href="global.html#import">import</a></li><li><a href="global.html#importFromFileObject">importFromFileObject</a></li><li><a href="global.html#MountStorageMixin">MountStorageMixin</a></li><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#parseJsonFile">parseJsonFile</a></li><li><a href="global.html#parseTextFile">parseTextFile</a></li><li><a href="global.html#path">path</a></li><li><a href="global.html#refresh">refresh</a></li><li><a href="global.html#refreshAfter">refreshAfter</a></li><li><a href="global.html#StateMixin">StateMixin</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li><li><a href="global.html#waitFor">waitFor</a></li><li><a href="global.html#waitOn">waitOn</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Jul 23 2018 11:20:50 GMT-0500 (CDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
