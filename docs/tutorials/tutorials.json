@@ -1,14 +1,22 @@
- {
-    "UserInterfaceTutorial": {
-      "title": "User Interface",
-      "children": {
-        "BrowserTutorial": {
-         "title": "Using the File Browser",
-         "children": {}
-        }
+{
+  "UserInterfaceTutorial": {
+    "title": "User Interface",
+    "children": {
+      "BrowserTutorial": {
+        "title": "Using the File Browser",
+        "children": {}
       }
-    },
-   "QuickStartTutorial": {
-       "title": "Quick Start"
-   }
- }
+    }
+  },
+  "DeveloperTutorial": {
+    "title": "Developers",
+    "children": {
+      "QuickStartTutorial": {
+        "title": "Quick Start"
+      },
+      "ContributingTutorial": {
+        "title": "Contributing"
+      }
+    }
+  }
+}

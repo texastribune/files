@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: AbstractFileStorage</title>
+    <title>JSDoc: Tutorial: Contributing</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,140 +17,29 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: AbstractFileStorage</h1>
+    <h1 class="page-title">Tutorial: Contributing</h1>
 
-    
-
-
-
-
-<section>
+    <section>
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>AbstractFileStorage<span class="signature">()</span><span class="type-signature"></span></h2>
-        
-    
+
+    <h2>Contributing</h2>
 </header>
 
 <article>
-    <div class="container-overview">
-    
-        
-
-    
-
-    
-    <h4 class="name" id="AbstractFileStorage"><span class="type-signature"></span>new AbstractFileStorage<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    The base class to use for building and implementation of a file system. It allows for
-interaction with a hierarchical tree structure of files connected by directories. The
-file system maintains a current directory and the data in that directory.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line17">line 17</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+    <h3>Tests</h3><p>This project uses jest to run automated tests. The tests reside any directory named __test__
+ within the /src directory. To run tests, run <code>npm run test</code>.</p>
+<h3>Making documentation</h3><p>This project uses JSDoc to create automated documentation. Classes, functions, etc. that make up the
+public api of this project should use JSDoc compatible comments in the code
+(http://usejsdoc.org/about-getting-started.html#adding-documentation-comments-to-your-code).</p>
+<p>Static assets can be placed in the /docs/assets directory and referenced like so <code>&lt;img src=&quot;assets/foo.png&quot;&gt;</code>.
+  Tutorials can be placed in the tutorials folder as markdown files. </p>
+<p>To build the documentation, run <code>npm run docs</code>. If all goes well, the latest documentation should
+built and output to the /docs folder.</p>
 </article>
 
 </section>
-
-
-
 
 </div>
 
