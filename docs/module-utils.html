@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Mixin: DraggableMixin</title>
+    <title>JSDoc: Module: utils</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Mixin: DraggableMixin</h1>
+    <h1 class="page-title">Module: utils</h1>
 
     
 
@@ -28,7 +28,6 @@
 
 <header>
     
-        <h2>DraggableMixin</h2>
         
     
 </header>
@@ -37,52 +36,6 @@
     <div class="container-overview">
     
         
-            <div class="description">A mixin that makes the element "draggable" via the HTML drag and drop API.</div>
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ui_element.js.html">ui/element.js</a>, <a href="ui_element.js.html#line227">line 227</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
 
         
     
@@ -101,72 +54,6 @@
     
 
     
-        <h3 class="subsection-title">Members</h3>
-
-        
-            
-<h4 class="name" id="draggingClass"><span class="type-signature"></span>draggingClass<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    The class name of the element when it is being dragged.
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ui_element.js.html">ui/element.js</a>, <a href="ui_element.js.html#line252">line 252</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
 
     
         <h3 class="subsection-title">Methods</h3>
@@ -177,7 +64,7 @@
     
 
     
-    <h4 class="name" id="handleDragEnd"><span class="type-signature"></span>handleDragEnd<span class="signature">(event)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".dataUrlToBlob"><span class="type-signature">(async, static) </span>dataUrlToBlob<span class="signature">(dataUrl)</span><span class="type-signature"> &rarr; {Blob}</span></h4>
     
 
     
@@ -185,7 +72,7 @@
 
 
 <div class="description">
-    Called when dragend event is fired.
+    Convert a dataUrl into a Blob.
 </div>
 
 
@@ -221,13 +108,13 @@
 
         <tr>
             
-                <td class="name"><code>event</code></td>
+                <td class="name"><code>dataUrl</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Event</span>
+<span class="param-type">string</span>
 
 
             
@@ -237,7 +124,7 @@
 
             
 
-            <td class="description last"></td>
+            <td class="description last">Data url.</td>
         </tr>
 
     
@@ -278,7 +165,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ui_element.js.html">ui/element.js</a>, <a href="ui_element.js.html#line273">line 273</a>
+        <a href="utils.js.html">utils.js</a>, <a href="utils.js.html#line93">line 93</a>
     </li></ul></dd>
     
 
@@ -301,6 +188,28 @@
 
 
 
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    file - Blob object with data from dataUrl.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Blob</span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -312,7 +221,7 @@
     
 
     
-    <h4 class="name" id="handleDragStart"><span class="type-signature"></span>handleDragStart<span class="signature">(event)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".fileToDataUrl"><span class="type-signature">(async, static) </span>fileToDataUrl<span class="signature">(file)</span><span class="type-signature"> &rarr; {string}</span></h4>
     
 
     
@@ -320,7 +229,7 @@
 
 
 <div class="description">
-    Called when dragstart event is fired.
+    Convert a file containing text data into a string.
 </div>
 
 
@@ -356,13 +265,16 @@
 
         <tr>
             
-                <td class="name"><code>event</code></td>
+                <td class="name"><code>file</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Event</span>
+<span class="param-type">File</span>
+|
+
+<span class="param-type">Blob</span>
 
 
             
@@ -372,7 +284,7 @@
 
             
 
-            <td class="description last"></td>
+            <td class="description last">File object containing text.</td>
         </tr>
 
     
@@ -413,7 +325,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ui_element.js.html">ui/element.js</a>, <a href="ui_element.js.html#line261">line 261</a>
+        <a href="utils.js.html">utils.js</a>, <a href="utils.js.html#line74">line 74</a>
     </li></ul></dd>
     
 
@@ -436,6 +348,351 @@
 
 
 
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - Data url for file.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".parseJsonFile"><span class="type-signature">(async, static) </span>parseJsonFile<span class="signature">(file)</span><span class="type-signature"> &rarr; {Object|Array}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Convert a file containing JSON encoded data into a Javascript Object or Array.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>file</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">File</span>
+|
+
+<span class="param-type">Blob</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">File object containing text.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils.js.html">utils.js</a>, <a href="utils.js.html#line59">line 59</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - A Javascript Object or Array.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+|
+
+<span class="param-type">Array</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".parseTextFile"><span class="type-signature">(async, static) </span>parseTextFile<span class="signature">(file)</span><span class="type-signature"> &rarr; {string}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Convert a file containing text data into a string.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>file</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">File</span>
+|
+
+<span class="param-type">Blob</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">File object containing text.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils.js.html">utils.js</a>, <a href="utils.js.html#line40">line 40</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - The text contained in the file.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 

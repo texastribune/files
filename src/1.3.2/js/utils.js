@@ -1,3 +1,4 @@
+/** @module utils */
 
 let units = ['KB', 'MB', 'GB', 'TB'];
 
