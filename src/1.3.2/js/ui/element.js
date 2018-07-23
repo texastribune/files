@@ -57,6 +57,7 @@ class Element {
 
 /**
  * A mixin that makes the element "droppable" via the HTML drag and drop API.
+ * @mixin DroppableMixin
  * @param {Element} elementClass - A subclass of Element.
  * @returns {Element}
  */
@@ -110,14 +111,29 @@ let DroppableMixin = (elementClass) => {
       this._dragOverClass = value;
     }
 
+    /**
+     * Add callback to be called when dragover starts after the dragover delay.
+     * @memberof DroppableMixin#
+     * @param {Function} callback
+     */
     addDragoverAction(callback){
       this.dragOverActions.push(callback);
     }
 
+    /**
+     * Called when dragover event is triggered.
+     * @memberof DroppableMixin#
+     * @param {Event} event
+     */
     handleDragOver(event){
       event.preventDefault();
     }
 
+    /**
+     * Called when dragenter event triggered.
+     * @memberof DroppableMixin#
+     * @param {Event} event
+     */
     handleDragEnter(event){
       event.preventDefault();
 
@@ -131,6 +147,11 @@ let DroppableMixin = (elementClass) => {
       this._counterSet.add(event.target);
     }
 
+    /**
+     * Called when dragleave event triggered.
+     * @memberof DroppableMixin#
+     * @param {Event} event
+     */
     handleDragLeave(event){
       event.preventDefault();
 
@@ -144,6 +165,11 @@ let DroppableMixin = (elementClass) => {
       }
     }
 
+    /**
+     * Called when drop event triggered.
+     * @memberof DroppableMixin#
+     * @param {Event} event
+     */
     handleDrop(event){
       event.preventDefault();
 
@@ -155,6 +181,10 @@ let DroppableMixin = (elementClass) => {
       }
     }
 
+    /**
+     * @memberof DroppableMixin#
+     * @param {Array} removedChildren - The children removed.
+     */
     handleChildrenRemove(removedChildren) {
       for (let child of removedChildren){
         this._counterSet.delete(child);
@@ -164,6 +194,10 @@ let DroppableMixin = (elementClass) => {
       }
     }
 
+    /**
+     * Set timeouts to call dragover actions.
+     * @memberof DroppableMixin#
+     */
     setTimeouts(){
       if (this.dragOverActions.length > 0){
         for (let action of this.dragOverActions){
@@ -176,6 +210,10 @@ let DroppableMixin = (elementClass) => {
       }
     }
 
+    /**
+     * Remove timeouts to call dragover actions.
+     * @memberof DroppableMixin#
+     */
     clearTimeOuts(){
       this.element.classList.remove(this._pendingActionClass);
       for (let timeout of this._timeOuts){
@@ -188,6 +226,7 @@ let DroppableMixin = (elementClass) => {
 
 /**
  * A mixin that makes the element "draggable" via the HTML drag and drop API.
+ * @mixin DraggableMixin
  * @param {Element} elementClass - A subclass of Element.
  * @returns {Element}
  */
@@ -206,10 +245,19 @@ let DraggableMixin = (elementClass) => {
       this.element.ondragend = this.handleDragEnd.bind(this);
     }
 
+    /**
+     * The class name of the element when it is being dragged.
+     * @memberof DraggableMixin#
+     */
     get draggingClass(){
       return this._draggingClass;
     }
 
+    /**
+     * Called when dragstart event is fired.
+     * @param {Event} event
+     * @memberof DraggableMixin#
+     */
     handleDragStart(event){
       this.element.classList.add(this.draggingClass);
       if (this.onDragStart){
@@ -217,6 +265,11 @@ let DraggableMixin = (elementClass) => {
       }
     }
 
+    /**
+     * Called when dragend event is fired.
+     * @param {Event} event
+     * @memberof DraggableMixin#
+     */
     handleDragEnd(event){
       this.element.classList.remove(this.draggingClass);
       if (this.onDragEnd){

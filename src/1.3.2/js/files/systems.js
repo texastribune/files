@@ -3,11 +3,11 @@ import {FileObject, Link} from "./objects.js";
 import {FileNotFoundError} from "./storages/base.js";
 
 
+/**
+ *   File system classes provide a hierarchical tree structure of files contained in AbstractFileStorage
+ *   implementation.
+ */
 export class BaseFileSystem {
-  /**
-   *   File system classes provide a hierarchical tree structure of files contained in AbstractFileStorage
-   *   implementation.
-   */
   constructor(rootFileStorage){
     this._rootFileStorage = rootFileStorage;
 
@@ -193,11 +193,11 @@ export class BaseFileSystem {
 /**
  * Extends a file system with StateMixin so that it can cache fileObjects that
  * have already been retrieved by their path.
- * @mixinFunction
- *  @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
+ * @mixin CacheMixin
+ * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
  * @returns {BaseFileSystem}
  */
-let CacheMixin = (FileSystemClass) => {
+export let CacheMixin = (FileSystemClass) => {
   return class extends FileSystemClass {
     constructor(...args) {
       super(...args);
@@ -224,7 +224,7 @@ let CacheMixin = (FileSystemClass) => {
 
 /**
  * A mixin that preserves current path of the file system via the url fragment.
- * @mixinFunction
+ * @mixin StateMixin
  * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
  * @returns {BaseFileSystem}
  */
@@ -266,6 +266,7 @@ export let StateMixin = (fileSystemClass) => {
 
     /**
      * An object mapping file names to FileNode objects for the current directory.
+     * @memberof StateMixin#
      */
     get data(){
       return this._data;
@@ -273,6 +274,7 @@ export let StateMixin = (fileSystemClass) => {
 
     /**
      * An array of strings representing the path of the current directory.
+     * @memberof StateMixin#
      */
     get path(){
       return this._path;
@@ -317,6 +319,7 @@ export let StateMixin = (fileSystemClass) => {
 
     /**
      * Change the current directory.
+     * @memberof StateMixin#
      * @param {string[]} pathArray - An array of strings representing the path of directory to navigate to.
      * or relative to the current directory.
      */
@@ -335,6 +338,7 @@ export let StateMixin = (fileSystemClass) => {
 
     /**
      * Refresh the data for the current directory and clear any cached FileObjects.
+     * @memberof StateMixin#
      * @async
      * @abstract
      */
@@ -350,6 +354,7 @@ export let StateMixin = (fileSystemClass) => {
     /**
      * Utility wrapper for async functions.
      * Calls refresh after the the function returns.
+     * @memberof StateMixin#
      */
     refreshAfter(func) {
       return async (...args) => {
@@ -363,6 +368,7 @@ export let StateMixin = (fileSystemClass) => {
      * Utility wrapper for async functions.
      * Functions wrapped by "waitOn" function will not execute until this function returns. Use this
      * to wrap functions that change state.
+     * @memberof StateMixin#
      */
     waitFor(func){
       // Wrapper for functions that returns a promise
@@ -379,6 +385,7 @@ export let StateMixin = (fileSystemClass) => {
      * Delays execution of the wrapped function until any previously called functions
      * wrapped by "waitFor" return. This allows these functions to wait to execute until state is updated
      * preventing race conditions.
+     * @memberof StateMixin#
      */
     waitOn(func){
       // Wrapper for a function. Function is called after the promise
@@ -402,7 +409,7 @@ export let StateMixin = (fileSystemClass) => {
 /**
  * Extends a file system so that each directory contains two links. One named "." that is a link to the
  * directory itself and another named ".." that references the directories parent if it exists.
- * @mixinFunction
+ * @mixin HiddenReferenceLinkMixin
  * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
  * @returns {BaseFileSystem}
  */
@@ -443,7 +450,7 @@ export let HiddenReferenceLinkMixin = (fileSystemClass) => {
 /**
  * Extends a file system so that it can mount file storages other than the root file storage
  * at arbitrary paths in the file system.
- * @mixinFunction
+ * @mixin MountStorageMixin
  * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
  * @returns {BaseFileSystem}
  */
@@ -494,117 +501,131 @@ const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 /**
  * Extends a file system so that it can mount file storages other than the root file storage
  * at arbitrary paths in the file system.
- * @mixinFunction
+ * @mixin ExecutableMixin
  * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
- * @returns {BaseFileSystem}
+ * @returns {BaseFileSystem} The mixin class.
  */
 export let ExecutableMixin = (FileSystemClass) => {
-  return class extends FileSystemClass {
-    constructor(...args) {
-      super(...args);
+    return class extends FileSystemClass {
+        constructor(...args) {
+            super(...args);
 
-      if (this.waitOn){
-        this.import = this.waitOn(this.import);
-      }
+            if (this.waitOn) {
+                this.import = this.waitOn(this.import);
+            }
 
-      this._executablePath = [
-        ['bin']
-      ];
-    }
-
-    /**
-     * An array of absolute path arrays to directories that the exec command with search in
-     * when the exec method is called.
-     */
-    get executablePath(){
-      return this._executablePath;
-    }
-
-    set executablePath(value){
-      this._executablePath = value;
-    }
-
-    /**
-     * Execute the "main" function of the javascript file with the name given in the command parameter
-     * with the given arguments. The variable "this" will be this fileSystem. The file must be located in the executable path, which is an array
-     * of absolute path arrays.
-     * @async
-     * @param {string} command - The name of a javascript file located in the .bin directory.
-     * @param {Array} args - The arguments to be provided to the "main" function in the file.
-     */
-    async exec(command, ...args){
-      // Find a js file with the name in command and call the "main" function
-      // in the file with the given args.
-      let jsName = `${command}.js`;
-      let pathsArray = this.executablePath.slice();
-      let main;
-      while (main === undefined && pathsArray.length > 0){
-        let pathArray = pathsArray.shift();
-        try {
-          main = await this.import(pathArray.concat([jsName]), 'main');
-        } catch (e) {
-          if (!(e instanceof FileNotFoundError)) {
-            // Continue
-            throw e;
-          }
+            this._executablePath = [
+                ['bin']
+            ];
         }
-      }
-      if (main === undefined){
-        throw new FileNotFoundError(`No file ${jsName} in path.`);
-      }
-      return await main.bind(this)(...args);
-    }
 
-    /**
-     * Execute the "main" function of the javascript file. The variable "this" will be this fileSystem.
-     * @async
-     * @param {FileObject} fileObject - A fileObject that references a file containing javascript to be executed.
-     * @param {Array} args - The arguments to be provided to the "main" function in the file.
-     */
-    async execFileObject(fileObject, ...args){
-      let main = await this.importFromFileObject(fileObject, 'main');
-      return await main.bind(this)(...args);
-    }
+        /**
+         * An array of absolute path arrays to directories that the exec command with search in
+         * when the exec method is called.
+         * @memberof ExecutableMixin#
+         */
+        get executablePath() {
+            return this._executablePath;
+        }
 
-    /**
-     * Execute the "main" function of the javascript file with the name given in the command parameter
-     * with the given arguments. The file must be located in the executable path, which is an array
-     * of absolute path arrays. The variable "this" will be this fileSystem.
-     * @async
-     * @param {string[]} pathArray - An array of strings representing the path of the file to copy to.
-     * @param {string} variableName - The name of the variable to import from the javascript file.
-     * @return {*} The value of the variable.
-     */
-    async import(pathArray, variableName){
-      // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
-      // Right now executes script as function with FileSystem bound as "this". In an ideal world
-      // with dynamic imports would import as a module and could use relative paths.
-      let fileObject = await this.getFileObject(pathArray);
-      return await this.importFromFileObject(fileObject, variableName);
-    }
+        set executablePath(value) {
+            this._executablePath = value;
+        }
 
-    /**
-     * Execute the "main" function of the javascript file with the name given in the command parameter
-     * with the given arguments. The file must be located in the executable path, which is an array
-     * of absolute path arrays. The variable "this" will be this fileSystem.
-     * @async
-     * @param {FileObject} fileObject - A fileObject that references a file containing javascript from which to import.
-     * @param {string} variableName - The name of the variable to import from the javascript file.
-     * @return {*} The value of the variable.
-     */
-    async importFromFileObject(fileObject, variableName){
-      let scriptString = await fileObject.readText();
-      try{
-        let func = new AsyncFunction(`${scriptString};return ${variableName};`);
-        return await func.bind(this)();
-      } catch (e) {
-        throw new Error(`Error importing file ${fileObject}: ${e}`);
-      }
-    }
-  };
+        /**
+         * Execute the "main" function of the javascript file with the name given in the command parameter
+         * with the given arguments. The variable "this" will be this fileSystem. The file must be located in the executable path, which is an array
+         * of absolute path arrays.
+         * @memberof ExecutableMixin#
+         * @async
+         * @param {string} command - The name of a javascript file located in the .bin directory.
+         * @param {Array} args - The arguments to be provided to the "main" function in the file.
+         */
+        async exec(command, ...args) {
+            // Find a js file with the name in command and call the "main" function
+            // in the file with the given args.
+            let jsName = `${command}.js`;
+            let pathsArray = this.executablePath.slice();
+            let main;
+            while (main === undefined && pathsArray.length > 0) {
+                let pathArray = pathsArray.shift();
+                try {
+                    main = await this.import(pathArray.concat([jsName]), 'main');
+                } catch (e) {
+                    if (!(e instanceof FileNotFoundError)) {
+                        // Continue
+                        throw e;
+                    }
+                }
+            }
+            if (main === undefined) {
+                throw new FileNotFoundError(`No file ${jsName} in path.`);
+            }
+            return await main.bind(this)(...args);
+        }
+
+        /**
+         * Execute the "main" function of the javascript file. The variable "this" will be this fileSystem.
+         * @memberof ExecutableMixin#
+         * @async
+         * @param {FileObject} fileObject - A fileObject that references a file containing javascript to be executed.
+         * @param {Array} args - The arguments to be provided to the "main" function in the file.
+         */
+        async execFileObject(fileObject, ...args) {
+            let main = await this.importFromFileObject(fileObject, 'main');
+            return await main.bind(this)(...args);
+        }
+
+        /**
+         * Execute the "main" function of the javascript file with the name given in the command parameter
+         * with the given arguments. The file must be located in the executable path, which is an array
+         * of absolute path arrays. The variable "this" will be this fileSystem.
+         * @memberof ExecutableMixin#
+         * @async
+         * @param {string[]} pathArray - An array of strings representing the path of the file to copy to.
+         * @param {string} variableName - The name of the variable to import from the javascript file.
+         * @return {*} The value of the variable.
+         */
+        async import(pathArray, variableName) {
+            // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
+            // Right now executes script as function with FileSystem bound as "this". In an ideal world
+            // with dynamic imports would import as a module and could use relative paths.
+            let fileObject = await this.getFileObject(pathArray);
+            return await this.importFromFileObject(fileObject, variableName);
+        }
+
+        /**
+         * Execute the "main" function of the javascript file with the name given in the command parameter
+         * with the given arguments. The file must be located in the executable path, which is an array
+         * of absolute path arrays. The variable "this" will be this fileSystem.
+         * @memberof ExecutableMixin#
+         * @async
+         * @param {FileObject} fileObject - A fileObject that references a file containing javascript from which to import.
+         * @param {string} variableName - The name of the variable to import from the javascript file.
+         * @return {*} The value of the variable.
+         */
+        async importFromFileObject(fileObject, variableName) {
+            let scriptString = await fileObject.readText();
+            try {
+                let func = new AsyncFunction(`${scriptString};return ${variableName};`);
+                return await func.bind(this)();
+            } catch (e) {
+                throw new Error(`Error importing file ${fileObject}: ${e}`);
+            }
+        }
+    };
 };
 
 
+
+/**
+ * A full implementation of the file system.
+ * @extends BaseFileSystem
+ * @mixes ExecutableMixin
+ * @mixes HiddenReferenceLinkMixin
+ * @mixes MountStorageMixin
+ * @mixes StateMixin
+ */
 export class FileSystem extends ExecutableMixin(HiddenReferenceLinkMixin(
                                 MountStorageMixin(StateMixin(BaseFileSystem)))){
 }

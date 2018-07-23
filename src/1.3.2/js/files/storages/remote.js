@@ -5,6 +5,7 @@ import {FileNotFoundError, AbstractFileStorage} from "./base.js";
 /**
  * A mixin that implements the methods addFile, addDirectory, rename, delete, copy, move and search
  * by writing to hidden virtual files. The backend must must support those operations.
+ * @mixin HiddenFileAPIMixin
  * @param {AbstractFileStorage} fileStorageClass - A subclass of AbstractFileStorage.
  * @returns {AbstractFileStorage}
  */
@@ -78,10 +79,12 @@ export let HiddenFileAPIMixin = (fileStorageClass) => {
   };
 };
 
+/**
+ * This storage uses an API that interacts with files via virtual files in each directory.
+ * @extends AbstractFileStorage
+ * @mixes HiddenFileAPIMixin
+ */
 export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) {
-  /**
-   * This storage uses an API that interacts with files via virtual files in each directory.
-   */
   constructor(baseUrl) {
     super();
     this._baseUrl = baseUrl;

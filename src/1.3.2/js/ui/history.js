@@ -1,5 +1,10 @@
 import {Element, DroppableMixin} from "./element.js";
 
+/**
+ * An element that represents the current location in a hierarchy.
+ * @extends Element
+ * @mixes DroppableMixin
+ */
 class BreadCrumb extends DroppableMixin(Element) {
   constructor(name, path) {
     super();

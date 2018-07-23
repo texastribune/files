@@ -2,10 +2,11 @@ import {Dialog} from "./dialog.js";
 import {Element, DroppableMixin, DraggableMixin} from "./element.js";
 
 
+/**
+ * An column for use in a Table.
+ * @extends Element
+ */
 class Column extends Element {
-  /**
-   * An column for use in a Table.
-   */
   constructor(name, rowRenderer, sortCompare, width, visible){
     super();
     this._name = name;
@@ -153,6 +154,12 @@ class Column extends Element {
 }
 
 
+/**
+ * An row element for use in a Table.
+ * @extends Element
+ * @mixes DroppableMixin
+ * @mixes DraggableMixin
+ */
 class Row extends DraggableMixin(DroppableMixin(Element)) {
   /**
    * An row element for use in a Table.
@@ -233,10 +240,12 @@ class Row extends DraggableMixin(DroppableMixin(Element)) {
 }
 
 
+/**
+ * An interactive table element.
+ * @extends Element
+ * @mixes DroppableMixin
+ */
 class Table extends DroppableMixin(Element) {
-  /**
-   * An interactive table element.
-   */
   constructor(columns, selectMultiple){
     super();
 
