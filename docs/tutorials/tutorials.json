@@ -1,0 +1,14 @@
+ {
+    "UserInterfaceTutorial": {
+      "title": "User Interface",
+      "children": {
+        "BrowserTutorial": {
+         "title": "Using the File Browser",
+         "children": {}
+        }
+      }
+    },
+   "QuickStartTutorial": {
+       "title": "Quick Start"
+   }
+ }

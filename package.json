@@ -7,7 +7,7 @@
     "build": "webpack",
     "test": "jest --coverage -i --verbose --bail --ci",
     "test:basic": "jest -i",
-    "docs": "./node_modules/.bin/jsdoc -d ./doc ./src/**/*.js"
+    "docs": "./node_modules/.bin/jsdoc -c ./docs/conf.json"
   },
   "devDependencies": {
     "babel-core": "^6.3.26",
@@ -36,7 +36,7 @@
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/reports/",
-      "/doc/",
+      "/docs/",
       "/dist/"
     ],
     "globals": {
