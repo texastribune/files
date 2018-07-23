@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: files/storages/photoshelter.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: files/storages/photoshelter.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {AbstractFileStorage} from "./base.js";
+
+export class PhotoshelterAPI {
+    constructor(email, password, apikey){
+    this._email = email;
+    this._password = password;
+    this._apiKey = apikey;
+    this._authToken = null;
+  }
+
+  static get url(){
+    return new URL('https://www.photoshelter.com');
+  }
+
+  async _getAuthToken(){
+    if (this._authToken === null){
+      let url = this.constructor.url;
+      url.pathname = '/psapi/v3/mem/authenticate';
+      url.searchParams.set('api_key', this._apiKey);
+      let data = {
+        email: this._email,
+        password: this._password,
+        mode: 'token'
+      };
+      let response = await fetch(url.toString(), {
+        body: JSON.stringify(data),
+        method: 'POST'
+      });
+      if (response.ok){
+        let data = response.json().data;
+        this._authToken = data.token;
+        if (data.hasOwnProperty('org')){
+          let url = this.constructor.url;
+          url.pathname = `/psapi/v3/mem/organization/${data.org[0].id}/authenticate`;
+          let response = await fetch(url.toString(), {
+            headers: await this.getHeaders(),
+            method: 'POST'
+          });
+          if (!response.ok){
+            throw Error("Error authentication Photoshelter organization");
+          }
+        }
+      } else {
+        throw Error("Error authentication Photoshelter");
+      }
+    }
+    return this._authToken;
+  }
+
+  async getHeaders(){
+    return {
+      'X-PS-Api-Key': this._apiKey,
+      'X-PS-Auth-Token': await this._getAuthToken()
+    }
+  }
+
+  async _get(url, retry){
+      retry = retry === undefined ? true : retry;
+      let response = await fetch(url.toString(), {
+        headers: await this.getHeaders()
+      });
+      if (!response.ok){
+        if (retry){
+          this._authToken = null;
+          return await this._get(url, false);
+        } else {
+          throw new Error("Photoshelter error: " + response.statusText);
+        }
+      }
+      return response;
+  }
+
+  async _post(url, body, retry){
+      retry = retry === undefined ? true : retry;
+      let headers = await this.getHeaders();
+      headers['Content-Type'] ='application/json';
+      let response = await fetch(url.toString(), {
+        headers: headers,
+        body: body,
+        method: 'POST'
+      });
+      if (!response.ok){
+        if (retry){
+          this._authToken = null;
+          return await this._post(url, body, false);
+        } else {
+          throw new Error("Photoshelter error: " + response.statusText);
+        }
+      }
+      return response;
+  }
+
+  async getImageFile(photoId){
+      let url = this.constructor.url;
+      url.pathname = `/psapi/v3/mem/image/${photoId}/download`;
+      url.searchParams.set('f_embed', '');
+      let response = await this._get(url.toString());
+      let contDisp = response.headers.get("content-disposition");
+      let blob = await response.blob();
+      return new File([blob], contDisp, {type: blob.type, lastModified: Date.now()});
+  }
+
+  async getImageData(photoId){
+      let url = this.constructor.url;
+      url.pathname = `/psapi/v3/mem/image/${photoId}`;
+      let response = await this._get(url.toString());
+      return response.json().data.image;
+  }
+
+  async getImageGalleries(galleryId){
+      galleryId = galleryId || 'root';
+      let url = this.constructor.url;
+      url.pathname = `/psapi/v3/mem/image/${galleryId}/galleries`;
+      url.searchParams.set('extend', JSON.stringify({Gallery: {}}));
+      let response = await this._get(url.toString());
+      return response.json().data.ImageGallery;
+  }
+
+  async getImageLink(photoId){
+    let url = this.constructor.url;
+    url.pathname = `/psapi/v3/mem/image/${photoId}/link`;
+    let response = await this._get(url.toString());
+    return response.json().data.ImageLink.link;
+  }
+
+  async getCollectionData(collectionId){
+      collectionId = collectionId || 'root';
+      let url = this.constructor.url;
+      url.pathname = `/psapi/v3/mem/collection/${collectionId}`;
+      let response = await this._get(url.toString());
+      return response.json().data.Collection;
+  }
+
+  async getCollectionParent(collectionId){
+      collectionId = collectionId || 'root';
+      let url = this.constructor.url;
+      url.pathname = `/psapi/v3/mem/collection/${collectionId}/parent`;
+      let response = await this._get(url.toString());
+      return response.json().data.Collection;
+  }
+
+  async getCollectionChildren(collectionId){
+      collectionId = collectionId || 'root';
+      let url = this.constructor.url;
+      url.pathname = `/psapi/v3/mem/collection/${collectionId}/children`;
+      url.searchParams.set('extend', JSON.stringify({Collection: {}, Gallery: {}}));
+      let response = await this._get(url.toString());
+      return response.json().data.Children;
+  }
+
+  async getGalleryData(galleryId){
+      galleryId = galleryId || 'root';
+      let url = this.constructor.url;
+      url.pathname = `/psapi/v3/mem/gallery/${galleryId}`;
+      let response = await this._get(url.toString());
+      return response.json().data.Gallery;
+  }
+
+  async getGalleryParent(galleryId){
+      galleryId = galleryId || 'root';
+      let url = this.constructor.url;
+      url.pathname = `/psapi/v3/mem/gallery/${galleryId}/parent`;
+      url.searchParams.set('extend', JSON.stringify({Collection: {}}));
+      let response = await this._get(url.toString());
+      return response.json().data.Parents;
+  }
+
+  async getGalleryChildren(galleryId){
+      galleryId = galleryId || 'root';
+      let url = this.constructor.url;
+      url.pathname = `/psapi/v3/mem/gallery/${galleryId}/children`;
+      url.searchParams.set('extend', JSON.stringify({Image: {}, ImageLink: {}}));
+      let response = await this._get(url.toString());
+      return response.json().data.GalleryImage;
+  }
+
+  async search(string){
+      let url = this.constructor.url;
+      url.pathname = '/psapi/v3/mem/image/search';
+      let terms = string.split(" ");
+      url.searchParams.set('terms', JSON.stringify(terms));
+      url.searchParams.set('extend', JSON.stringify({Image: {}, ImageLink: {}}));
+      let response = await this._get(url.toString());
+      return response.json().data.Results;
+  }
+}
+
+
+export class PhotoshelterStorage extends AbstractFileStorage {
+  /**
+   * This storage uses the Photoshelter API.
+   */
+  constructor(email, password, apikey, rootId){
+    super();
+
+    this._photoshelterAPI = new PhotoshelterAPI(email, password, apikey);
+  }
+
+  async addDirectory(parentNode, name) {
+    return undefined;
+  }
+
+  async addFile(parentNode, file, filename) {
+    return undefined;
+  }
+
+  clone() {
+    return undefined;
+  }
+
+  async copy(source, targetParent) {
+    return undefined;
+  }
+
+  async delete(fileNode) {
+    return undefined;
+  }
+
+  async move(source, targetParent) {
+    return undefined;
+  }
+
+  _dataToImageFileNode(data){
+    let url;
+    if (!data.hasOwnProperty('ImageLink')){
+      url = this._photoshelterAPI.getImageLink(fileNode.id);
+    } else {
+      url = data.ImageLink.link;
+    }
+    let time = new Date().toISOString();
+    return {
+      id: data['image_id'],
+      name: data['file_name'],
+      directory: false,
+      icon: null,
+      url: url,
+      size: data['file_size'],
+      mimeType: 'application/octet-stream',
+      created: time,
+      lastModified: time
+    }
+  }
+
+  _dataToCollectionFileNode(data){
+    return {
+      id: data['collection_id'],
+      name: data['name'],
+      directory: true,
+      url: '',
+      icon: null,
+      size: 0,
+      mimeType: 'application/json',
+      lastModified: new Date(data['modified_at']),
+      created: new Date(data['created_at']),
+    }
+  }
+
+  _dataToGalleryFileNode(data){
+    return {
+      id: data['gallery_id'],
+      name: data['name'],
+      directory: true,
+      url: '',
+      icon: null,
+      size: 0,
+      mimeType: 'application/json',
+      lastModified: new Date(data['modified_at']),
+      created: new Date(data['created_at']),
+    }
+  }
+
+  async readFileNode(fileNode, params) {
+    if (fileNode.id.startsWith('I')){
+      return await this._photoshelterAPI.getImageFile(fileNode.id);
+    }
+
+    let nodes = {};
+    if (fileNode.id === this.rootFileNode.id || fileNode.id.startsWith('C')){
+      let data = await this._photoshelterAPI.getCollectionChildren(fileNode.id);
+      let childCollections = data.Collection || [];
+      let childGalleries = data.Gallery || [];
+      for (let collection of childCollections){
+        nodes[collection.name] = this._dataToCollectionFileNode(collection);
+      }
+      for (let gallery of childGalleries){
+        nodes[gallery.name] = this._dataToGalleryFileNode(gallery);
+      }
+    } else if (fileNode.id.startsWith('G')){
+      let data = await this._photoshelterAPI.getGalleryChildren(fileNode.id);
+      for (let image of data){
+        nodes[image['file_name']] = this._dataToImageFileNode(image);
+      }
+    }
+    return new File([JSON.stringify(nodes)], fileNode.name, {type: fileNode.mimeType});
+  }
+
+  async rename(fileNode, newName) {
+    return undefined;
+  }
+
+  get rootFileNode() {
+    let currentDateString = new Date().toISOString();
+    return {
+      id: 'root',
+      name: 'root',
+      url: '',
+      directory: true,
+      icon: null,
+      size: 0,
+      mimeType: 'application/json',
+      lastModified: currentDateString,
+      created: currentDateString
+    };
+  }
+
+  async search(fileNode, query) {
+    return undefined;
+  }
+
+  async writeFileNode(fileNode, data) {
+    return undefined;
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AbstractFileStorage_AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem_BaseFileSystem.html">BaseFileSystem</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage_FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject_FileObject.html">FileObject</a></li><li><a href="Link_Link.html">Link</a></li><li><a href="LocalStorageFileStorage_LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage_MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="PhotoshelterStorage_PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-QuickStartTutorial.html">Quick Start</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#CacheMixin">CacheMixin</a></li><li><a href="global.html#changeDirectory">changeDirectory</a></li><li><a href="global.html#data">data</a></li><li><a href="global.html#dataUrlToBlob">dataUrlToBlob</a></li><li><a href="global.html#DraggableMixin">DraggableMixin</a></li><li><a href="global.html#DroppableMixin">DroppableMixin</a></li><li><a href="global.html#exec">exec</a></li><li><a href="global.html#execFileObject">execFileObject</a></li><li><a href="global.html#ExecutableMixin">ExecutableMixin</a></li><li><a href="global.html#executablePath">executablePath</a></li><li><a href="global.html#fileToDataUrl">fileToDataUrl</a></li><li><a href="global.html#HiddenFileAPIMixin">HiddenFileAPIMixin</a></li><li><a href="global.html#HiddenReferenceLinkMixin">HiddenReferenceLinkMixin</a></li><li><a href="global.html#import">import</a></li><li><a href="global.html#importFromFileObject">importFromFileObject</a></li><li><a href="global.html#MountStorageMixin">MountStorageMixin</a></li><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#parseJsonFile">parseJsonFile</a></li><li><a href="global.html#parseTextFile">parseTextFile</a></li><li><a href="global.html#path">path</a></li><li><a href="global.html#refresh">refresh</a></li><li><a href="global.html#refreshAfter">refreshAfter</a></li><li><a href="global.html#StateMixin">StateMixin</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li><li><a href="global.html#waitFor">waitFor</a></li><li><a href="global.html#waitOn">waitOn</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Jul 23 2018 11:10:47 GMT-0500 (CDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
