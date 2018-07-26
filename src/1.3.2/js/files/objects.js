@@ -108,7 +108,7 @@ export class FileObject {
    */
   async read(params) {
     if (this._filePromiseCache === null){
-      this._filePromiseCache = this.fileStorage.readFileNode(this.fileNode, params);
+      this._filePromiseCache = this.fileStorage.readFileNode(this.id, params);
     }
     return await this._filePromiseCache;
   }
@@ -121,7 +121,7 @@ export class FileObject {
    */
   async write(data) {
     this.clearCache();
-    return await this.fileStorage.writeFileNode(this.fileNode, data);
+    return await this.fileStorage.writeFileNode(this.id, data);
   }
 
   /**
@@ -153,7 +153,7 @@ export class FileObject {
    */
   async rename(newName) {
     this.clearCache();
-    await this.fileStorage.rename(this.fileNode, newName);
+    await this.fileStorage.rename(this.id, newName);
     this._fileNode.name = newName;
   }
 
@@ -163,7 +163,7 @@ export class FileObject {
    */
   async delete() {
     this.clearCache();
-    return await this.fileStorage.delete(this.fileNode);
+    return await this.fileStorage.delete(this.id);
   }
 
   /**
@@ -174,7 +174,7 @@ export class FileObject {
    */
   async search(query) {
     let fileObjectList = [];
-    let fileNodeList = await this.fileStorage.search(this.fileNode, query);
+    let fileNodeList = await this.fileStorage.search(this.id, query);
     for (let node of fileNodeList){
       fileObjectList.push(new FileObject(this.fileStorage, node, node.name, this));
     }

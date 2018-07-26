@@ -95,7 +95,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line16">line 16</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line15">line 15</a>
     </li></ul></dd>
     
 
@@ -187,7 +187,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line39">line 39</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line21">line 21</a>
     </li></ul></dd>
     
 
@@ -215,7 +215,7 @@ file system maintains a current directory and the data in that directory.</div>
     
 
     
-    <h4 class="name" id="addDirectory"><span class="type-signature">(async, abstract) </span>addDirectory<span class="signature">(parentNode, name)</span><span class="type-signature"> &rarr; {<a href="global.html#FileNode">FileNode</a>}</span></h4>
+    <h4 class="name" id="addDirectory"><span class="type-signature">(async, abstract) </span>addDirectory<span class="signature">(parentId, name)</span><span class="type-signature"> &rarr; {<a href="global.html#FileNode">FileNode</a>}</span></h4>
     
 
     
@@ -259,13 +259,13 @@ file system maintains a current directory and the data in that directory.</div>
 
         <tr>
             
-                <td class="name"><code>parentNode</code></td>
+                <td class="name"><code>parentId</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="global.html#FileNode">FileNode</a></span>
+<span class="param-type">string</span>
 
 
             
@@ -275,7 +275,7 @@ file system maintains a current directory and the data in that directory.</div>
 
             
 
-            <td class="description last">FileNode representing the parent directory for the new directory</td>
+            <td class="description last">Id referring to the directory file to add the directory.</td>
         </tr>
 
     
@@ -339,7 +339,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line88">line 88</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line70">line 70</a>
     </li></ul></dd>
     
 
@@ -395,7 +395,7 @@ file system maintains a current directory and the data in that directory.</div>
     
 
     
-    <h4 class="name" id="addFile"><span class="type-signature">(async, abstract) </span>addFile<span class="signature">(parentNode, file, filename<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="global.html#FileNode">FileNode</a>}</span></h4>
+    <h4 class="name" id="addFile"><span class="type-signature">(async, abstract) </span>addFile<span class="signature">(parentId, file, filename<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="global.html#FileNode">FileNode</a>}</span></h4>
     
 
     
@@ -441,13 +441,13 @@ file system maintains a current directory and the data in that directory.</div>
 
         <tr>
             
-                <td class="name"><code>parentNode</code></td>
+                <td class="name"><code>parentId</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="global.html#FileNode">FileNode</a></span>
+<span class="param-type">string</span>
 
 
             
@@ -465,7 +465,7 @@ file system maintains a current directory and the data in that directory.</div>
 
             
 
-            <td class="description last">FileNode representing the parent directory for the new file</td>
+            <td class="description last">Id referring to the directory file to add the file.</td>
         </tr>
 
     
@@ -573,7 +573,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line76">line 76</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line58">line 58</a>
     </li></ul></dd>
     
 
@@ -681,7 +681,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line152">line 152</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line134">line 134</a>
     </li></ul></dd>
     
 
@@ -737,7 +737,7 @@ file system maintains a current directory and the data in that directory.</div>
     
 
     
-    <h4 class="name" id="copy"><span class="type-signature">(async, abstract) </span>copy<span class="signature">(source, targetParent)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="copy"><span class="type-signature">(async, abstract) </span>copy<span class="signature">(sourceId, targetParentId)</span><span class="type-signature"></span></h4>
     
 
     
@@ -781,13 +781,13 @@ file system maintains a current directory and the data in that directory.</div>
 
         <tr>
             
-                <td class="name"><code>source</code></td>
+                <td class="name"><code>sourceId</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">fileNode</span>
+<span class="param-type">string</span>
 
 
             
@@ -797,20 +797,20 @@ file system maintains a current directory and the data in that directory.</div>
 
             
 
-            <td class="description last">The file node of the file to be copied to targetParent.</td>
+            <td class="description last">The id of the file to be copied to targetParent.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>targetParent</code></td>
+                <td class="name"><code>targetParentId</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">fileNode</span>
+<span class="param-type">string</span>
 
 
             
@@ -820,7 +820,7 @@ file system maintains a current directory and the data in that directory.</div>
 
             
 
-            <td class="description last">The target directory to put the file.</td>
+            <td class="description last">The id of the target directory to put the file.</td>
         </tr>
 
     
@@ -861,7 +861,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line120">line 120</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line102">line 102</a>
     </li></ul></dd>
     
 
@@ -895,7 +895,7 @@ file system maintains a current directory and the data in that directory.</div>
     
 
     
-    <h4 class="name" id="delete"><span class="type-signature">(async, abstract) </span>delete<span class="signature">(fileNode)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="delete"><span class="type-signature">(async, abstract) </span>delete<span class="signature">(id)</span><span class="type-signature"></span></h4>
     
 
     
@@ -939,13 +939,13 @@ file system maintains a current directory and the data in that directory.</div>
 
         <tr>
             
-                <td class="name"><code>fileNode</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="global.html#FileNode">FileNode</a></span>
+<span class="param-type">string</span>
 
 
             
@@ -955,7 +955,7 @@ file system maintains a current directory and the data in that directory.</div>
 
             
 
-            <td class="description last">The name of the file to be deleted. Must be in current directory.</td>
+            <td class="description last">Id referring to the file to be deleted.</td>
         </tr>
 
     
@@ -996,7 +996,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line109">line 109</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line91">line 91</a>
     </li></ul></dd>
     
 
@@ -1030,165 +1030,7 @@ file system maintains a current directory and the data in that directory.</div>
     
 
     
-    <h4 class="name" id="listDirectory"><span class="type-signature">(async) </span>listDirectory<span class="signature">(fileNode)</span><span class="type-signature"> &rarr; {Object}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Return a javascript Object mapping file names to file objects for each file in the
-directory represented by the given fileObject.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fileNode</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="global.html#FileNode">FileNode</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">FileNode referring to the directory to list.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line27">line 27</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    - Object mapping filename to FileNode for each file in the given directory.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Object</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="move"><span class="type-signature">(async, abstract) </span>move<span class="signature">(source, targetParent)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="move"><span class="type-signature">(async, abstract) </span>move<span class="signature">(sourceId, targetParentId)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1232,13 +1074,13 @@ directory represented by the given fileObject.
 
         <tr>
             
-                <td class="name"><code>source</code></td>
+                <td class="name"><code>sourceId</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">fileNode</span>
+<span class="param-type">string</span>
 
 
             
@@ -1248,20 +1090,20 @@ directory represented by the given fileObject.
 
             
 
-            <td class="description last">The file node of the file to be moved.</td>
+            <td class="description last">The id of the file to be moved to targetParent.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>targetParent</code></td>
+                <td class="name"><code>targetParentId</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">fileNode</span>
+<span class="param-type">string</span>
 
 
             
@@ -1271,7 +1113,7 @@ directory represented by the given fileObject.
 
             
 
-            <td class="description last">The target directory to put the file.</td>
+            <td class="description last">The id of the target directory to put the file.</td>
         </tr>
 
     
@@ -1312,7 +1154,7 @@ directory represented by the given fileObject.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line131">line 131</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line113">line 113</a>
     </li></ul></dd>
     
 
@@ -1346,7 +1188,7 @@ directory represented by the given fileObject.
     
 
     
-    <h4 class="name" id="readFileNode"><span class="type-signature">(async, abstract) </span>readFileNode<span class="signature">(fileNode, params)</span><span class="type-signature"> &rarr; {Blob}</span></h4>
+    <h4 class="name" id="readFileNode"><span class="type-signature">(async, abstract) </span>readFileNode<span class="signature">(id, params)</span><span class="type-signature"> &rarr; {Blob}</span></h4>
     
 
     
@@ -1390,13 +1232,13 @@ directory represented by the given fileObject.
 
         <tr>
             
-                <td class="name"><code>fileNode</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="global.html#FileNode">FileNode</a></span>
+<span class="param-type">string</span>
 
 
             
@@ -1406,7 +1248,7 @@ directory represented by the given fileObject.
 
             
 
-            <td class="description last">FileNode referring to the file to be read.</td>
+            <td class="description last">Id referring to the file to be read.</td>
         </tr>
 
     
@@ -1470,7 +1312,7 @@ directory represented by the given fileObject.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line51">line 51</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line33">line 33</a>
     </li></ul></dd>
     
 
@@ -1526,7 +1368,7 @@ directory represented by the given fileObject.
     
 
     
-    <h4 class="name" id="rename"><span class="type-signature">(async, abstract) </span>rename<span class="signature">(fileNode, newName)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="rename"><span class="type-signature">(async, abstract) </span>rename<span class="signature">(id, newName)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1570,13 +1412,13 @@ directory represented by the given fileObject.
 
         <tr>
             
-                <td class="name"><code>fileNode</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="global.html#FileNode">FileNode</a></span>
+<span class="param-type">string</span>
 
 
             
@@ -1586,7 +1428,7 @@ directory represented by the given fileObject.
 
             
 
-            <td class="description last">The name of the file to rename. Must be in current directory.</td>
+            <td class="description last">Id referring to the file to be renamed.</td>
         </tr>
 
     
@@ -1650,7 +1492,7 @@ directory represented by the given fileObject.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line99">line 99</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line81">line 81</a>
     </li></ul></dd>
     
 
@@ -1684,7 +1526,7 @@ directory represented by the given fileObject.
     
 
     
-    <h4 class="name" id="search"><span class="type-signature">(async, abstract) </span>search<span class="signature">(fileNode, query)</span><span class="type-signature"> &rarr; {Array.&lt;<a href="global.html#FileNode">FileNode</a>>}</span></h4>
+    <h4 class="name" id="search"><span class="type-signature">(async, abstract) </span>search<span class="signature">(id, query)</span><span class="type-signature"> &rarr; {Array.&lt;<a href="global.html#FileNode">FileNode</a>>}</span></h4>
     
 
     
@@ -1728,13 +1570,13 @@ directory represented by the given fileObject.
 
         <tr>
             
-                <td class="name"><code>fileNode</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">fileNode</span>
+<span class="param-type">string</span>
 
 
             
@@ -1744,7 +1586,7 @@ directory represented by the given fileObject.
 
             
 
-            <td class="description last">The file node of the file to be searched.</td>
+            <td class="description last">The id of the file to be searched.</td>
         </tr>
 
     
@@ -1808,7 +1650,7 @@ directory represented by the given fileObject.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line143">line 143</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line125">line 125</a>
     </li></ul></dd>
     
 
@@ -1864,7 +1706,7 @@ directory represented by the given fileObject.
     
 
     
-    <h4 class="name" id="writeFileNode"><span class="type-signature">(async, abstract) </span>writeFileNode<span class="signature">(fileNode, data)</span><span class="type-signature"> &rarr; {Blob}</span></h4>
+    <h4 class="name" id="writeFileNode"><span class="type-signature">(async, abstract) </span>writeFileNode<span class="signature">(id, data)</span><span class="type-signature"> &rarr; {Blob}</span></h4>
     
 
     
@@ -1908,13 +1750,13 @@ directory represented by the given fileObject.
 
         <tr>
             
-                <td class="name"><code>fileNode</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="global.html#FileNode">FileNode</a></span>
+<span class="param-type">string</span>
 
 
             
@@ -1924,7 +1766,7 @@ directory represented by the given fileObject.
 
             
 
-            <td class="description last">FileNode referring to the file to be read.</td>
+            <td class="description last">Id referring to the file to be written to.</td>
         </tr>
 
     
@@ -1991,7 +1833,7 @@ directory represented by the given fileObject.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line63">line 63</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line45">line 45</a>
     </li></ul></dd>
     
 

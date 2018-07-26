@@ -91,7 +91,7 @@ describe('Test mounting mixin', () => {
   test('System can mount directories', async () => {
     let fileObjects = await addTestFiles(system);
     let mountedStorage = new MemoryFileStorage();
-    let mountedFileNode = await mountedStorage.addFile(mountedStorage.rootFileNode, new File(['mount'], 'mounted-file'), 'mounted-file');
+    let mountedFileNode = await mountedStorage.addFile(mountedStorage.rootFileNode.id, new File(['mount'], 'mounted-file'), 'mounted-file');
     system.mount(fileObjects[0], mountedStorage, 'mount-name');
     let dir1FileObjects = await system.listDirectory([dir1Name]);
 
@@ -145,7 +145,7 @@ describe('Test state mixin', () => {
     expect(system.data).toEqual(rootFileObjects);
 
     // Add file via storage class. Data should still be initial data because there has not been a refresh.
-    let newFileNode = await storage.addFile(storage.rootFileNode, new File(['new'], 'new-file'), 'new-file');
+    let newFileNode = await storage.addFile(storage.rootFileNode.id, new File(['new'], 'new-file'), 'new-file');
     expect(system.data).toEqual(rootFileObjects);
 
     // After refresh data should have changed.

@@ -1,4 +1,3 @@
-import {parseJsonFile} from "../../utils.js";
 
 
 export class FileNotFoundError extends Error {
@@ -14,23 +13,6 @@ export class FileNotFoundError extends Error {
  * file system maintains a current directory and the data in that directory.
  */
 export class AbstractFileStorage {
-  constructor() {
-  }
-
-  /**
-   * Return a javascript Object mapping file names to file objects for each file in the
-   * directory represented by the given fileObject.
-   * @async
-   * @param {FileNode} fileNode - FileNode referring to the directory to list.
-   * @returns {Object} - Object mapping filename to FileNode for each file in the given directory.
-   */
-  async listDirectory(fileNode) {
-    let directoryFile = await this.readFileNode(fileNode);
-    return await parseJsonFile(directoryFile);
-  }
-
-  // Abstract methods.
-
   /**
    * The file object representing the root directory.
    * @abstract
@@ -44,11 +26,11 @@ export class AbstractFileStorage {
    * Read the file.
    * @async
    * @abstract
-   * @param {FileNode} fileNode - FileNode referring to the file to be read.
+   * @param {string} id - Id referring to the file to be read.
    * @param {Object} params - Query params to read with.
    * @returns {Blob} - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
    */
-  async readFileNode(fileNode, params) {
+  async readFileNode(id, params) {
     throw new Error("Not implemented")
   }
 
@@ -56,11 +38,11 @@ export class AbstractFileStorage {
    * Write to the file.
    * @async
    * @abstract
-   * @param {FileNode} fileNode - FileNode referring to the file to be read.
+   * @param {string} id - Id referring to the file to be written to.
    * @param {File|Blob} data - File or Blob to write.
    * @returns {Blob} - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
    */
-  async writeFileNode(fileNode, data) {
+  async writeFileNode(id, data) {
     throw new Error("Not implemented")
   }
 
@@ -68,12 +50,12 @@ export class AbstractFileStorage {
    * Add a file to the current directory.
    * @async
    * @abstract
-   * @param {FileNode} parentNode - FileNode representing the parent directory for the new file
+   * @param {string} parentId - Id referring to the directory file to add the file.
    * @param {File|string} file - The file or a dataUrl of a file to be added to the current directory.
    * @param {string} [filename] - A name for the new file.
    * @returns {FileNode} - The data for the newly created directory
    */
-  async addFile(parentNode, file, filename) {
+  async addFile(parentId, file, filename) {
     throw new Error("Not implemented")
   }
 
@@ -81,11 +63,11 @@ export class AbstractFileStorage {
    * Add a directory to the current directory.
    * @async
    * @abstract
-   * @param {FileNode} parentNode - FileNode representing the parent directory for the new directory
+   * @param {string} parentId - Id referring to the directory file to add the directory.
    * @param {string} name - A name for the new directory.
    * @returns {FileNode} - The data for the newly created directory
    */
-  async addDirectory(parentNode, name) {
+  async addDirectory(parentId, name) {
     throw new Error("Not implemented")
   }
 
@@ -93,10 +75,10 @@ export class AbstractFileStorage {
    * Rename a file in the current directory.
    * @async
    * @abstract
-   * @param {FileNode} fileNode - The name of the file to rename. Must be in current directory.
+   * @param {string} id - Id referring to the file to be renamed.
    * @param {string} newName - The name to change the filename to.
    */
-  async rename(fileNode, newName) {
+  async rename(id, newName) {
     throw new Error("Not implemented")
   }
 
@@ -104,9 +86,9 @@ export class AbstractFileStorage {
    * Delete a file in the current directory.
    * @async
    * @abstract
-   * @param {FileNode} fileNode - The name of the file to be deleted. Must be in current directory.
+   * @param {string} id - Id referring to the file to be deleted.
    */
-  async delete(fileNode) {
+  async delete(id) {
     throw new Error("Not implemented")
   }
 
@@ -114,10 +96,10 @@ export class AbstractFileStorage {
    * Copy a file into the current directory.
    * @async
    * @abstract
-   * @param {fileNode} source - The file node of the file to be copied to targetParent.
-   * @param {fileNode} targetParent - The target directory to put the file.
+   * @param {string} sourceId - The id of the file to be copied to targetParent.
+   * @param {string} targetParentId - The id of the target directory to put the file.
    */
-  async copy(source, targetParent) {
+  async copy(sourceId, targetParentId) {
     throw new Error("Not implemented")
   }
 
@@ -125,10 +107,10 @@ export class AbstractFileStorage {
    * Move a file into the current directory.
    * @async
    * @abstract
-   * @param {fileNode} source - The file node of the file to be moved.
-   * @param {fileNode} targetParent - The target directory to put the file.
+   * @param {string} sourceId - The id of the file to be moved to targetParent.
+   * @param {string} targetParentId - The id of the target directory to put the file.
    */
-  async move(source, targetParent) {
+  async move(sourceId, targetParentId) {
     throw new Error("Not implemented")
   }
 
@@ -136,11 +118,11 @@ export class AbstractFileStorage {
    * Search the current directory and its subdirectories recursively for files matching the given search term.
    * @async
    * @abstract
-   * @param {fileNode} fileNode - The file node of the file to be searched.
+   * @param {string} id - The id of the file to be searched.
    * @param {string} query - Search terms.
    * @returns {FileNode[]} - The data for the newly created directory
    */
-  async search(fileNode, query) {
+  async search(id, query) {
     throw new Error("Not implemented")
   }
 

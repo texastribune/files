@@ -224,11 +224,11 @@ export class PhotoshelterStorage extends AbstractFileStorage {
     this._photoshelterAPI = new PhotoshelterAPI(email, password, apikey);
   }
 
-  async addDirectory(parentNode, name) {
+  async addDirectory(parentId, name) {
     return undefined;
   }
 
-  async addFile(parentNode, file, filename) {
+  async addFile(parentId, file, filename) {
     return undefined;
   }
 
@@ -236,15 +236,15 @@ export class PhotoshelterStorage extends AbstractFileStorage {
     return undefined;
   }
 
-  async copy(source, targetParent) {
+  async copy(sourceId, targetParentId) {
     return undefined;
   }
 
-  async delete(fileNode) {
+  async delete(id) {
     return undefined;
   }
 
-  async move(source, targetParent) {
+  async move(sourceId, targetParentId) {
     return undefined;
   }
 
@@ -297,14 +297,14 @@ export class PhotoshelterStorage extends AbstractFileStorage {
     }
   }
 
-  async readFileNode(fileNode, params) {
-    if (fileNode.id.startsWith('I')){
-      return await this._photoshelterAPI.getImageFile(fileNode.id);
+  async readFileNode(id, params) {
+    if (id.startsWith('I')){
+      return await this._photoshelterAPI.getImageFile(id);
     }
 
     let nodes = {};
-    if (fileNode.id === this.rootFileNode.id || fileNode.id.startsWith('C')){
-      let data = await this._photoshelterAPI.getCollectionChildren(fileNode.id);
+    if (id === this.rootFileNode.id || id.startsWith('C')){
+      let data = await this._photoshelterAPI.getCollectionChildren(id);
       let childCollections = data.Collection || [];
       let childGalleries = data.Gallery || [];
       for (let collection of childCollections){
@@ -313,16 +313,16 @@ export class PhotoshelterStorage extends AbstractFileStorage {
       for (let gallery of childGalleries){
         nodes[gallery.name] = this._dataToGalleryFileNode(gallery);
       }
-    } else if (fileNode.id.startsWith('G')){
-      let data = await this._photoshelterAPI.getGalleryChildren(fileNode.id);
+    } else if (id.startsWith('G')){
+      let data = await this._photoshelterAPI.getGalleryChildren(id);
       for (let image of data){
         nodes[image['file_name']] = this._dataToImageFileNode(image);
       }
     }
-    return new File([JSON.stringify(nodes)], fileNode.name, {type: fileNode.mimeType});
+    return new Blob([JSON.stringify(nodes)], {type: 'application/json'});
   }
 
-  async rename(fileNode, newName) {
+  async rename(id, newName) {
     return undefined;
   }
 
@@ -341,11 +341,11 @@ export class PhotoshelterStorage extends AbstractFileStorage {
     };
   }
 
-  async search(fileNode, query) {
+  async search(id, query) {
     return undefined;
   }
 
-  async writeFileNode(fileNode, data) {
+  async writeFileNode(id, data) {
     return undefined;
   }
 }

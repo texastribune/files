@@ -213,8 +213,8 @@ export class MemoryFileStorage extends AbstractFileStorage {
     return this._root.fileNode;
   }
 
-  async readFileNode(fileNode, params) {
-    let memoryFile = this._getFile(fileNode.id);
+  async readFileNode(id, params) {
+    let memoryFile = this._getFile(id);
     return memoryFile.file;
   }
 
@@ -256,8 +256,8 @@ export class MemoryFileStorage extends AbstractFileStorage {
     return memoryFile;
   }
 
-  async addFile(parentNode, file, filename){
-    let parent = this._getFile(parentNode.id);
+  async addFile(id, file, filename){
+    let parent = this._getFile(id);
     if (file.name && (filename !== file.name)){
       file = new File([file], filename, {type: file.type});
     }
@@ -265,45 +265,45 @@ export class MemoryFileStorage extends AbstractFileStorage {
     return newMemoryFile.fileNode;
   }
 
-  async writeFileNode(fileNode, data) {
-    let memoryFile = this._getFile(fileNode.id);
+  async writeFileNode(id, data) {
+    let memoryFile = this._getFile(id);
     memoryFile.file = new File([data], memoryFile.name);
     return memoryFile.fileNode;
   }
 
-  async addDirectory(parentNode, name) {
-    let parent = this._getFile(parentNode.id);
+  async addDirectory(parentId, name) {
+    let parent = this._getFile(parentId);
     let newMemoryDirectory = new MemoryDirectory(parent, name);
     return newMemoryDirectory.fileNode;
   }
 
-  async rename(fileNode, newName) {
-    let memoryFile = this._getFile(fileNode.id);
+  async rename(id, newName) {
+    let memoryFile = this._getFile(id);
     memoryFile.rename(newName);
   }
 
-  async delete(fileNode) {
-    let memoryFile = this._getFile(fileNode.id);
+  async delete(id) {
+    let memoryFile = this._getFile(id);
     let parent = memoryFile.parent;
     parent.removeChild(memoryFile.name);
   }
 
-  async copy(source, targetParent) {
-    let sourceMemoryFile = this._getFile(source.id);
-    let targetMemoryFile = this._getFile(targetParent.id);
+  async copy(sourceId, targetParentId) {
+    let sourceMemoryFile = this._getFile(sourceId);
+    let targetMemoryFile = this._getFile(targetParentId);
     if (sourceMemoryFile.directory){
-      new MemoryDirectory(targetMemoryFile, source.name);
+      new MemoryDirectory(targetMemoryFile, sourceMemoryFile.name);
     } else {
-      new MemoryFile(targetMemoryFile, new File([source.file], source.name, {type: source.type}));
+      new MemoryFile(targetMemoryFile, new File([sourceMemoryFile.file], sourceMemoryFile.name, {type: sourceMemoryFile.type}));
     }
   }
 
-  async move(source, targetParent) {
-    let sourceMemoryFile = this._getFile(source.id);
-    sourceMemoryFile.parent = this._getFile(targetParent.id);
+  async move(sourceId, targetParentId) {
+    let sourceMemoryFile = this._getFile(sourceId);
+    sourceMemoryFile.parent = this._getFile(targetParentId);
   }
 
-  async search(query) {
+  async search(id, query) {
     throw new Error("Not implemented")
   }
 

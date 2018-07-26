@@ -34,7 +34,7 @@ function addBinExecutable(name, func){
   let text = `let main = async (...args) => {return await this._binFuncs["${name}"].bind(this)(...args);}`;
   let filename = `${name}.js`;
   let file = new File([text], filename, {type: 'application/javascript'});
-  binStorage.addFile(binStorage.rootFileNode, file, filename);
+  binStorage.addFile(binStorage.rootFileNode.id, file, filename);
 }
 
 addBinExecutable('alert', alert);
@@ -62,7 +62,7 @@ function addApiModule(name, module){
     text += `let ${variableName} = this._modules["${name}"]["${variableName}"];`
   }
   let filename = `${name}.js`;
-  apiStorage.addFile(apiStorage.rootFileNode, new File([text], filename, {type: 'application/javascript'}), filename);
+  apiStorage.addFile(apiStorage.rootFileNode.id, new File([text], filename, {type: 'application/javascript'}), filename);
 }
 
 addApiModule('browser', browserModule);

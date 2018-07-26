@@ -142,7 +142,7 @@ export class BaseFileSystem {
    */
   async addFile(pathArray, file, filename) {
     let parentFileObject = await this.getFileObject(pathArray);
-    let newFile = await  parentFileObject.fileStorage.addFile(parentFileObject.fileNode, file, filename);
+    let newFile = await  parentFileObject.fileStorage.addFile(parentFileObject.id, file, filename);
     return new FileObject( parentFileObject.fileStorage, newFile,
                           filename,  parentFileObject);
   }
@@ -157,7 +157,7 @@ export class BaseFileSystem {
    */
   async addDirectory(pathArray, name) {
     let parentFileObject = await this.getFileObject(pathArray);
-    let newDir = await parentFileObject.fileStorage.addDirectory(parentFileObject.fileNode, name);
+    let newDir = await parentFileObject.fileStorage.addDirectory(parentFileObject.id, name);
     return new FileObject(parentFileObject.fileStorage, newDir,
                           name, parentFileObject);
   }
@@ -172,10 +172,10 @@ export class BaseFileSystem {
   async copy(pathArray, fileObject){
     let targetFileObject = await this.getFileObject(pathArray);
     if (fileObject.fileStorage === targetFileObject.fileStorage){
-      await fileObject.fileStorage.copy(fileObject.fileNode, targetFileObject.fileNode);
+      await fileObject.fileStorage.copy(fileObject.id, targetFileObject.id);
     } else {
-      let file = await this.targetFileObject.fileStorage.readFileNode(this.targetFileObject.fileNode);
-      await this.targetFileObject.fileStorage.addFile(this.targetFileObject.fileNode, file, fileObject.name);
+      let file = await this.targetFileObject.fileStorage.readFileNode(this.targetFileObject.id);
+      await this.targetFileObject.fileStorage.addFile(this.targetFileObject.id, file, fileObject.name);
     }
   }
 
@@ -189,7 +189,7 @@ export class BaseFileSystem {
   async move(pathArray, fileObject){
     let targetFileObject = await this.getFileObject(pathArray);
     if (fileObject.fileStorage === targetFileObject.fileStorage){
-      await fileObject.fileStorage.move(fileObject.fileNode, targetFileObject.fileNode);
+      await fileObject.fileStorage.move(fileObject.id, targetFileObject.id);
     } else {
       throw new Error("Cannot move file across file systems.");
     }

@@ -9,12 +9,6 @@ export class WebDavStorage extends AbstractFileStorage {
     this._client = createClient(url);
   }
 
-  async listDirectory(fileNode) {
-    let dirCont = await this._client.getDirectoryContents(fileNode.id);
-    console.log("dirCont");
-    return super.listDirectory(fileNode);
-  }
-
   get rootFileNode() {
     console.log("ROOT");
     let currentDateString = new Date().toISOString();
@@ -31,16 +25,17 @@ export class WebDavStorage extends AbstractFileStorage {
     };
   }
 
-  async readFileNode(fileNode, params) {
-    console.log("READ", fileNode);
-    if (fileNode.directory){
-      let davFileData = await this._client.getDirectoryContents(fileNode.id);
+  async readFileNode(id, params) {
+    console.log("READ", id);
+    let stat = this._client.stat(id);
+    if (stat.type === 'directory'){
+      let davFileData = await this._client.getDirectoryContents(id);
       console.log("DAT", davFileData);
       let nodes = {};
       for (let fileData of davFileData ){
         let directory = fileData.type === "directory";
         nodes[fileData.basename] = {
-          id: fileNode.id + '/' + fileData.basename,
+          id: id + '/' + fileData.basename,
           name: fileData.basename,
           url: '',
           directory: directory,
@@ -51,43 +46,43 @@ export class WebDavStorage extends AbstractFileStorage {
           created: new Date(fileData.lastmod).toISOString()
         }
       }
-      return new File([JSON.stringify(nodes)], fileNode.name, {type: fileNode.mimeType});
+      return new File([JSON.stringify(nodes)], stat.filename, {type: stat.mime});
     }
-    let stream = this._client.createReadStream(fileNode.id);
+    let stream = this._client.createReadStream(id);
     console.log("STREAM", stream);
     return stream;
   }
 
-  async writeFileNode(fileNode, data) {
-    super.writeFileNode(fileNode, data);
+  async writeFileNode(id, data) {
+    super.writeFileNode(id, data);
   }
 
-  async addFile(parentNode, file, filename) {
-    super.addFile(parentNode, file, filename);
+  async addFile(parentId, file, filename) {
+    super.addFile(parentId, file, filename);
   }
 
-  async addDirectory(parentNode, name) {
-    super.addDirectory(parentNode, name);
+  async addDirectory(parentId, name) {
+    super.addDirectory(parentId, name);
   }
 
-  async rename(fileNode, newName) {
-    super.rename(fileNode, newName);
+  async rename(id, newName) {
+    super.rename(id, newName);
   }
 
-  async delete(fileNode) {
-    super.delete(fileNode);
+  async delete(id) {
+    super.delete(id);
   }
 
-  async copy(source, targetParent) {
-    super.copy(source, targetParent);
+  async copy(sourceId, targetParentId) {
+    super.copy(sourceId, targetParentId);
   }
 
-  async move(source, targetParent) {
-    super.move(source, targetParent);
+  async move(sourceId, targetParentId) {
+    super.move(sourceId, targetParentId);
   }
 
-  async search(fileNode, query) {
-    super.search(fileNode, query);
+  async search(id, query) {
+    super.search(id, query);
   }
 
   clone() {

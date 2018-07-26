@@ -50,8 +50,9 @@ export let HiddenFileAPIMixin = (fileStorageClass) => {
       this.searchFileName = '.search';
     }
 
-    async _getAPIFileNode(dirNode, name) {
-      let dirData = await this.listDirectory(dirNode);
+    async _getAPIFileNode(dirId, name) {
+      let directoryFile = await storage.readFileNode(dirId);
+      let dirData = await parseJsonFile(directoryFile);
       let fileNode = dirData[name];
       if (!fileNode) {
         throw new FileNotFoundError(`API file ${name} not found.`);
@@ -59,48 +60,48 @@ export let HiddenFileAPIMixin = (fileStorageClass) => {
       return fileNode;
     }
 
-    async addFile(parentNode, file, filename) {
+    async addFile(parentId, file, filename) {
       let data = new FormData;
       data.append('file', file);
       if (filename) {
         data.append('name', filename);
       }
 
-      let apiFileNode = await this._getAPIFileNode(parentNode, this.addFileName);
-      return await this.writeFileNode(apiFileNode, data);
+      let apiFileNode = await this._getAPIFileNode(parentId, this.addFileName);
+      return await this.writeFileNode(apiFileNode.id, data);
     }
 
-    async addDirectory(parentNode, name) {
-      let apiFileNode = await this._getAPIFileNode(parentNode, this.addDirectoryName);
-      return await this.writeFileNode(apiFileNode, name);
+    async addDirectory(parentId, name) {
+      let apiFileNode = await this._getAPIFileNode(parentId, this.addDirectoryName);
+      return await this.writeFileNode(apiFileNode.id, name);
     }
 
-    async rename(fileNode, newName) {
+    async rename(id, newName) {
       let data = new FormData;
-      data.append('id', fileNode.id);
+      data.append('id', id);
       data.append('to', newName);
 
-      let apiFileNode = await this._getAPIFileNode(this.rootFileNode, this.renameFileName);
-      await this.writeFileNode(apiFileNode, data);
+      let apiFileNode = await this._getAPIFileNode(this.rootFileNode.id, this.renameFileName);
+      await this.writeFileNode(apiFileNode.id, data);
     }
 
-    async delete(fileNode) {
-      let apiFileNode = await this._getAPIFileNode(this.rootFileNode, this.deleteFileName);
-      await this.writeFileNode(apiFileNode, fileNode.id);
+    async delete(id) {
+      let apiFileNode = await this._getAPIFileNode(this.rootFileNode.id, this.deleteFileName);
+      await this.writeFileNode(apiFileNode.id, id);
     }
 
-    async copy(source, targetNode) {
+    async copy(sourceId, targetNodeId) {
       // TODO
-      await super.copy(source);
+      await super.copy(sourceId);
     }
 
-    async move(source, targetNode) {
-      let apiFileNode = await this._getAPIFileNode(targetNode, this.moveFileName);
-      await this.writeFileNode(apiFileNode, source.id);
+    async move(sourceId, targetNodeId) {
+      let apiFileNode = await this._getAPIFileNode(targetNodeId, this.moveFileName);
+      await this.writeFileNode(apiFileNode, sourceId);
     }
 
-    async search(fileNode, query) {
-      let apiFileNode = await this._getAPIFileNode(fileNode, this.searchFileName);
+    async search(id, query) {
+      let apiFileNode = await this._getAPIFileNode(fileNodeId, this.searchFileName);
       let searchFile = await this.readFileNode(apiFileNode, {query: query});
       return parseJsonFile(searchFile);
     }
@@ -142,13 +143,13 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
     return this._rootFileNode;
   }
 
-  async readFileNode(fileNode, params) {
+  async readFileNode(id, params) {
     params = params || {};
-    return await this._ajax(fileNode.url, params, 'GET');
+    return await this._ajax(this._baseUrl + id, params, 'GET');
   }
 
-  async writeFileNode(fileNode, data) {
-    return await this._ajax(fileNode.url, data, 'POST');
+  async writeFileNode(id, data) {
+    return await this._ajax(this._baseUrl + id, data, 'POST');
   }
 
   async _ajax(url, data, method) {
