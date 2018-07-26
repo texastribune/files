@@ -8,12 +8,12 @@ export class FileNotFoundError extends Error {
   }
 }
 
+/**
+ * The base class to use for building and implementation of a file system. It allows for
+ * interaction with a hierarchical tree structure of files connected by directories. The
+ * file system maintains a current directory and the data in that directory.
+ */
 export class AbstractFileStorage {
-  /**
-   * The base class to use for building and implementation of a file system. It allows for
-   * interaction with a hierarchical tree structure of files connected by directories. The
-   * file system maintains a current directory and the data in that directory.
-   */
   constructor() {
   }
 
