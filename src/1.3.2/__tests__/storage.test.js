@@ -16,7 +16,9 @@ async function listStorageDirectory(storage, fileNode) {
 function testStorage(createStorage){
   let storage;
 
-  beforeEach(() => {storage = createStorage();console.log("START")});
+  beforeEach(() => {
+    storage = createStorage();
+  });
 
   async function addTestFiles(){
     let root = storage.rootFileNode;
@@ -132,7 +134,7 @@ global.window.indexedDB = IndexedDB;
 
 describe('Test local file storage', () => {
   testStorage(() => {
-    window.indexedDB.deleteDatabase(LocalStorageFileStorage.dbName);
+    window.indexedDB._databases.clear();
     return new LocalStorageFileStorage();
   })
 });

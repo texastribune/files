@@ -1,7 +1,6 @@
 import {AbstractFileStorage} from "./base.js";
 import {FileNotFoundError} from "./base.js";
-import {fileToDataUrl} from "../../utils.js";
-import {fileToArrayBuffer} from "../../utils";
+import {fileToDataUrl, fileToArrayBuffer} from "../../utils.js";
 
 
 async function indexedDbRequestToPromise(request) {
@@ -142,10 +141,6 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     }
 
     async readFileNode(id, params) {
-        if (id === undefined){
-            console.log("HOW");
-            console.trace();
-        }
         if (id === this.rootFileNode.id) {
             return this._createDirectoryBlob(id, this.rootFileNode.name, this.rootFileNode.created);
         } else {
@@ -202,7 +197,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         if (fileData.parentId !== this.rootFileNode.id){
             let db = await this.getDB();
             let transaction = db.transaction("files");
-            let parentFileData = await indexedDbRequestToPromise(transaction.objectStore("files").get(fileData.parentId));
+            let parentFileData = await indexedDbRequestToPromise(transaction.objectStore("files").get(parseInt(fileData.parentId)));
             if (!parentFileData){
                 throw new FileNotFoundError(`Parent does not exist with id ${fileData.parentId}`);
             }
@@ -247,7 +242,6 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         } catch (e) {
             throw new Error(`Could not add file ${name}.`);
         }
-        console.log("FILE DATA 0", fileData);
         return this._fileDataToFileNode(fileData);
     }
 
@@ -289,7 +283,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         let transaction = db.transaction("files", "readwrite");
 
         try {
-            await indexedDbRequestToPromise(transaction.objectStore("files").delete(id));
+            await indexedDbRequestToPromise(transaction.objectStore("files").delete(parseInt(id)));
         } catch (e) {
             throw new Error(`Could not delete file with id ${id}.`);
         }
@@ -302,7 +296,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         // Get file data from database
         let fileData;
         try {
-            fileData = indexedDbRequestToPromise(transaction.objectStore("files").get(parseInt(sourceId)));
+            fileData = await indexedDbRequestToPromise(transaction.objectStore("files").get(parseInt(sourceId)));
         } catch (e) {
             throw new FileNotFoundError(`Could not find file with id ${sourceId}.`);
         }
@@ -326,7 +320,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         // Get file data from database
         let fileData;
         try {
-            fileData = indexedDbRequestToPromise(transaction.objectStore("files").get(parseInt(sourceId)));
+            fileData = await indexedDbRequestToPromise(transaction.objectStore("files").get(parseInt(sourceId)));
         } catch (e) {
             throw new FileNotFoundError(`Could not find file with id ${id}.`);
         }
