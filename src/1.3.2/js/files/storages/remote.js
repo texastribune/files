@@ -97,7 +97,7 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
 
     let currentDateString = new Date().toISOString();
     this._rootFileNode = {
-      id: "",
+      id: this._baseUrl,
       name: 'root',
       url: this._baseUrl,
       directory: true,
@@ -121,11 +121,11 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
 
   async readFileNode(id, params) {
     params = params || {};
-    return await this._ajax(this._baseUrl + id, params, 'GET');
+    return await this._ajax(id, params, 'GET');
   }
 
   async writeFileNode(id, data) {
-    return await this._ajax(this._baseUrl + id, data, 'POST');
+    return await this._ajax(id, data, 'POST');
   }
 
   async _ajax(url, data, method) {
