@@ -99,7 +99,7 @@ export class BaseFileSystem {
    * @async
    * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the file to write.
-   * @param {string|Object|Blob|FormData|ArrayBuffer} data - data to be written to the file located at the given path.
+   * @param {ArrayBuffer} data - data to be written to the file located at the given path.
    * @returns {ArrayBuffer} - Updated file data in an ArrayBuffer
    */
   async write(pathArray, data){
@@ -112,7 +112,7 @@ export class BaseFileSystem {
    * @async
    * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the directory to add the file to.
-   * @param {string|Object|Blob|FormData|ArrayBuffer} fileData - The file or a dataUrl of a file to be added to the current directory.
+   * @param {ArrayBuffer} fileData - The file or a dataUrl of a file to be added to the current directory.
    * @param {string} [filename] - A name for the new file.
    * @returns {FileObject} - The data for the newly created directory
    */

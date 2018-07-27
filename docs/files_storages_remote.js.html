@@ -26,7 +26,7 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import {parseJsonFile} from "../../utils.js";
+            <pre class="prettyprint source linenums"><code>import {parseJsonArrayBuffer, stringToArrayBuffer} from "../../utils.js";
 import {FileNotFoundError, AbstractFileStorage} from "./base.js";
 
 
@@ -52,7 +52,7 @@ export let HiddenFileAPIMixin = (fileStorageClass) => {
 
     async _getAPIFileNode(dirId, name) {
       let directoryFile = await storage.readFileNode(dirId);
-      let dirData = await parseJsonFile(directoryFile);
+      let dirData = await parseJsonArrayBuffer(directoryFile);
       let fileNode = dirData[name];
       if (!fileNode) {
         throw new FileNotFoundError(`API file ${name} not found.`);
@@ -61,18 +61,16 @@ export let HiddenFileAPIMixin = (fileStorageClass) => {
     }
 
     async addFile(parentId, file, filename, type) {
-      let data = new FormData;
-      data.append('file', file);
-      if (filename) {
-        data.append('name', filename);
-      }
-
-      let apiFileNode = await this._getAPIFileNode(parentId, this.addFileName);
+      let string = JSON.stringify({
+          file: file,
+          name: filename
+      });
+      let apiFileNode = await this._getAPIFileNode(parentId, stringToArrayBuffer(string));
       return await this.writeFileNode(apiFileNode.id, data);
     }
 
     async addDirectory(parentId, name) {
-      let apiFileNode = await this._getAPIFileNode(parentId, this.addDirectoryName);
+      let apiFileNode = await this._getAPIFileNode(parentId, stringToArrayBuffer(this.addDirectoryName));
       return await this.writeFileNode(apiFileNode.id, name);
     }
 
@@ -81,15 +79,19 @@ export let HiddenFileAPIMixin = (fileStorageClass) => {
       data.append('id', id);
       data.append('to', newName);
 
+      let string = JSON.stringify({
+          id: id,
+          to: newName
+      });
       let rootFileNode = await this.getRootFileNode();
       let apiFileNode = await this._getAPIFileNode(rootFileNode.id, this.renameFileName);
-      await this.writeFileNode(apiFileNode.id, data);
+      await this.writeFileNode(apiFileNode.id, stringToArrayBuffer(string));
     }
 
     async delete(id) {
       let rootFileNode = await this.getRootFileNode();
       let apiFileNode = await this._getAPIFileNode(rootFileNode.id, this.deleteFileName);
-      await this.writeFileNode(apiFileNode.id, id);
+      await this.writeFileNode(apiFileNode.id, stringToArrayBuffer(id));
     }
 
     async copy(sourceId, targetNodeId) {
@@ -99,13 +101,13 @@ export let HiddenFileAPIMixin = (fileStorageClass) => {
 
     async move(sourceId, targetNodeId) {
       let apiFileNode = await this._getAPIFileNode(targetNodeId, this.moveFileName);
-      await this.writeFileNode(apiFileNode, sourceId);
+      await this.writeFileNode(apiFileNode, stringToArrayBuffer(sourceId));
     }
 
     async search(id, query) {
       let apiFileNode = await this._getAPIFileNode(fileNodeId, this.searchFileName);
       let searchFile = await this.readFileNode(apiFileNode, {query: query});
-      return parseJsonFile(searchFile);
+      return parseJsonArrayBuffer(searchFile);
     }
   };
 };
@@ -199,10 +201,7 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
 
       request.open(method, url, true);
       request.timeout = this.requestTimeout * 1000;
-      if (!(data === null || data instanceof FormData || typeof data === "string" || data instanceof String)) {
-        data = JSON.stringify(data);
-        request.setRequestHeader("Content-Type", 'application/json');
-      }
+      request.setRequestHeader("Content-Type", 'application/json');
       this.constructor.configureAjaxRequest(request, method, url, data);
       request.send(data);
     });
