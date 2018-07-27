@@ -85,6 +85,25 @@ export async function fileToDataUrl(file){
 }
 
 /**
+ * Convert a file containing text data into a string.
+ * @async
+ * @param {File|Blob} file - File object containing text.
+ * @returns {ArrayBuffer} - ArrayBuffer with data from file.
+ */
+export async function fileToArrayBuffer(file){
+  return await new Promise((resolve, reject) => {
+    let fileReader = new FileReader();
+    fileReader.onload = () => {
+      resolve(fileReader.result);
+    };
+    fileReader.onerror = () => {
+      reject(fileReader.error)
+    };
+    fileReader.readAsArrayBuffer(file);
+  });
+}
+
+/**
  * Convert a dataUrl into a Blob.
  * @async
  * @param {string} dataUrl - Data url.

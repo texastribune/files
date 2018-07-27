@@ -16,7 +16,7 @@ async function listStorageDirectory(storage, fileNode) {
 function testStorage(createStorage){
   let storage;
 
-  beforeEach(() => {storage = createStorage()});
+  beforeEach(() => {storage = createStorage();console.log("START")});
 
   async function addTestFiles(){
     let root = storage.rootFileNode;
