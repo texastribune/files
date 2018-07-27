@@ -33,6 +33,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
             size: 0,
             mimeType: 'application/json'
         };
+        this._dbPromise = this.getDB();
     }
 
     static get dbName() {
@@ -43,32 +44,88 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         return 'fsRoot';
     }
 
-    static get dbVersion() {
-        return 2;
+    /**
+     * An array of functions to perform on database for version upgrades. Each migration corresponds to a
+     * database version. If there are 3 migration functions and a users database is on version 1, the last
+     * two functions will be run. The final version of the database will be 3. The function can return a promise or
+     * nothing.
+     * @returns {function[]} - An array of functions the either can return nothing or a promise.
+     */
+    static get migrations(){
+        return [
+            (db, transaction) => {
+                // Create
+                let objectStore = db.createObjectStore("files", {keyPath: 'id', autoIncrement: true});
+                objectStore.createIndex('parentId', 'parentId', {unique: false});
+                objectStore.createIndex('uniqueNameForDirectory', ['name', 'parentId'], {unique: true});
+            },
+            (db, transaction) => {
+                // Delete and rebuild
+                db.deleteObjectStore("files");
+                let objectStore = db.createObjectStore("files", {keyPath: 'id', autoIncrement: true});
+                objectStore.createIndex('parentId', 'parentId', {unique: false});
+                objectStore.createIndex('uniqueNameForDirectory', ['name', 'parentId'], {unique: true});
+            },
+            (db, transaction) => {
+                // Convert files to ArrayBuffers, add mimeType and lastModified fields
+                let cursorRequest = transaction.objectStore("files").getAll();
+                return indexedDbRequestToPromise(cursorRequest)
+                    .then((fileDataArray) => {
+                        let promises = [];
+                        for (let fileData of fileDataArray){
+                            if (fileData.file){
+                                fileData.mimeType = fileData.type;
+                                fileData.lastModified = fileData.file.lastModified;
+                                fileData.file = new ArrayBuffer(2);
+                            } else {
+                                fileData.mimeType = 'application/json';
+                                fileData.lastModified = fileData.created;
+                            }
+                            promises.push(
+                                indexedDbRequestToPromise(transaction.objectStore("files").put(fileData))
+                            );
+                        }
+                        return Promise.all(promises);
+                    });
+            }
+        ]
     }
 
     async getDB() {
         return await new Promise((resolve, reject) => {
-            let dbRequest = window.indexedDB.open(this.constructor.dbName, this.constructor.dbVersion);
+            let newVersion = this.constructor.migrations.length;
+            let dbRequest = window.indexedDB.open(this.constructor.dbName, newVersion);
+            let upgradeMigrationChain = Promise.resolve();
+
             dbRequest.onupgradeneeded = (event) => {
+                // Run the migration functions that are needed
                 let db = event.target.result;
-                if (event.oldVersion < 2) {
-                    try {
-                        db.deleteObjectStore("files");
-                    } catch (e) {
-                        // Does not exist. Keep going.
-                    }
+                let transaction = event.target.transaction;
+                let migrationsToApply = this.constructor.migrations.slice(event.oldVersion);
+                let migrationChain = Promise.resolve();
+                for (let i = 0; i < migrationsToApply.length; i++) {
+                    let migration = migrationsToApply[i];
+                    console.log(`Running migration for version ${i}.`);
+                    upgradeMigrationChain = upgradeMigrationChain
+                        .then(() => {
+                            return migration(db, transaction) || Promise.resolve();
+                        });
                 }
-                let objectStore = db.createObjectStore("files", {keyPath: 'id', autoIncrement: true});
-                objectStore.createIndex('parentId', 'parentId', {unique: false});
-                objectStore.createIndex('uniqueNameForDirectory', ['name', 'parentId'], {unique: true});
+                migrationChain
+                    .catch((event) => {
+                        reject(`Error updating the database from ${event.oldVersion} to ${newVersion}: ${event}`);
+                    });
             };
             dbRequest.onerror = (event) => {
                 reject(`Error connecting to the database: ${event.target.error}`);
             };
             dbRequest.onsuccess = (event) => {
-                let db = event.target.result;
-                resolve(db);
+                // Wait for any migration functions to complete and then return the ready database.
+                upgradeMigrationChain
+                    .then(() => {
+                        let db = event.target.result;
+                        resolve(db);
+                    });
             };
         });
     }
@@ -100,7 +157,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     }
 
     async _createDirectoryArrayBuffer(id) {
-        let db = await this.getDB();
+        let db = await this._dbPromise;
         let transaction = db.transaction("files");
         return await new Promise((resolve, reject) => {
             let promises = [];
@@ -143,7 +200,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
             return this._createDirectoryArrayBuffer(id);
         } else {
             let fileData;
-            let db = await this.getDB();
+            let db = await this._dbPromise;
             let transaction = db.transaction("files");
             try {
                 fileData = await indexedDbRequestToPromise(transaction.objectStore("files").get(parseInt(id)));
@@ -159,7 +216,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     }
 
     async writeFileNode(id, data) {
-        let db = await this.getDB();
+        let db = await this._dbPromise;
         let transaction = db.transaction("files", "readwrite");
         let fileData;
 
@@ -191,7 +248,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
 
         let rootFileNode = await this.getRootFileNode();
         if (fileData.parentId !== rootFileNode.id){
-            let db = await this.getDB();
+            let db = await this._dbPromise;
             let transaction = db.transaction("files");
             let parentFileData = await indexedDbRequestToPromise(transaction.objectStore("files").get(parseInt(fileData.parentId)));
             if (!parentFileData){
@@ -224,7 +281,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         };
         fileData = await this._validate(fileData);
 
-        let db = await this.getDB();
+        let db = await this._dbPromise;
         let transaction = db.transaction("files", "readwrite");
         try {
             let newId = await indexedDbRequestToPromise(transaction.objectStore("files").add(fileData));
@@ -244,7 +301,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     }
 
     async rename(id, newName) {
-        let db = await this.getDB();
+        let db = await this._dbPromise;
         let transaction = db.transaction("files", "readwrite");
 
         // Get file data from database
@@ -269,7 +326,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     }
 
     async delete(id) {
-        let db = await this.getDB();
+        let db = await this._dbPromise;
         let transaction = db.transaction("files", "readwrite");
 
         try {
@@ -280,7 +337,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     }
 
     async copy(sourceId, targetParentId) {
-        let db = await this.getDB();
+        let db = await this._dbPromise;
         let transaction = db.transaction("files", "readwrite");
 
         // Get file data from database
@@ -304,7 +361,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     }
 
     async move(sourceId, targetParentId) {
-        let db = await this.getDB();
+        let db = await this._dbPromise;
         let transaction = db.transaction("files", "readwrite");
 
         // Get file data from database
