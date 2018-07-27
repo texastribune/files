@@ -19,7 +19,8 @@
               let name = document.createElement('p');
               name.innerText = element.dataset.name;
               element.appendChild(name);
-              element.onclick = () => {
+              element.onclick = (event) => {
+                event.preventDefault();
                 window.__fileSystem.exec(element.dataset.command);
               };
             }

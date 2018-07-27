@@ -139,72 +139,6 @@ file system maintains a current directory and the data in that directory.</div>
     
 
     
-        <h3 class="subsection-title">Members</h3>
-
-        
-            
-<h4 class="name" id="rootFileNode"><span class="type-signature">(abstract) </span>rootFileNode<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    The file object representing the root directory.
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line21">line 21</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
 
     
         <h3 class="subsection-title">Methods</h3>
@@ -339,7 +273,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line70">line 70</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line72">line 72</a>
     </li></ul></dd>
     
 
@@ -395,7 +329,7 @@ file system maintains a current directory and the data in that directory.</div>
     
 
     
-    <h4 class="name" id="addFile"><span class="type-signature">(async, abstract) </span>addFile<span class="signature">(parentId, file, filename<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="global.html#FileNode">FileNode</a>}</span></h4>
+    <h4 class="name" id="addFile"><span class="type-signature">(async, abstract) </span>addFile<span class="signature">(parentId, fileData, filename<span class="signature-attributes">opt</span>, mimeType<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="global.html#FileNode">FileNode</a>}</span></h4>
     
 
     
@@ -472,16 +406,13 @@ file system maintains a current directory and the data in that directory.</div>
 
         <tr>
             
-                <td class="name"><code>file</code></td>
+                <td class="name"><code>fileData</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">File</span>
-|
-
-<span class="param-type">string</span>
+<span class="param-type">ArrayBuffer</span>
 
 
             
@@ -499,7 +430,7 @@ file system maintains a current directory and the data in that directory.</div>
 
             
 
-            <td class="description last">The file or a dataUrl of a file to be added to the current directory.</td>
+            <td class="description last">The file data as an ArrayBuffer or a dataUrl of a file to be added to the current directory.</td>
         </tr>
 
     
@@ -533,6 +464,39 @@ file system maintains a current directory and the data in that directory.</div>
             
 
             <td class="description last">A name for the new file.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>mimeType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The mimeType of the file. Defaults to application/octet-stream</td>
         </tr>
 
     
@@ -573,7 +537,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line58">line 58</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line60">line 60</a>
     </li></ul></dd>
     
 
@@ -681,7 +645,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line134">line 134</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line136">line 136</a>
     </li></ul></dd>
     
 
@@ -861,7 +825,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line102">line 102</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line104">line 104</a>
     </li></ul></dd>
     
 
@@ -996,7 +960,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line91">line 91</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line93">line 93</a>
     </li></ul></dd>
     
 
@@ -1019,6 +983,114 @@ file system maintains a current directory and the data in that directory.</div>
 
 
 
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getRootFileNode"><span class="type-signature">(async, abstract) </span>getRootFileNode<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="global.html#FileNode">FileNode</a>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Get the file object representing the root directory.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line22">line 22</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - FileNode representing the root directory.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="global.html#FileNode">FileNode</a></span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -1154,7 +1226,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line113">line 113</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line115">line 115</a>
     </li></ul></dd>
     
 
@@ -1188,7 +1260,7 @@ file system maintains a current directory and the data in that directory.</div>
     
 
     
-    <h4 class="name" id="readFileNode"><span class="type-signature">(async, abstract) </span>readFileNode<span class="signature">(id, params)</span><span class="type-signature"> &rarr; {Blob}</span></h4>
+    <h4 class="name" id="readFileNode"><span class="type-signature">(async, abstract) </span>readFileNode<span class="signature">(id, params)</span><span class="type-signature"> &rarr; {ArrayBuffer}</span></h4>
     
 
     
@@ -1312,7 +1384,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line33">line 33</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line34">line 34</a>
     </li></ul></dd>
     
 
@@ -1339,7 +1411,7 @@ file system maintains a current directory and the data in that directory.</div>
 
         
 <div class="param-desc">
-    - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+    - An ArrayBuffer with the file data.
 </div>
 
 
@@ -1350,7 +1422,7 @@ file system maintains a current directory and the data in that directory.</div>
     </dt>
     <dd>
         
-<span class="param-type">Blob</span>
+<span class="param-type">ArrayBuffer</span>
 
 
     </dd>
@@ -1492,7 +1564,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line81">line 81</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line83">line 83</a>
     </li></ul></dd>
     
 
@@ -1650,7 +1722,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line125">line 125</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line127">line 127</a>
     </li></ul></dd>
     
 
@@ -1706,7 +1778,7 @@ file system maintains a current directory and the data in that directory.</div>
     
 
     
-    <h4 class="name" id="writeFileNode"><span class="type-signature">(async, abstract) </span>writeFileNode<span class="signature">(id, data)</span><span class="type-signature"> &rarr; {Blob}</span></h4>
+    <h4 class="name" id="writeFileNode"><span class="type-signature">(async, abstract) </span>writeFileNode<span class="signature">(id, data)</span><span class="type-signature"> &rarr; {ArrayBuffer}</span></h4>
     
 
     
@@ -1779,10 +1851,7 @@ file system maintains a current directory and the data in that directory.</div>
             <td class="type">
             
                 
-<span class="param-type">File</span>
-|
-
-<span class="param-type">Blob</span>
+<span class="param-type">ArrayBuffer</span>
 
 
             
@@ -1792,7 +1861,7 @@ file system maintains a current directory and the data in that directory.</div>
 
             
 
-            <td class="description last">File or Blob to write.</td>
+            <td class="description last">An ArrayBuffer of data to write.</td>
         </tr>
 
     
@@ -1833,7 +1902,7 @@ file system maintains a current directory and the data in that directory.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line45">line 45</a>
+        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line46">line 46</a>
     </li></ul></dd>
     
 
@@ -1860,7 +1929,7 @@ file system maintains a current directory and the data in that directory.</div>
 
         
 <div class="param-desc">
-    - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+    - An ArrayBuffer with the updated file data.
 </div>
 
 
@@ -1871,7 +1940,7 @@ file system maintains a current directory and the data in that directory.</div>
     </dt>
     <dd>
         
-<span class="param-type">Blob</span>
+<span class="param-type">ArrayBuffer</span>
 
 
     </dd>

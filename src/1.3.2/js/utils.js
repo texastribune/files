@@ -67,6 +67,25 @@ export async function parseJsonFile(file){
 
 /**
  * Convert a file containing text data into a string.
+ * @param {ArrayBuffer} arrayBuffer - The ArrayBuffer to decode.
+ * @returns {string} - The text contained in the file.
+ */
+export function parseTextArrayBuffer(arrayBuffer){
+  return String.fromCharCode.apply(null, new Uint8Array(arrayBuffer));
+
+}
+
+/**
+ * Convert a file containing JSON encoded data into a Javascript Object or Array.
+ * @param {ArrayBuffer} arrayBuffer - The ArrayBuffer to decode.
+ * @returns {Object|Array} - A Javascript Object or Array.
+ */
+export function parseJsonArrayBuffer(arrayBuffer){
+  return JSON.parse(parseTextArrayBuffer(arrayBuffer));
+}
+
+/**
+ * Convert a file containing text data into a string.
  * @async
  * @param {File|Blob} file - File object containing text.
  * @returns {string} - Data url for file.
@@ -123,6 +142,26 @@ export function dataUrlToBlob(dataUrl){
     }
   }
   return new Blob([data], {type: type});
+}
+
+/**
+ * Convert string to an ArrayBuffer.
+ * @param {string} string - string to encode.
+ * @returns {ArrayBuffer} - Data as an ArrayBuffer.
+ */
+export function stringToArrayBuffer(string){
+  return Uint8Array.from([...string].map(ch => ch.charCodeAt(0))).buffer;
+}
+
+/**
+ * Copy an ArrayBuffer.
+ * @param {ArrayBuffer} arrayBuffer - ArrayBuffer to copy.
+ * @returns {ArrayBuffer} - new ArrayBuffer.
+ */
+export function copyArrayBuffer(arrayBuffer){
+    let dst = new ArrayBuffer(arrayBuffer.byteLength);
+    new Uint8Array(dst).set(new Uint8Array(arrayBuffer));
+    return dst;
 }
 
 

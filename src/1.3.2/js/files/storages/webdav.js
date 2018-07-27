@@ -9,7 +9,7 @@ export class WebDavStorage extends AbstractFileStorage {
     this._client = createClient(url);
   }
 
-  get rootFileNode() {
+  getRootFileNode() {
     console.log("ROOT");
     let currentDateString = new Date().toISOString();
     return {

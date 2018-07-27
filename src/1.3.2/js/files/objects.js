@@ -1,4 +1,4 @@
-import {parseJsonFile, parseTextFile} from "../utils.js";
+import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils.js";
 
 /**
  * An Object that contains metadata about a file.
@@ -117,7 +117,7 @@ export class FileObject {
    * Read the file.
    * @async
    * @param {File|Blob} data - Raw data to write to the file.
-   * @returns {File} - File (https://developer.mozilla.org/en-US/docs/Web/API/File)
+   * @returns {ArrayBuffer} - Updated file data in an ArrayBuffer
    */
   async write(data) {
     this.clearCache();
@@ -131,8 +131,8 @@ export class FileObject {
    * @returns {string} - File file data converted to a string.
    */
   async readText(params) {
-    let file = await this.read(params);
-    return await parseTextFile(file);
+    let buffer = await this.read(params);
+    return parseTextArrayBuffer(buffer);
   }
 
   /**
@@ -143,7 +143,7 @@ export class FileObject {
    */
   async readJSON(params) {
     let file = await this.read(params);
-    return await parseJsonFile(file);
+    return parseJsonArrayBuffer(file);
   }
 
   /**
@@ -205,6 +205,6 @@ export class Link extends FileObject {
   }
 
   async read(params) {
-    return new File([JSON.stringify(this._fileObject.path)], this.name, {type: 'application/json'});
+    return stringToArrayBuffer(JSON.stringify(this._fileObject.path));
   }
 }

@@ -25,59 +25,74 @@ import mountPhotoshelter from './js/bin/mount.photoshelter.js';
 let rootStorage = new LocalStorageFileStorage();
 let fileSystem = new FileSystem(rootStorage);
 
-fileSystem._binFuncs = {};
-let binStorage = new MemoryFileStorage();
+async function setupFileSystem(){
+  let fileSystemRootFileObject = await fileSystem.getRootFileObject();
+  fileSystem._binFuncs = {};
+  let binStorage = new MemoryFileStorage();
+  let binStorageRootFileNode =  await binStorage.getRootFileNode();
 
-function addBinExecutable(name, func){
-  // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
-  fileSystem._binFuncs[name] = func;
-  let text = `let main = async (...args) => {return await this._binFuncs["${name}"].bind(this)(...args);}`;
-  let filename = `${name}.js`;
-  let file = new File([text], filename, {type: 'application/javascript'});
-  binStorage.addFile(binStorage.rootFileNode.id, file, filename);
-}
-
-addBinExecutable('alert', alert);
-addBinExecutable('archive', archive);
-addBinExecutable('browser', browser);
-addBinExecutable('cd', cd);
-addBinExecutable('find', find);
-addBinExecutable('ls', ls);
-addBinExecutable('terminal', terminal);
-addBinExecutable('mount', mount);
-addBinExecutable('mount.fileapi', mountFileAPI);
-addBinExecutable('mount.photoshelter', mountPhotoshelter);
-
-fileSystem.mount(fileSystem.rootFileObject, binStorage, 'bin');
-
-
-fileSystem._modules = {};
-let apiStorage = new MemoryFileStorage();
-
-function addApiModule(name, module){
-  // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
-  fileSystem._modules[name] = module;
-  let text = '';
-  for (let variableName in module){
-    text += `let ${variableName} = this._modules["${name}"]["${variableName}"];`
+  function addBinExecutable(name, func){
+    // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
+    fileSystem._binFuncs[name] = func;
+    let text = `let main = async (...args) => {return await this._binFuncs["${name}"].bind(this)(...args);}`;
+    let filename = `${name}.js`;
+    binStorage.addFile(binStorageRootFileNode.id, utilsModule.stringToArrayBuffer(text),
+                       filename, 'application/javascript');
   }
-  let filename = `${name}.js`;
-  apiStorage.addFile(apiStorage.rootFileNode.id, new File([text], filename, {type: 'application/javascript'}), filename);
+
+  addBinExecutable('alert', alert);
+  addBinExecutable('archive', archive);
+  addBinExecutable('browser', browser);
+  addBinExecutable('cd', cd);
+  addBinExecutable('find', find);
+  addBinExecutable('ls', ls);
+  addBinExecutable('terminal', terminal);
+  addBinExecutable('mount', mount);
+  addBinExecutable('mount.fileapi', mountFileAPI);
+  addBinExecutable('mount.photoshelter', mountPhotoshelter);
+
+  fileSystem.mount(fileSystemRootFileObject, binStorage, 'bin');
+
+
+  fileSystem._modules = {};
+  let apiStorage = new MemoryFileStorage();
+  let apiStorageRootFileNode =  await apiStorage.getRootFileNode();
+
+  function addApiModule(name, module){
+    // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
+    fileSystem._modules[name] = module;
+    let text = '';
+    for (let variableName in module){
+      text += `let ${variableName} = this._modules["${name}"]["${variableName}"];`
+    }
+    let filename = `${name}.js`;
+    apiStorage.addFile(apiStorageRootFileNode.id, utilsModule.stringToArrayBuffer(text),
+                       filename, 'application/javascript');
+  }
+
+  addApiModule('browser', browserModule);
+  addApiModule('config', configModule);
+  addApiModule('dialog', dialogModule);
+  addApiModule('messages', messageModule);
+  addApiModule('table', tableModule);
+  addApiModule('storage', {
+    local: LocalStorageFileStorage,
+    memory: MemoryFileStorage,
+    remote: FileAPIFileStorage
+  });
+  addApiModule('utils', utilsModule);
+
+  fileSystem.mount(fileSystemRootFileObject, apiStorage, 'api');
+
+  await fileSystem.refresh();
 }
 
-addApiModule('browser', browserModule);
-addApiModule('config', configModule);
-addApiModule('dialog', dialogModule);
-addApiModule('messages', messageModule);
-addApiModule('table', tableModule);
-addApiModule('storage', {
-  local: LocalStorageFileStorage,
-  memory: MemoryFileStorage,
-  remote: FileAPIFileStorage
-});
-addApiModule('utils', utilsModule);
+setupFileSystem()
+    .catch((error) => {
+      console.log(error);
+      alert("Error setting up file system: " + error)
+    });
 
-fileSystem.mount(fileSystem.rootFileObject, apiStorage, 'api');
 
 export {FileSystem, fileSystem};
 

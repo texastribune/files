@@ -1017,23 +1017,23 @@ export let ConfigFileMixin = (fileSystemClass) => {
     }
 
     async addLocalConfig(newConfig){
-      let data;
+      let dataBuffer;
       try {
         let configFileObject = await this.fileSystem.getFileObject(this.constructor.localConfigPath);
-        let oldData = await configFileObject.read();
-        data = await updateConfigFile(newConfig, oldData);
+        let oldDataBuffer = await configFileObject.read();
+        dataBuffer = updateConfigFile(newConfig, oldDataBuffer);
       } catch (error) {
         if (error instanceof FileNotFoundError){
           await this.fileSystem.waitOn(this.addLocalConfigFile.bind(this))();
         }
-        data = await updateConfigFile({});
+        dataBuffer = updateConfigFile({});
       }
 
       try{
-        await this.fileSystem.write(this.constructor.localConfigPath, data);
+        await this.fileSystem.write(this.constructor.localConfigPath, dataBuffer);
       } catch (e) {
         if (e instanceof FileNotFoundError){
-          await this.fileSystem.write(this.constructor.localConfigPath, data);
+          await this.fileSystem.write(this.constructor.localConfigPath, dataBuffer);
         }
       }
     }
@@ -1048,7 +1048,7 @@ export let ConfigFileMixin = (fileSystemClass) => {
         try {
           let configFileObject = await this.fileSystem.getFileObject(path);
           let data = await configFileObject.read();
-          localConfig = await parseConfigFile(data);
+          localConfig = parseConfigFile(data);
         } catch (error) {
           console.log(`Could not get config file at /${path.join('/')}: ${error}`);
           localConfig = {};

@@ -11,14 +11,17 @@ export class BaseFileSystem {
   constructor(rootFileStorage){
     this._rootFileStorage = rootFileStorage;
 
-    let rootFileNode = this._rootFileStorage.rootFileNode;
-    this._rootFileObject = new FileObject(this._rootFileStorage, rootFileNode,
-                                          this.constructor.rootFileName, null);
+    this._rootFileObject = null;
   }
 
   // getters
 
-  get rootFileObject(){
+  async getRootFileObject(){
+    if (this._rootFileObject === null){
+      let rootFileNode = await this._rootFileStorage.getRootFileNode();
+      this._rootFileObject = new FileObject(this._rootFileStorage, rootFileNode,
+                                            this.constructor.rootFileName, null);
+    }
     return this._rootFileObject;
   }
 
@@ -35,7 +38,7 @@ export class BaseFileSystem {
    */
   async getFileObject(pathArray) {
     if (pathArray.length === 0){
-      return this.rootFileObject;
+      return await this.getRootFileObject();
     }
 
     let name = pathArray[pathArray.length-1];
@@ -84,7 +87,7 @@ export class BaseFileSystem {
    * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the file to read.
    * @param {Object} params - Query params to read with.
-   * @returns {File} - https://developer.mozilla.org/en-US/docs/Web/API/File
+   * @returns {ArrayBuffer} - ArrayBuffer containing file data.
    */
   async read(pathArray, params) {
     let fileObject = await this.getFileObject(pathArray);
@@ -96,7 +99,8 @@ export class BaseFileSystem {
    * @async
    * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the file to write.
-   * @param {string|Object|Blob|FormData} data - data to be written to the file located at the given path.
+   * @param {string|Object|Blob|FormData|ArrayBuffer} data - data to be written to the file located at the given path.
+   * @returns {ArrayBuffer} - Updated file data in an ArrayBuffer
    */
   async write(pathArray, data){
     let fileObject = await this.getFileObject(pathArray);
@@ -108,14 +112,14 @@ export class BaseFileSystem {
    * @async
    * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the directory to add the file to.
-   * @param {File|string} file - The file or a dataUrl of a file to be added to the current directory.
+   * @param {string|Object|Blob|FormData|ArrayBuffer} fileData - The file or a dataUrl of a file to be added to the current directory.
    * @param {string} [filename] - A name for the new file.
    * @returns {FileObject} - The data for the newly created directory
    */
-  async addFile(pathArray, file, filename) {
+  async addFile(pathArray, fileData, filename) {
     let parentFileObject = await this.getFileObject(pathArray);
-    let newFile = await  parentFileObject.fileStorage.addFile(parentFileObject.id, file, filename);
-    return new FileObject( parentFileObject.fileStorage, newFile,
+    let newFile = await  parentFileObject.fileStorage.addFile(parentFileObject.id, fileData, filename);
+    return new FileObject(parentFileObject.fileStorage, newFile,
                           filename,  parentFileObject);
   }
 
@@ -146,8 +150,8 @@ export class BaseFileSystem {
     if (fileObject.fileStorage === targetFileObject.fileStorage){
       await fileObject.fileStorage.copy(fileObject.id, targetFileObject.id);
     } else {
-      let file = await this.targetFileObject.fileStorage.readFileNode(this.targetFileObject.id);
-      await this.targetFileObject.fileStorage.addFile(this.targetFileObject.id, file, fileObject.name);
+      let fileBuffer = await this.targetFileObject.fileStorage.readFileNode(this.targetFileObject.id);
+      await this.targetFileObject.fileStorage.addFile(this.targetFileObject.id, fileBuffer, fileObject.name);
     }
   }
 
@@ -343,8 +347,10 @@ export let StateMixin = (fileSystemClass) => {
      * @abstract
      */
     async refresh(){
-      this._rootFileObject.clearCache();
-      this._currentDirectory.clearCache();
+      this._rootFileObject = null;
+      if (this._currentDirectory !== null){
+        this._currentDirectory.clearCache();
+      }
       this._data = await this.listDirectory(this.path);
       if (this.onDataChanged){
         this.onDataChanged(this.data);
@@ -477,7 +483,7 @@ export let MountStorageMixin = (fileSystemClass) => {
       for (let mount of this._mounts){
         if (mount.fileObject.fileStorage === fileObject.fileStorage &&
             mount.fileObject.id === fileObject.id){
-          let mountedRootDirectory = mount.fileStorage.rootFileNode;
+          let mountedRootDirectory = await mount.fileStorage.getRootFileNode();
           fileObjectsMap[mount.name] = new FileObject(mount.fileStorage, mountedRootDirectory, mount.name, fileObject);
         }
       }

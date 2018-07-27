@@ -10,7 +10,7 @@ import {
   ExecutableMixin
 } from "../js/files/systems.js";
 import {FileObject} from "../js/files/objects.js";
-import {parseTextFile} from "../js/utils.js";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../js/utils.js";
 
 const dir1Name = 'dir1';
 const file1Name = 'file1';
@@ -20,11 +20,11 @@ const file1Text = 'abc';
 const file2Text = 'def';
 
 async function addTestFiles(system){
-  let file1 = new File([file1Text], file1Name, {type: 'text/plain'});
-  let file2 = new File([file2Text], file2Name, {type: 'text/plain'});
   let dir1FileObject = await system.addDirectory([], dir1Name);
-  let file1FileObject = await system.addFile([], file1, file1Name);
-  let file2FileObject = await system.addFile([dir1Name], file2, file2Name);
+  let file1FileObject = await system.addFile([], stringToArrayBuffer(file1Text),
+                                             file1Name, 'text/plain');
+  let file2FileObject = await system.addFile([dir1Name], stringToArrayBuffer(file2Text),
+                                             file2Name, 'text/plain');
   return [dir1FileObject, file1FileObject, file2FileObject];
 }
 
@@ -63,8 +63,8 @@ describe('Test base file system', () => {
     let fileObjects = await addTestFiles(system);
     let file = await system.read([file1Name]);
 
-    expect(file).toBeInstanceOf(File);
-    let text = await parseTextFile(file);
+    expect(file).toBeInstanceOf(ArrayBuffer);
+    let text = parseTextArrayBuffer(file);
     expect(text).toMatch(file1Text);
   });
 
@@ -91,15 +91,19 @@ describe('Test mounting mixin', () => {
   test('System can mount directories', async () => {
     let fileObjects = await addTestFiles(system);
     let mountedStorage = new MemoryFileStorage();
-    let mountedFileNode = await mountedStorage.addFile(mountedStorage.rootFileNode.id, new File(['mount'], 'mounted-file'), 'mounted-file');
-    system.mount(fileObjects[0], mountedStorage, 'mount-name');
+    let mountName = 'mount-name';
+    let filename = 'mounted-file.txt';
+    let rootFileNode = await storage.getRootFileNode();
+    let mountedFileNode = await mountedStorage.addFile(rootFileNode.id, stringToArrayBuffer('mount'),
+                                                       filename, 'text/plain');
+    system.mount(fileObjects[0], mountedStorage, mountName);
     let dir1FileObjects = await system.listDirectory([dir1Name]);
 
-    expect(dir1FileObjects).toHaveProperty('mount-name');
-    let mountedFileObject = await system.getFileObject([dir1Name, 'mount-name', 'mounted-file']);
+    expect(dir1FileObjects).toHaveProperty(mountName);
+    let mountedFileObject = await system.getFileObject([dir1Name, mountName, filename]);
     expect(mountedFileObject).toBeInstanceOf(FileObject);
     expect(mountedFileObject.id).toMatch(mountedFileNode.id);
-    expect(mountedFileObject.name).toMatch('mounted-file');
+    expect(mountedFileObject.name).toMatch(filename);
     expect(mountedFileObject.fileStorage).toBe(mountedStorage);
 
     // Dir1 still has same file storage;
@@ -145,7 +149,9 @@ describe('Test state mixin', () => {
     expect(system.data).toEqual(rootFileObjects);
 
     // Add file via storage class. Data should still be initial data because there has not been a refresh.
-    let newFileNode = await storage.addFile(storage.rootFileNode.id, new File(['new'], 'new-file'), 'new-file');
+    let rootFileNode = await storage.getRootFileNode();
+    let newFileNode = await storage.addFile(rootFileNode.id, stringToArrayBuffer('new'),
+                                            'new-file.txt', 'text/plain');
     expect(system.data).toEqual(rootFileObjects);
 
     // After refresh data should have changed.
@@ -226,7 +232,7 @@ describe('Test executable mixin', () => {
     let variableName = 'textVar';
     let scriptText = `let ${variableName} = "${testString}";`;
     let fileName = 'test.js';
-    await system.addFile([], new File([scriptText], fileName, {type: 'text/javascript'}), fileName);
+    await system.addFile([], stringToArrayBuffer(scriptText), fileName, 'text/javascript');
 
     let imported = await system.import([fileName], variableName);
 
@@ -238,7 +244,7 @@ describe('Test executable mixin', () => {
     await system.addDirectory([], executableDirName);
     let scriptText = 'async function main(){alert("Test")}';
     let commandName = 'test';
-    await system.addFile([executableDirName], new File([scriptText], `${commandName}.js`, {type: 'text/javascript'}), `${commandName}.js`);
+    await system.addFile([executableDirName], stringToArrayBuffer(scriptText), `${commandName}.js`, 'text/javascript');
 
     await system.exec(commandName);
 

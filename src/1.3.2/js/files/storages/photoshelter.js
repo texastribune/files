@@ -275,7 +275,8 @@ export class PhotoshelterStorage extends AbstractFileStorage {
     }
 
     let nodes = {};
-    if (id === this.rootFileNode.id || id.startsWith('C')){
+    let rootFileNode = await this.getRootFileNode();
+    if (id === rootFileNode.id || id.startsWith('C')){
       let data = await this._photoshelterAPI.getCollectionChildren(id);
       let childCollections = data.Collection || [];
       let childGalleries = data.Gallery || [];
@@ -298,19 +299,9 @@ export class PhotoshelterStorage extends AbstractFileStorage {
     return undefined;
   }
 
-  get rootFileNode() {
-    let currentDateString = new Date().toISOString();
-    return {
-      id: 'root',
-      name: 'root',
-      url: '',
-      directory: true,
-      icon: null,
-      size: 0,
-      mimeType: 'application/json',
-      lastModified: currentDateString,
-      created: currentDateString
-    };
+  async getRootFileNode() {
+    let rootCollectionData = this._photoshelterAPI.getCollectionData();
+    return this._dataToCollectionFileNode(rootCollectionData);
   }
 
   async search(id, query) {

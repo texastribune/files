@@ -1,4 +1,5 @@
 import {FileNotFoundError, AbstractFileStorage} from "./base.js";
+import {stringToArrayBuffer, copyArrayBuffer} from "../../utils.js";
 
 if (Object.values === undefined){
   // Polyfill for testing with Node versions < 7.0.
@@ -6,9 +7,11 @@ if (Object.values === undefined){
 }
 
 class BaseMemoryFile {
-  constructor(parent, name){
+  constructor(parent, name, mimeType){
     this._name = name;
+    this._mimeType = mimeType;
     this._created = new Date();
+    this._lastModified = new Date();
     this.parent = parent;
   }
 
@@ -28,6 +31,10 @@ class BaseMemoryFile {
       parent.addChild(this);
     }
     this._parent = parent
+  }
+
+  get mimeType(){
+    return this._mimeType || 'application/octet-stream';
   }
 
   get id(){
@@ -54,31 +61,23 @@ class BaseMemoryFile {
     return this._created.toISOString();
   }
 
+  get lastModified(){
+    return this._lastModified.toISOString();
+  }
+
   /**
    * @abstract
+   * @returns ArrayBuffer
    */
-  get file(){
+  get fileData(){
     throw new Error("Not implemented");
   }
 
   /**
    * @abstract
+   * @returns int
    */
   get size(){
-    throw new Error("Not implemented");
-  }
-
-  /**
-   * @abstract
-   */
-  get mimeType(){
-    throw new Error("Not implemented");
-  }
-
-  /**
-   * @abstract
-   */
-  get lastModified(){
     throw new Error("Not implemented");
   }
 
@@ -111,34 +110,30 @@ class BaseMemoryFile {
 }
 
 class MemoryFile extends BaseMemoryFile {
-  constructor(parent, file){
-    super(parent, file.name);
+  constructor(parent, name, fileData, mimeType) {
+    super(parent, name, mimeType);
 
-    this.file = file;
-  }
-
-  get file(){
-    return this._file;
-  }
-
-  set file(file){
-    if (!(file instanceof File)) {
-      let type = file.type || 'application/octet-stream';
-      file = new File([file], filename, {type: type});
+    if (!(fileData instanceof ArrayBuffer)){
+      throw new Error(`File data must be an ArrayBuffer not ${typeof fileData}.`);
     }
-    this._file = file;
+    this._fileData = fileData;
+  }
+
+  get fileData(){
+    return this._fileData;
+  }
+
+  set fileData(data){
+    this._fileData = data;
+    this._lastModified = new Date();
   }
 
   get size(){
-    return this._file.size;
-  }
-
-  get mimeType(){
-    return this._file.mimeType;
+    return this._fileData.size;
   }
 
   get lastModified(){
-    return new Date(this._file.lastModified).toISOString();
+    return this._lastModified.toISOString();
   }
 
   get children(){
@@ -148,7 +143,7 @@ class MemoryFile extends BaseMemoryFile {
 
 class MemoryDirectory extends BaseMemoryFile {
   constructor(parent, name){
-    super(parent, name);
+    super(parent, name, 'application/json');
     this._children = {};
   }
 
@@ -156,12 +151,12 @@ class MemoryDirectory extends BaseMemoryFile {
     return true;
   }
 
-  get file(){
+  get fileData(){
     let nodes = {};
     for (let name in this._children){
       nodes[name] = this._children[name].fileNode;
     }
-    return new File([JSON.stringify(nodes)], this.name, {type: 'application/json'});
+    return stringToArrayBuffer(JSON.stringify(nodes));
   }
 
   get size(){
@@ -180,10 +175,6 @@ class MemoryDirectory extends BaseMemoryFile {
     return new Date(Math.max.apply(null, Object.values(this._children).map(function(e) {
       return new Date(e.lastModified);
     }))).toISOString();
-  }
-
-  get mimeType(){
-    return 'application/json';
   }
 
   get children(){
@@ -209,13 +200,13 @@ export class MemoryFileStorage extends AbstractFileStorage {
     this._root = new MemoryDirectory(null, 'root');
   }
 
-  get rootFileNode(){
+  async getRootFileNode(){
     return this._root.fileNode;
   }
 
   async readFileNode(id, params) {
     let memoryFile = this._getFile(id);
-    return memoryFile.file;
+    return memoryFile.fileData;
   }
 
 
@@ -256,18 +247,15 @@ export class MemoryFileStorage extends AbstractFileStorage {
     return memoryFile;
   }
 
-  async addFile(id, file, filename){
+  async addFile(id, fileData, filename, mimeType){
     let parent = this._getFile(id);
-    if (file.name && (filename !== file.name)){
-      file = new File([file], filename, {type: file.type});
-    }
-    let newMemoryFile = new MemoryFile(parent, file);
+    let newMemoryFile = new MemoryFile(parent, filename, fileData, mimeType);
     return newMemoryFile.fileNode;
   }
 
   async writeFileNode(id, data) {
     let memoryFile = this._getFile(id);
-    memoryFile.file = new File([data], memoryFile.name);
+    memoryFile.fileData = data;
     return memoryFile.fileNode;
   }
 
@@ -294,7 +282,8 @@ export class MemoryFileStorage extends AbstractFileStorage {
     if (sourceMemoryFile.directory){
       new MemoryDirectory(targetMemoryFile, sourceMemoryFile.name);
     } else {
-      new MemoryFile(targetMemoryFile, new File([sourceMemoryFile.file], sourceMemoryFile.name, {type: sourceMemoryFile.type}));
+      new MemoryFile(targetMemoryFile, sourceMemoryFile.name,
+                     copyArrayBuffer(sourceMemoryFile.fileData), sourceMemoryFile.mimeType);
     }
   }
 

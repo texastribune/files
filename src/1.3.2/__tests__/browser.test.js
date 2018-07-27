@@ -5,6 +5,7 @@ import {MemoryFileStorage} from "../js/files/storages/memory.js";
 import {BaseFileSystem, StateMixin} from "../js/files/systems.js";
 import {FileBrowser} from "../js/ui/browser.js";
 import {Table, Column} from "../js/ui/table.js";
+import {stringToArrayBuffer} from "../js/utils";
 
 const dir1Name = 'dir1';
 const file1Name = 'file1';
@@ -14,11 +15,11 @@ const file1Text = 'abc';
 const file2Text = 'def';
 
 async function addTestFiles(system){
-  let file1 = new File([file1Text], file1Name, {type: 'text/plain'});
-  let file2 = new File([file2Text], file2Name, {type: 'text/plain'});
   let dir1FileObject = await system.addDirectory([], dir1Name);
-  let file1FileObject = await system.addFile([], file1, file1Name);
-  let file2FileObject = await system.addFile([dir1Name], file2, file2Name);
+  let file1FileObject = await system.addFile([], stringToArrayBuffer(file1Text),
+                                             file1Name, 'text/plain');
+  let file2FileObject = await system.addFile([dir1Name], stringToArrayBuffer(file2Text),
+                                             file2Name, 'text/plain');
   return [dir1FileObject, file1FileObject, file2FileObject];
 }
 
@@ -34,7 +35,7 @@ class MutationObserver {
 global.MutationObserver = MutationObserver;
 
 
-describe('Test memory file storage', () => {
+describe('Test browser', () => {
   let storage;
   let system;
   let table;
@@ -58,7 +59,7 @@ describe('Test memory file storage', () => {
     }
 
     expect(table.rows.length).toEqual(2);
-    expect(rowData).toHaveProperty('dir1');
-    expect(rowData).toHaveProperty('file1');
+    expect(rowData).toHaveProperty(dir1Name);
+    expect(rowData).toHaveProperty(file1Name);
   });
 });

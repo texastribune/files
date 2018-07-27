@@ -32,7 +32,7 @@ export let HiddenFileAPIMixin = (fileStorageClass) => {
       return fileNode;
     }
 
-    async addFile(parentId, file, filename) {
+    async addFile(parentId, file, filename, type) {
       let data = new FormData;
       data.append('file', file);
       if (filename) {
@@ -53,12 +53,14 @@ export let HiddenFileAPIMixin = (fileStorageClass) => {
       data.append('id', id);
       data.append('to', newName);
 
-      let apiFileNode = await this._getAPIFileNode(this.rootFileNode.id, this.renameFileName);
+      let rootFileNode = await this.getRootFileNode();
+      let apiFileNode = await this._getAPIFileNode(rootFileNode.id, this.renameFileName);
       await this.writeFileNode(apiFileNode.id, data);
     }
 
     async delete(id) {
-      let apiFileNode = await this._getAPIFileNode(this.rootFileNode.id, this.deleteFileName);
+      let rootFileNode = await this.getRootFileNode();
+      let apiFileNode = await this._getAPIFileNode(rootFileNode.id, this.deleteFileName);
       await this.writeFileNode(apiFileNode.id, id);
     }
 
@@ -111,7 +113,7 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
     return clonedFS;
   }
 
-  get rootFileNode() {
+  async getRootFileNode() {
     return this._rootFileNode;
   }
 
@@ -144,7 +146,7 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
           } else {
             let contentType = request.getResponseHeader('content-type');
             if (request.status >= 200 && request.status < 400) {
-              resolve(new Blob([request.response], {type: contentType}));
+              resolve(request.response);
             } else {
               let errorText = new TextDecoder().decode(request.response);
               let errorMessage = `${request.status} error: `;

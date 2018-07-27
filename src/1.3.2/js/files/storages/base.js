@@ -14,11 +14,12 @@ export class FileNotFoundError extends Error {
  */
 export class AbstractFileStorage {
   /**
-   * The file object representing the root directory.
+   * Get the file object representing the root directory.
+   * @async
    * @abstract
    * @returns {FileNode} - FileNode representing the root directory.
    */
-  get rootFileNode() {
+  async getRootFileNode() {
     throw new Error("Not implemented")
   }
 
@@ -28,7 +29,7 @@ export class AbstractFileStorage {
    * @abstract
    * @param {string} id - Id referring to the file to be read.
    * @param {Object} params - Query params to read with.
-   * @returns {Blob} - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+   * @returns {ArrayBuffer} - An ArrayBuffer with the file data.
    */
   async readFileNode(id, params) {
     throw new Error("Not implemented")
@@ -39,8 +40,8 @@ export class AbstractFileStorage {
    * @async
    * @abstract
    * @param {string} id - Id referring to the file to be written to.
-   * @param {File|Blob} data - File or Blob to write.
-   * @returns {Blob} - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+   * @param {ArrayBuffer} data - An ArrayBuffer of data to write.
+   * @returns {ArrayBuffer} - An ArrayBuffer with the updated file data.
    */
   async writeFileNode(id, data) {
     throw new Error("Not implemented")
@@ -51,11 +52,12 @@ export class AbstractFileStorage {
    * @async
    * @abstract
    * @param {string} parentId - Id referring to the directory file to add the file.
-   * @param {File|string} file - The file or a dataUrl of a file to be added to the current directory.
+   * @param {ArrayBuffer} fileData - The file data as an ArrayBuffer or a dataUrl of a file to be added to the current directory.
    * @param {string} [filename] - A name for the new file.
+   * @param {string} [mimeType] - The mimeType of the file. Defaults to application/octet-stream
    * @returns {FileNode} - The data for the newly created directory
    */
-  async addFile(parentId, file, filename) {
+  async addFile(parentId, fileData, filename, mimeType) {
     throw new Error("Not implemented")
   }
 

@@ -1,14 +1,14 @@
-import {parseTextFile} from "../utils.js";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils.js";
 
 /**
  * Create an object with configuration data from a configuration file.
- * @param {Blob|File} data - The configuration file data.
+ * @param {ArrayBuffer} data - The configuration file data.
  * @returns {Object} - The configuration data Object for that file.
  */
-export async function parseConfigFile(data){
+export function parseConfigFile(data){
   let config = {};
   try {
-    let configText = await parseTextFile(data);
+    let configText = parseTextArrayBuffer(data);
     let lines = configText.split('\n');
     for (let line of lines){
       let terms = line.split('=');
@@ -25,13 +25,13 @@ export async function parseConfigFile(data){
 /**
  * Update an existing configuration file with new data.
  * @param {Object} newConfig - The configuration data to add to the file.
- * @param {Blob|File} [data] - The existing configuration file. If not given, a new file is created.
- * @returns {Blob} - Blob with the new configuration data.
+ * @param {ArrayBuffer} [data] - The existing configuration file. If not given, a new file is created.
+ * @returns {ArrayBuffer} - Blob with the new configuration data.
  */
 export async function updateConfigFile(newConfig, data) {
   let config;
   if (data){
-    config = await parseConfigFile(data);
+    config = parseConfigFile(data);
   } else {
     config = {};
   }
@@ -42,5 +42,5 @@ export async function updateConfigFile(newConfig, data) {
     configText += `${configName}=${config[configName]}\n`;
   }
 
-  return new Blob([configText], {type: 'text/plain'});
+  return stringToArrayBuffer(configText);
 }
