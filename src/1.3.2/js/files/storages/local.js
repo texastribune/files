@@ -1,10 +1,10 @@
 import {AbstractFileStorage} from "./base.js";
 import {FileNotFoundError} from "./base.js";
-import {fileToDataUrl, fileToArrayBuffer, stringToArrayBuffer} from "../../utils.js";
+import {fileToDataUrl, stringToArrayBuffer} from "../../utils.js";
 
 
-async function indexedDbRequestToPromise(request) {
-    return await new Promise((resolve, reject) => {
+function indexedDbRequestToPromise(request) {
+    return new Promise((resolve, reject) => {
         request.onsuccess = (event) => {
             resolve(event.target.result)
         };
@@ -51,7 +51,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
      * nothing.
      * @returns {function[]} - An array of functions the either can return nothing or a promise.
      */
-    static get migrations(){
+    static get migrations() {
         return [
             (db, transaction) => {
                 // Create
@@ -72,11 +72,11 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
                 return indexedDbRequestToPromise(cursorRequest)
                     .then((fileDataArray) => {
                         let promises = [];
-                        for (let fileData of fileDataArray){
-                            if (fileData.file){
+                        for (let fileData of fileDataArray) {
+                            if (fileData.file) {
                                 fileData.mimeType = fileData.type;
                                 fileData.lastModified = fileData.file.lastModified;
-                                fileData.file = new ArrayBuffer(2);
+                                fileData.file = new ArrayBuffer(2);  // TODO
                             } else {
                                 fileData.mimeType = 'application/json';
                                 fileData.lastModified = fileData.created;
@@ -95,38 +95,43 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         return await new Promise((resolve, reject) => {
             let newVersion = this.constructor.migrations.length;
             let dbRequest = window.indexedDB.open(this.constructor.dbName, newVersion);
-            let upgradeMigrationChain = Promise.resolve();
+
+            dbRequest.onsuccess = (event) => {
+                let db = event.target.result;
+                resolve(db);
+            };
 
             dbRequest.onupgradeneeded = (event) => {
                 // Run the migration functions that are needed
                 let db = event.target.result;
                 let transaction = event.target.transaction;
                 let migrationsToApply = this.constructor.migrations.slice(event.oldVersion);
-                let migrationChain = Promise.resolve();
+                let upgradeMigrationChain = Promise.resolve();
                 for (let i = 0; i < migrationsToApply.length; i++) {
                     let migration = migrationsToApply[i];
-                    console.log(`Running migration for version ${i}.`);
                     upgradeMigrationChain = upgradeMigrationChain
                         .then(() => {
+                            console.log(`Running migration for version ${i}.`);
                             return migration(db, transaction) || Promise.resolve();
                         });
                 }
-                migrationChain
+                upgradeMigrationChain = upgradeMigrationChain
                     .catch((event) => {
                         reject(`Error updating the database from ${event.oldVersion} to ${newVersion}: ${event}`);
                     });
+
+                dbRequest.onsuccess = (event) => {
+                    upgradeMigrationChain
+                        .then(() => {
+                            let db = event.target.result;
+                            resolve(db);
+                        });
+                };
             };
             dbRequest.onerror = (event) => {
                 reject(`Error connecting to the database: ${event.target.error}`);
             };
-            dbRequest.onsuccess = (event) => {
-                // Wait for any migration functions to complete and then return the ready database.
-                upgradeMigrationChain
-                    .then(() => {
-                        let db = event.target.result;
-                        resolve(db);
-                    });
-            };
+
         });
     }
 
@@ -247,14 +252,14 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         }
 
         let rootFileNode = await this.getRootFileNode();
-        if (fileData.parentId !== rootFileNode.id){
+        if (fileData.parentId !== rootFileNode.id) {
             let db = await this._dbPromise;
             let transaction = db.transaction("files");
             let parentFileData = await indexedDbRequestToPromise(transaction.objectStore("files").get(parseInt(fileData.parentId)));
-            if (!parentFileData){
+            if (!parentFileData) {
                 throw new FileNotFoundError(`Parent does not exist with id ${fileData.parentId}`);
             }
-            if (parentFileData.file){
+            if (parentFileData.file) {
                 throw new Error(`Parent with id ${fileData.parentId} is not a directory.`);
             }
         }
@@ -266,7 +271,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         // Normalize/insure is file
         file = file || null;
         type = type || 'application/octet-stream';
-        if (file === null){
+        if (file === null) {
             type = 'application/json';
         }
 
@@ -398,3 +403,4 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         throw new Error("Not implemented")
     };
 }
+
