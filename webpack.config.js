@@ -10,5 +10,6 @@ module.exports = {
         filename: `[name].${version}.js`,
         libraryTarget: "global",
         libraryExport: "default"
-    }
+    },
+    externals: ['fs', 'path']
 };
