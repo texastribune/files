@@ -96,6 +96,6 @@ setupFileSystem()
     });
 
 
-export {FileSystem, fileSystem};
+export {FileSystem, fileSystem, NodeFileStorage, MemoryFileStorage};
 
 export default fileSystem;
