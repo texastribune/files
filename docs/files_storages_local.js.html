@@ -28,11 +28,11 @@
         <article>
             <pre class="prettyprint source linenums"><code>import {AbstractFileStorage} from "./base.js";
 import {FileNotFoundError} from "./base.js";
-import {fileToDataUrl, fileToArrayBuffer, stringToArrayBuffer} from "../../utils.js";
+import {arrayBufferToDataUrl, stringToArrayBuffer} from "../../utils.js";
 
 
-async function indexedDbRequestToPromise(request) {
-    return await new Promise((resolve, reject) => {
+function indexedDbRequestToPromise(request) {
+    return new Promise((resolve, reject) => {
         request.onsuccess = (event) => {
             resolve(event.target.result)
         };
@@ -42,10 +42,29 @@ async function indexedDbRequestToPromise(request) {
     });
 }
 
+function indexedDbCursorRequestToPromise(cursorRequest) {
+    return new Promise((resolve, reject) => {
+        let data = [];
+        cursorRequest.onerror = reject;
+        cursorRequest.onsuccess = (event) => {
+            let cursor = event.target.result;
+            if (cursor) {
+                // For each row, get the file data and add a promise for the fileNode to the promises list.
+                cursor.continue();
+                data.push(cursor.value);
+            } else {
+                resolve(data);
+            }
+        };
+    });
+}
+
+
+/**
+ * A storage class uses IndexedDB to store files locally in the browser.
+ * @extends AbstractFileStorage
+ */
 export class LocalStorageFileStorage extends AbstractFileStorage {
-    /**
-     * This storage uses IndexedDB to store files locally in the browser.
-     */
     constructor() {
         super();
 
@@ -79,7 +98,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
      * nothing.
      * @returns {function[]} - An array of functions the either can return nothing or a promise.
      */
-    static get migrations(){
+    static get migrations() {
         return [
             (db, transaction) => {
                 // Create
@@ -100,11 +119,11 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
                 return indexedDbRequestToPromise(cursorRequest)
                     .then((fileDataArray) => {
                         let promises = [];
-                        for (let fileData of fileDataArray){
-                            if (fileData.file){
+                        for (let fileData of fileDataArray) {
+                            if (fileData.file) {
                                 fileData.mimeType = fileData.type;
                                 fileData.lastModified = fileData.file.lastModified;
-                                fileData.file = new ArrayBuffer(2);
+                                fileData.file = new ArrayBuffer(2);  // TODO
                             } else {
                                 fileData.mimeType = 'application/json';
                                 fileData.lastModified = fileData.created;
@@ -123,42 +142,47 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         return await new Promise((resolve, reject) => {
             let newVersion = this.constructor.migrations.length;
             let dbRequest = window.indexedDB.open(this.constructor.dbName, newVersion);
-            let upgradeMigrationChain = Promise.resolve();
+
+            dbRequest.onsuccess = (event) => {
+                let db = event.target.result;
+                resolve(db);
+            };
 
             dbRequest.onupgradeneeded = (event) => {
                 // Run the migration functions that are needed
                 let db = event.target.result;
                 let transaction = event.target.transaction;
                 let migrationsToApply = this.constructor.migrations.slice(event.oldVersion);
-                let migrationChain = Promise.resolve();
+                let upgradeMigrationChain = Promise.resolve();
                 for (let i = 0; i &lt; migrationsToApply.length; i++) {
                     let migration = migrationsToApply[i];
-                    console.log(`Running migration for version ${i}.`);
                     upgradeMigrationChain = upgradeMigrationChain
                         .then(() => {
+                            console.log(`Running migration for version ${i}.`);
                             return migration(db, transaction) || Promise.resolve();
                         });
                 }
-                migrationChain
+                upgradeMigrationChain = upgradeMigrationChain
                     .catch((event) => {
                         reject(`Error updating the database from ${event.oldVersion} to ${newVersion}: ${event}`);
                     });
+
+                dbRequest.onsuccess = (event) => {
+                    upgradeMigrationChain
+                        .then(() => {
+                            let db = event.target.result;
+                            resolve(db);
+                        });
+                };
             };
             dbRequest.onerror = (event) => {
                 reject(`Error connecting to the database: ${event.target.error}`);
             };
-            dbRequest.onsuccess = (event) => {
-                // Wait for any migration functions to complete and then return the ready database.
-                upgradeMigrationChain
-                    .then(() => {
-                        let db = event.target.result;
-                        resolve(db);
-                    });
-            };
+
         });
     }
 
-    async _fileDataToFileNode(fileData) {
+    _fileDataToFileNode(fileData) {
         let node = {
             id: fileData.id,
             name: fileData.name,
@@ -171,7 +195,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         if (fileData.file) {
             Object.assign(node, {
                 directory: false,
-                url: await fileToDataUrl(new Blob([fileData.file])), // TODO this is bad
+                url: arrayBufferToDataUrl(fileData.file, fileData.mimeType),  //TODO this puts everything in memory :(
                 size: fileData.file.size
             });
         } else {
@@ -187,35 +211,18 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     async _createDirectoryArrayBuffer(id) {
         let db = await this._dbPromise;
         let transaction = db.transaction("files");
-        return await new Promise((resolve, reject) => {
-            let promises = [];
-            let childCursorRequest = transaction.objectStore("files").index('parentId').openCursor(id);
-            childCursorRequest.onerror = () => {
-                reject(`Could not get files contained in directory with id ${id}.`);
-            };
-            childCursorRequest.onsuccess = (event) => {
-                let cursor = event.target.result;
-                if (cursor) {
-                    // For each row, get the file data and add a promise for the fileNode to the promises list.
-                    cursor.continue();
-                    let fileData = cursor.value;
-                    promises.push(this._fileDataToFileNode(fileData));
-                } else {
-                    // Once through all the rows, resolve all of the promises and creates a directory file.
-                    Promise.all(promises)
-                        .then((fileNodes) => {
-                            let fileData = {};
-                            for (let fileNode of fileNodes) {
-                                fileNode.id = fileNode.id.toString();
-                                fileData[fileNode.name] = fileNode;
-                            }
-                            let file = stringToArrayBuffer(JSON.stringify(fileData));
-                            resolve(file);
-                        })
-                        .catch(reject);
-                }
-            };
-        });
+        let childCursorRequest = transaction.objectStore("files").index('parentId').openCursor(id);
+        let fileDataArray = await indexedDbCursorRequestToPromise(childCursorRequest);
+        let fileNodes = [];
+        for (let fileData of fileDataArray){
+            fileNodes.push(this._fileDataToFileNode(fileData));
+        }
+        let directoryData = {};
+        for (let fileNode of fileNodes) {
+            fileNode.id = fileNode.id.toString();
+            directoryData[fileNode.name] = fileNode;
+        }
+        return stringToArrayBuffer(JSON.stringify(directoryData));
     }
 
     async getRootFileNode() {
@@ -225,7 +232,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     async readFileNode(id, params) {
         let rootFileNode = await this.getRootFileNode();
         if (id === rootFileNode.id) {
-            return this._createDirectoryArrayBuffer(id);
+            return await this._createDirectoryArrayBuffer(id);
         } else {
             let fileData;
             let db = await this._dbPromise;
@@ -236,7 +243,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
                 throw new FileNotFoundError(`Could not find file with id ${id}.`);
             }
             if (fileData.file === null) {
-                return this._createDirectoryArrayBuffer(id);
+                return await this._createDirectoryArrayBuffer(id);
             } else {
                 return fileData.file;
             }
@@ -275,14 +282,14 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         }
 
         let rootFileNode = await this.getRootFileNode();
-        if (fileData.parentId !== rootFileNode.id){
+        if (fileData.parentId !== rootFileNode.id) {
             let db = await this._dbPromise;
             let transaction = db.transaction("files");
             let parentFileData = await indexedDbRequestToPromise(transaction.objectStore("files").get(parseInt(fileData.parentId)));
-            if (!parentFileData){
+            if (!parentFileData) {
                 throw new FileNotFoundError(`Parent does not exist with id ${fileData.parentId}`);
             }
-            if (parentFileData.file){
+            if (parentFileData.file) {
                 throw new Error(`Parent with id ${fileData.parentId} is not a directory.`);
             }
         }
@@ -294,7 +301,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         // Normalize/insure is file
         file = file || null;
         type = type || 'application/octet-stream';
-        if (file === null){
+        if (file === null) {
             type = 'application/json';
         }
 
@@ -426,6 +433,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         throw new Error("Not implemented")
     };
 }
+
 </code></pre>
         </article>
     </section>
@@ -436,7 +444,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject_FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="Link_Link.html">Link</a></li><li><a href="LocalStorageFileStorage_LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage_MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="PhotoshelterStorage_PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject_FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="Link_Link.html">Link</a></li><li><a href="LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="NodeFileStorage.html">NodeFileStorage</a></li><li><a href="PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
 </nav>
 
 <br class="clear">

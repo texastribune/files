@@ -190,10 +190,11 @@ class MemoryDirectory extends BaseMemoryFile {
   }
 }
 
+/**
+ * A storage class that stores file temporary in memory on the client.
+ * @extends AbstractFileStorage
+ */
 export class MemoryFileStorage extends AbstractFileStorage {
-  /**
-   * This storage stores file temporary in memory on the client.
-   */
   constructor(){
     super();
 

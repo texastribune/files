@@ -1,6 +1,6 @@
 import {AbstractFileStorage} from "./base.js";
 import {FileNotFoundError} from "./base.js";
-import {fileToDataUrl, stringToArrayBuffer} from "../../utils.js";
+import {arrayBufferToDataUrl, stringToArrayBuffer} from "../../utils.js";
 
 
 function indexedDbRequestToPromise(request) {
@@ -14,10 +14,29 @@ function indexedDbRequestToPromise(request) {
     });
 }
 
+function indexedDbCursorRequestToPromise(cursorRequest) {
+    return new Promise((resolve, reject) => {
+        let data = [];
+        cursorRequest.onerror = reject;
+        cursorRequest.onsuccess = (event) => {
+            let cursor = event.target.result;
+            if (cursor) {
+                // For each row, get the file data and add a promise for the fileNode to the promises list.
+                cursor.continue();
+                data.push(cursor.value);
+            } else {
+                resolve(data);
+            }
+        };
+    });
+}
+
+
+/**
+ * A storage class uses IndexedDB to store files locally in the browser.
+ * @extends AbstractFileStorage
+ */
 export class LocalStorageFileStorage extends AbstractFileStorage {
-    /**
-     * This storage uses IndexedDB to store files locally in the browser.
-     */
     constructor() {
         super();
 
@@ -135,7 +154,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         });
     }
 
-    async _fileDataToFileNode(fileData) {
+    _fileDataToFileNode(fileData) {
         let node = {
             id: fileData.id,
             name: fileData.name,
@@ -148,7 +167,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         if (fileData.file) {
             Object.assign(node, {
                 directory: false,
-                url: await fileToDataUrl(new Blob([fileData.file])), // TODO this is bad
+                url: arrayBufferToDataUrl(fileData.file, fileData.mimeType),  //TODO this puts everything in memory :(
                 size: fileData.file.size
             });
         } else {
@@ -164,35 +183,18 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     async _createDirectoryArrayBuffer(id) {
         let db = await this._dbPromise;
         let transaction = db.transaction("files");
-        return await new Promise((resolve, reject) => {
-            let promises = [];
-            let childCursorRequest = transaction.objectStore("files").index('parentId').openCursor(id);
-            childCursorRequest.onerror = () => {
-                reject(`Could not get files contained in directory with id ${id}.`);
-            };
-            childCursorRequest.onsuccess = (event) => {
-                let cursor = event.target.result;
-                if (cursor) {
-                    // For each row, get the file data and add a promise for the fileNode to the promises list.
-                    cursor.continue();
-                    let fileData = cursor.value;
-                    promises.push(this._fileDataToFileNode(fileData));
-                } else {
-                    // Once through all the rows, resolve all of the promises and creates a directory file.
-                    Promise.all(promises)
-                        .then((fileNodes) => {
-                            let fileData = {};
-                            for (let fileNode of fileNodes) {
-                                fileNode.id = fileNode.id.toString();
-                                fileData[fileNode.name] = fileNode;
-                            }
-                            let file = stringToArrayBuffer(JSON.stringify(fileData));
-                            resolve(file);
-                        })
-                        .catch(reject);
-                }
-            };
-        });
+        let childCursorRequest = transaction.objectStore("files").index('parentId').openCursor(id);
+        let fileDataArray = await indexedDbCursorRequestToPromise(childCursorRequest);
+        let fileNodes = [];
+        for (let fileData of fileDataArray){
+            fileNodes.push(this._fileDataToFileNode(fileData));
+        }
+        let directoryData = {};
+        for (let fileNode of fileNodes) {
+            fileNode.id = fileNode.id.toString();
+            directoryData[fileNode.name] = fileNode;
+        }
+        return stringToArrayBuffer(JSON.stringify(directoryData));
     }
 
     async getRootFileNode() {
@@ -202,7 +204,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
     async readFileNode(id, params) {
         let rootFileNode = await this.getRootFileNode();
         if (id === rootFileNode.id) {
-            return this._createDirectoryArrayBuffer(id);
+            return await this._createDirectoryArrayBuffer(id);
         } else {
             let fileData;
             let db = await this._dbPromise;
@@ -213,7 +215,7 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
                 throw new FileNotFoundError(`Could not find file with id ${id}.`);
             }
             if (fileData.file === null) {
-                return this._createDirectoryArrayBuffer(id);
+                return await this._createDirectoryArrayBuffer(id);
             } else {
                 return fileData.file;
             }

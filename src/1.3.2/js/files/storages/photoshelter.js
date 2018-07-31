@@ -186,10 +186,10 @@ export class PhotoshelterAPI {
 }
 
 
+/**
+* A storage class that uses the Photoshelter API.
+*/
 export class PhotoshelterStorage extends AbstractFileStorage {
-  /**
-   * This storage uses the Photoshelter API.
-   */
   constructor(email, password, apikey, rootId){
     super();
 

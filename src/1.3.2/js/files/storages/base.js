@@ -14,6 +14,16 @@ export class FileNotFoundError extends Error {
  */
 export class AbstractFileStorage {
   /**
+   * Should be overridden to return false if the storage does not save and return the mime type given in
+   * addFile.
+   * @static
+   * @returns {boolean} - Whether or not mimeType is stored by this storage.
+   */
+  static get preservesMimeType(){
+    return true;
+  }
+
+  /**
    * Get the file object representing the root directory.
    * @async
    * @abstract

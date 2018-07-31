@@ -29,8 +29,8 @@ function testStorage(createStorage, tearDownStorage) {
     async function addTestFiles() {
         let rootFileNode = await storage.getRootFileNode();
         let dir1Node = await storage.addDirectory(rootFileNode.id, dir1Name);
-        let file1Node = await storage.addFile(rootFileNode.id, stringToArrayBuffer(file1String), file1Name, 'text/plain');
-        let file2Node = await storage.addFile(dir1Node.id, stringToArrayBuffer(file2String), file2Name);
+        let file1Node = await storage.addFile(rootFileNode.id, stringToArrayBuffer(file1String), file1Name);
+        let file2Node = await storage.addFile(dir1Node.id, stringToArrayBuffer(file2String), file2Name, 'text/plain');
         return [dir1Node, file1Node, file2Node];
     }
 
@@ -68,8 +68,10 @@ function testStorage(createStorage, tearDownStorage) {
         let fileNodes = await addTestFiles();
 
         expect(fileNodes[0].mimeType).toMatch('application/json'); // All directories should be json files
-        expect(fileNodes[1].mimeType).toMatch('text/plain'); // As was defined in addFile
-        expect(fileNodes[2].mimeType).toMatch('application/octet-stream'); // Fallback since not given in addFile
+        expect(fileNodes[1].mimeType).toMatch('application/octet-stream'); // Fallback since not given in addFile
+        if (storage.constructor.preservesMimeType){
+            expect(fileNodes[2].mimeType).toMatch('text/plain'); // As was defined in addFile
+        }
     });
 
     test('Storage cannot add files or directories to non directory', async () => {

@@ -33,40 +33,6 @@ export function compareDateStrings(dateString1, dateString2){
 
 /**
  * Convert a file containing text data into a string.
- * @async
- * @param {File|Blob} file - File object containing text.
- * @returns {string} - The text contained in the file.
- */
-export async function parseTextFile(file){
-  return await new Promise((resolve, reject) => {
-    let fileReader = new FileReader();
-    fileReader.onload = () => {
-      resolve(fileReader.result);
-    };
-    fileReader.onerror = () => {
-      reject(fileReader.error)
-    };
-    fileReader.readAsText(file);
-  });
-}
-
-/**
- * Convert a file containing JSON encoded data into a Javascript Object or Array.
- * @async
- * @param {File|Blob} file - File object containing text.
- * @returns {Object|Array} - A Javascript Object or Array.
- */
-export async function parseJsonFile(file){
-  let text = await parseTextFile(file);
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    throw new Error(`Error reading json file: ${e}.`)
-  }
-}
-
-/**
- * Convert a file containing text data into a string.
  * @param {ArrayBuffer} arrayBuffer - The ArrayBuffer to decode.
  * @returns {string} - The text contained in the file.
  */
@@ -86,21 +52,17 @@ export function parseJsonArrayBuffer(arrayBuffer){
 
 /**
  * Convert a file containing text data into a string.
- * @async
- * @param {File|Blob} file - File object containing text.
+ * @param {ArrayBuffer} arrayBuffer - An array buffer to encode.
+ * @param {string} mimeType - The mime type of the data in the array buffer.
  * @returns {string} - Data url for file.
  */
-export async function fileToDataUrl(file){
-  return await new Promise((resolve, reject) => {
-    let fileReader = new FileReader();
-    fileReader.onload = () => {
-      resolve(fileReader.result);
-    };
-    fileReader.onerror = () => {
-      reject(fileReader.error)
-    };
-    fileReader.readAsDataURL(file);
-  });
+export function arrayBufferToDataUrl(arrayBuffer, mimeType){
+  let binary = '';
+  let bytes = new Uint8Array(arrayBuffer);
+  for (let byte of bytes) {
+      binary += String.fromCharCode(byte);
+  }
+  return `data:${mimeType};base64,${btoa(binary)}`;
 }
 
 /**
@@ -120,28 +82,6 @@ export async function fileToArrayBuffer(file){
     };
     fileReader.readAsArrayBuffer(file);
   });
-}
-
-/**
- * Convert a dataUrl into a Blob.
- * @async
- * @param {string} dataUrl - Data url.
- * @returns {Blob} file - Blob object with data from dataUrl.
- */
-export function dataUrlToBlob(dataUrl){
-  let urlParts = dataUrl.split(':')[1].split(',');
-  let encoding = urlParts[0];
-  let data = urlParts[1];
-  let encodingParts = encoding.split(';');
-  let type = encodingParts[0] || 'text/plain';
-  if (encodingParts[1] && encodingParts[1] === 'base64'){
-    let byteString = atob(data);
-    data = new Uint8Array(new ArrayBuffer(byteString.length));
-    for (let i = 0; i < byteString.length; i++) {
-      data[i] = byteString.charCodeAt(i);
-    }
-  }
-  return new Blob([data], {type: type});
 }
 
 /**

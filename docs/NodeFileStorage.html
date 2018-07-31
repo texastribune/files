@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: FileAPIFileStorage</title>
+    <title>JSDoc: Class: NodeFileStorage</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: FileAPIFileStorage</h1>
+    <h1 class="page-title">Class: NodeFileStorage</h1>
 
     
 
@@ -28,9 +28,9 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>FileAPIFileStorage<span class="signature">()</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>NodeFileStorage<span class="signature">()</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">This storage uses an API that interacts with files via virtual files in each directory.</div>
+            <div class="class-description">A storage class that stores file on the local system using NodeJS file operations.</div>
         
     
 </header>
@@ -45,7 +45,7 @@
     
 
     
-    <h4 class="name" id="FileAPIFileStorage"><span class="type-signature"></span>new FileAPIFileStorage<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="NodeFileStorage"><span class="type-signature"></span>new NodeFileStorage<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -79,14 +79,6 @@
     
 
     
-        <dt class="mixes">Mixes In:</dt>
-
-        <dd class="mixes"><ul>
-        
-            <li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li>
-        
-        </ul></dd>
-    
 
     
 
@@ -101,7 +93,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_remote.js.html">files/storages/remote.js</a>, <a href="files_storages_remote.js.html#line92">line 92</a>
+        <a href="files_storages_node.js.html">files/storages/node.js</a>, <a href="files_storages_node.js.html#line28">line 28</a>
     </li></ul></dd>
     
 
@@ -268,12 +260,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#addDirectory">AbstractFileStorage#addDirectory</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -537,12 +529,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#addFile">AbstractFileStorage#addFile</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -835,12 +827,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#copy">AbstractFileStorage#copy</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -975,12 +967,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#delete">AbstractFileStorage#delete</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -1251,12 +1243,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#move">AbstractFileStorage#move</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -1599,12 +1591,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#rename">AbstractFileStorage#rename</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -1762,12 +1754,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#search">AbstractFileStorage#search</a>
     </li></ul></dd>
-    
-
     
 
     

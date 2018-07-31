@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: FileAPIFileStorage</title>
+    <title>JSDoc: Class: LocalStorageFileStorage</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: FileAPIFileStorage</h1>
+    <h1 class="page-title">Class: LocalStorageFileStorage</h1>
 
     
 
@@ -28,9 +28,9 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>FileAPIFileStorage<span class="signature">()</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>LocalStorageFileStorage<span class="signature">()</span><span class="type-signature"></span></h2>
         
-            <div class="class-description">This storage uses an API that interacts with files via virtual files in each directory.</div>
+            <div class="class-description">A storage class uses IndexedDB to store files locally in the browser.</div>
         
     
 </header>
@@ -45,7 +45,7 @@
     
 
     
-    <h4 class="name" id="FileAPIFileStorage"><span class="type-signature"></span>new FileAPIFileStorage<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="LocalStorageFileStorage"><span class="type-signature"></span>new LocalStorageFileStorage<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -79,14 +79,6 @@
     
 
     
-        <dt class="mixes">Mixes In:</dt>
-
-        <dd class="mixes"><ul>
-        
-            <li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li>
-        
-        </ul></dd>
-    
 
     
 
@@ -101,7 +93,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_remote.js.html">files/storages/remote.js</a>, <a href="files_storages_remote.js.html#line92">line 92</a>
+        <a href="files_storages_local.js.html">files/storages/local.js</a>, <a href="files_storages_local.js.html#line39">line 39</a>
     </li></ul></dd>
     
 
@@ -155,6 +147,75 @@
 
     
 
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id=".migrations"><span class="type-signature">(static) </span>migrations<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    An array of functions to perform on database for version upgrades. Each migration corresponds to a
+database version. If there are 3 migration functions and a users database is on version 1, the last
+two functions will be run. The final version of the database will be 3. The function can return a promise or
+nothing.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="files_storages_local.js.html">files/storages/local.js</a>, <a href="files_storages_local.js.html#line73">line 73</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
     
 
     
@@ -268,12 +329,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#addDirectory">AbstractFileStorage#addDirectory</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -537,12 +598,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#addFile">AbstractFileStorage#addFile</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -677,7 +738,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_storages_base.js.html">files/storages/base.js</a>, <a href="files_storages_base.js.html#line146">line 146</a>
+        <a href="files_storages_local.js.html">files/storages/local.js</a>, <a href="files_storages_local.js.html#line404">line 404</a>
     </li></ul></dd>
     
 
@@ -835,12 +896,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#copy">AbstractFileStorage#copy</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -975,12 +1036,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#delete">AbstractFileStorage#delete</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -1251,12 +1312,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#move">AbstractFileStorage#move</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -1599,12 +1660,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#rename">AbstractFileStorage#rename</a>
     </li></ul></dd>
-    
-
     
 
     
@@ -1762,12 +1823,12 @@
     
 
     
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
         <a href="AbstractFileStorage.html#search">AbstractFileStorage#search</a>
     </li></ul></dd>
-    
-
     
 
     
