@@ -1,7 +1,6 @@
 import {FileAPIFileStorage} from "./js/files/storages/remote.js";
 import {MemoryFileStorage} from "./js/files/storages/memory.js";
 import {LocalStorageFileStorage} from "./js/files/storages/local.js";
-import {NodeFileStorage} from "./js/files/storages/node.js";
 import {FileSystem} from "./js/files/systems.js";
 
 import * as browserModule from './js/ui/browser.js';
@@ -79,8 +78,7 @@ async function setupFileSystem(){
   addApiModule('storage', {
     local: LocalStorageFileStorage,
     memory: MemoryFileStorage,
-    remote: FileAPIFileStorage,
-    node: NodeFileStorage
+    remote: FileAPIFileStorage
   });
   addApiModule('utils', utilsModule);
 
@@ -96,6 +94,6 @@ setupFileSystem()
     });
 
 
-export {FileSystem, fileSystem, NodeFileStorage, MemoryFileStorage};
+export {FileSystem, fileSystem, MemoryFileStorage};
 
 export default fileSystem;
