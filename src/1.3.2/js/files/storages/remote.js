@@ -1,4 +1,4 @@
-import {parseJsonArrayBuffer, stringToArrayBuffer} from "../../utils.js";
+import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../../utils.js";
 import {FileNotFoundError, AbstractFileStorage} from "./base.js";
 
 
@@ -150,7 +150,7 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
             if (request.status >= 200 && request.status < 400) {
               resolve(request.response);
             } else {
-              let errorText = new TextDecoder().decode(request.response);
+              let errorText = parseTextArrayBuffer(request.response);
               let errorMessage = `${request.status} error: `;
               if (contentType === 'application/json') {
                 try {
@@ -173,7 +173,6 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
 
       request.open(method, url, true);
       request.timeout = this.requestTimeout * 1000;
-      request.setRequestHeader("Content-Type", 'application/json');
       this.constructor.configureAjaxRequest(request, method, url, data);
       request.send(data);
     });
