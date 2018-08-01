@@ -274,22 +274,22 @@ export class PhotoshelterStorage extends AbstractFileStorage {
       return await this._photoshelterAPI.getImageFile(id);
     }
 
-    let nodes = {};
+    let nodes = [];
     let rootFileNode = await this.getRootFileNode();
     if (id === rootFileNode.id || id.startsWith('C')){
       let data = await this._photoshelterAPI.getCollectionChildren(id);
       let childCollections = data.Collection || [];
       let childGalleries = data.Gallery || [];
       for (let collection of childCollections){
-        nodes[collection.name] = this._dataToCollectionFileNode(collection);
+        nodes.push(this._dataToCollectionFileNode(collection));
       }
       for (let gallery of childGalleries){
-        nodes[gallery.name] = this._dataToGalleryFileNode(gallery);
+        nodes.push(this._dataToGalleryFileNode(gallery));
       }
     } else if (id.startsWith('G')){
       let data = await this._photoshelterAPI.getGalleryChildren(id);
       for (let image of data){
-        nodes[image['file_name']] = this._dataToImageFileNode(image);
+        nodes.push(this._dataToImageFileNode(image));
       }
     }
     return new Blob([JSON.stringify(nodes)], {type: 'application/json'});

@@ -297,9 +297,9 @@ export class FileBrowser extends Element {
 
   syncFileSystemAndTable(){
     if (this.fileSystem && this.table){
-      this.setTableData(Object.values(this.fileSystem.data));
+      this.setTableData(this.fileSystem.data);
       this.fileSystem.onDataChanged = (storageData) => {
-        this.setTableData(Object.values(storageData));
+        this.setTableData(storageData);
       };
       this.table.onDrop = (event) => {
         this.handleDataTransfer(event.dataTransfer);
@@ -561,7 +561,7 @@ export class FileBrowser extends Element {
         this.addMessage(error, true);
       }
     } else {
-      this.setTableData(Object.values(this.fileSystem.data));
+      this.setTableData(this.fileSystem.data);
     }
   }
 

@@ -69,12 +69,13 @@ export class NodeFileStorage extends AbstractFileStorage {
     async readFileNode(id, params) {
         let fileNode = await this._getFileNodeFromFSPath(id);
         if (fileNode.directory) {
-            let ret = {};
+            let childNodes = [];
             let nameArray = await this.readdir(id);
             for (let name of nameArray) {
-                ret[name] = await this._getFileNodeFromFSPath(path.join(id, name));
+                let childNode = await this._getFileNodeFromFSPath(path.join(id, name));
+                childNodes.push(childNode);
             }
-            return stringToArrayBuffer(JSON.stringify(ret));
+            return stringToArrayBuffer(JSON.stringify(childNodes));
         }
         let typedArray = await this.readFile(id);
         return typedArray.buffer;

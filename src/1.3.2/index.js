@@ -26,7 +26,6 @@ let rootStorage = new LocalStorageFileStorage();
 let fileSystem = new FileSystem(rootStorage);
 
 async function setupFileSystem(){
-  let fileSystemRootFileObject = await fileSystem.getRootFileObject();
   fileSystem._binFuncs = {};
   let binStorage = new MemoryFileStorage();
   let binStorageRootFileNode =  await binStorage.getRootFileNode();
@@ -51,7 +50,7 @@ async function setupFileSystem(){
   addBinExecutable('mount.fileapi', mountFileAPI);
   addBinExecutable('mount.photoshelter', mountPhotoshelter);
 
-  fileSystem.mount(fileSystemRootFileObject, binStorage, 'bin');
+  fileSystem.mount([], binStorage, 'bin');
 
 
   fileSystem._modules = {};
@@ -82,7 +81,7 @@ async function setupFileSystem(){
   });
   addApiModule('utils', utilsModule);
 
-  fileSystem.mount(fileSystemRootFileObject, apiStorage, 'api');
+  fileSystem.mount([], apiStorage, 'api');
 
   await fileSystem.refresh();
 }

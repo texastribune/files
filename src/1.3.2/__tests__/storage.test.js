@@ -2,7 +2,7 @@
 /* global jest, test, expect, describe */
 
 import {MemoryFileStorage} from "../js/files/storages/memory.js";
-import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer} from "../js/utils.js";
+import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer, compareById} from "../js/utils.js";
 import IndexedDB from "../../../node_modules/fake-indexeddb/build/index.js";
 import {LocalStorageFileStorage} from "../js/files/storages/local.js";
 import {NodeFileStorage} from "../js/files/storages/node.js";
@@ -34,34 +34,26 @@ function testStorage(createStorage, tearDownStorage) {
         return [dir1Node, file1Node, file2Node];
     }
 
-    test('Storage directories are files with json string of FileNodes', async () => {
-        let fileNodes = await addTestFiles();
-
-        // Read dir1 which is a directory. Check contains json with correct files.
-        let directoryArrayBuffer = await storage.readFileNode(fileNodes[0].id);
-        let data = parseJsonArrayBuffer(directoryArrayBuffer);
-        expect(data).toHaveProperty(file2Name);
+    test('Storage directories are files with json array string', async () => {
+        let rootFileNode = await storage.getRootFileNode();
+        let arrayBuffer = await storage.readFileNode(rootFileNode.id);
+        let rootChildNodes = parseJsonArrayBuffer(arrayBuffer);
+        expect(rootChildNodes).toBeInstanceOf(Array);
+        expect(rootChildNodes.length).toEqual(0);
     });
 
     test('Storage can add files and directories', async () => {
         let fileNodes = await addTestFiles();
         let rootFileNode = await storage.getRootFileNode();
-        let rootFileNodes = await listStorageDirectory(storage, rootFileNode);
-        let dir1FileNodes = await listStorageDirectory(storage, fileNodes[0]);
+        let rootChildNodes = await listStorageDirectory(storage, rootFileNode);
+        let dir1ChildNodes = await listStorageDirectory(storage, fileNodes[0]);
 
-        expect(rootFileNodes).toHaveProperty(file1Name);
-        expect(rootFileNodes).toHaveProperty(dir1Name);
-        expect(dir1FileNodes).toHaveProperty(file2Name);
+        let rootChildNames = rootChildNodes.map((fileNode) => {return fileNode.name});
+        let dir1ChildNames = dir1ChildNodes.map((fileNode) => {return fileNode.name});
 
-        expect(rootFileNodes.dir1.id).toMatch(fileNodes[0].id);
-        expect(rootFileNodes.dir1.name).toMatch(dir1Name);
-        expect(rootFileNodes.file1.id).toMatch(fileNodes[1].id);
-        expect(rootFileNodes.file1.name).toMatch(file1Name);
-        expect(dir1FileNodes.file2.id).toMatch(fileNodes[2].id);
-        expect(dir1FileNodes.file2.name).toMatch(file2Name);
-
-        expect(rootFileNodes.file1).toEqual(fileNodes[1]);
-        expect(dir1FileNodes.file2).toEqual(fileNodes[2]);
+        expect(rootChildNames).toContain(dir1Name);
+        expect(rootChildNames).toContain(file1Name);
+        expect(dir1ChildNames).toContain(file2Name);
     });
 
     test('Storage correct mime types', async () => {
@@ -126,8 +118,6 @@ function testStorage(createStorage, tearDownStorage) {
         let fileNodes = await addTestFiles();
 
         let rootFileNode = await storage.getRootFileNode();
-        let rootFileNodes = await listStorageDirectory(storage, rootFileNode);
-        let dir1FileNodes = await listStorageDirectory(storage, fileNodes[0]);
 
         let rootDirArrayBuffer = await storage.readFileNode(rootFileNode.id);
         let dir1ArrayBuffer = await storage.readFileNode(fileNodes[0].id);
@@ -138,16 +128,55 @@ function testStorage(createStorage, tearDownStorage) {
         expect(dir1ArrayBuffer).toBeInstanceOf(ArrayBuffer);
         expect(file1ArrayBuffer).toBeInstanceOf(ArrayBuffer);
         expect(file2ArrayBuffer).toBeInstanceOf(ArrayBuffer);
+    });
 
-        // Directories should be json objects of names mapped to file node data.
-        let rootDirText = parseTextArrayBuffer(rootDirArrayBuffer);
-        let dir1Text = parseTextArrayBuffer(dir1ArrayBuffer);
+    test('Storage directories contain correct child FileNodes', async () => {
+        let fileNodes = await addTestFiles();
+        let rootExpectedChildren = [fileNodes[0], fileNodes[1]];
+        let dir1ExpectedChildren = [fileNodes[2]];
 
-        let rootFileNodesFromRead = JSON.parse(rootDirText);
-        let dir1FileNodesFromRead = JSON.parse(dir1Text);
+        let rootFileNode = await storage.getRootFileNode();
 
-        expect(rootFileNodesFromRead).toEqual(rootFileNodes);
-        expect(dir1FileNodesFromRead).toEqual(dir1FileNodes);
+        let rootDirArrayBuffer = await storage.readFileNode(rootFileNode.id);
+        let dir1ArrayBuffer = await storage.readFileNode(fileNodes[0].id);
+
+        // Directories should be files containing json strings of arrays of file node data.
+        let rootChildNodes = parseJsonArrayBuffer(rootDirArrayBuffer);
+        let dir1ChildNodes = parseJsonArrayBuffer(dir1ArrayBuffer);
+
+        // Get the FileNode data which should not change since it was added or directly written to
+        // Directory size, lastModified, and url can change when child files are added.
+        function staticData(fileNode){
+            let staticData = {
+                id: fileNode.id,
+                name: fileNode.name,
+                created: fileNode.created,
+                directory: fileNode.directory,
+                mimeType: fileNode.mimeType
+            };
+            if (!fileNode.directory){
+                staticData.size = fileNode.size;
+                staticData.lastModified = fileNode.lastModified;
+                staticData.url = fileNode.url;
+            }
+            return staticData;
+        }
+
+        let rootFileNodesStaticData = rootChildNodes.map(staticData);
+        let dir1FileNodesStaticData = dir1ChildNodes.map(staticData);
+
+        let rootExpectedStaticData = rootExpectedChildren.map(staticData);
+        let dir1ExpectedStaticData = dir1ExpectedChildren.map(staticData);
+
+        expect(rootFileNodesStaticData.sort(compareById)).toEqual(rootExpectedStaticData.sort(compareById));
+        expect(dir1FileNodesStaticData.sort(compareById)).toEqual(dir1ExpectedStaticData.sort(compareById));
+    });
+
+    test('Storage file data is correct', async () => {
+        let fileNodes = await addTestFiles();
+
+        let file1ArrayBuffer = await storage.readFileNode(fileNodes[1].id);
+        let file2ArrayBuffer = await storage.readFileNode(fileNodes[2].id);
 
         // File should have same data it was given.
         let file1Text = parseTextArrayBuffer(file1ArrayBuffer);
@@ -161,9 +190,10 @@ function testStorage(createStorage, tearDownStorage) {
         let rootFileNode = await storage.getRootFileNode();
 
         await storage.delete(fileNodes[1].id);
-        let rootFiles = await listStorageDirectory(storage, rootFileNode);
-        expect(rootFiles).not.toHaveProperty(file1Name);
-        expect(rootFiles).toHaveProperty(dir1Name);
+        let rootChildNodes = await listStorageDirectory(storage, rootFileNode);
+        let rootChildNames = rootChildNodes.map((fileNode) => {return fileNode.name});
+        expect(rootChildNames).not.toContain(file1Name);
+        expect(rootChildNames).toContain(dir1Name);
     });
 }
 

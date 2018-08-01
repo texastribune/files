@@ -215,14 +215,11 @@ export class LocalStorageFileStorage extends AbstractFileStorage {
         let fileDataArray = await indexedDbCursorRequestToPromise(childCursorRequest);
         let fileNodes = [];
         for (let fileData of fileDataArray){
-            fileNodes.push(this._fileDataToFileNode(fileData));
-        }
-        let directoryData = {};
-        for (let fileNode of fileNodes) {
+            let fileNode = this._fileDataToFileNode(fileData);
             fileNode.id = fileNode.id.toString();
-            directoryData[fileNode.name] = fileNode;
+            fileNodes.push(fileNode);
         }
-        return stringToArrayBuffer(JSON.stringify(directoryData));
+        return stringToArrayBuffer(JSON.stringify(fileNodes));
     }
 
     async getRootFileNode() {

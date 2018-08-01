@@ -118,3 +118,19 @@ export function getOpt(...args){
   }
   return [args, kwargs];
 }
+
+/**
+ * Compare two FileNodes or FileObjects by id.
+ * @param {FileNode|FileObject} a - First object to compare.
+ * @param {FileNode|FileObject} b - Second object to compare.
+ * @returns {int} - comparison result.
+ */
+export function compareById(a, b) {
+    if (a.id > b.id){
+        return 1;
+    }
+    if (a.id < b.id){
+        return -1;
+    }
+    return 0;
+};

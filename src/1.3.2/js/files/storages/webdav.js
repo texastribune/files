@@ -31,10 +31,10 @@ export class WebDavStorage extends AbstractFileStorage {
     if (stat.type === 'directory'){
       let davFileData = await this._client.getDirectoryContents(id);
       console.log("DAT", davFileData);
-      let nodes = {};
+      let nodes = [];
       for (let fileData of davFileData ){
         let directory = fileData.type === "directory";
-        nodes[fileData.basename] = {
+        nodes.push({
           id: id + '/' + fileData.basename,
           name: fileData.basename,
           url: '',
@@ -44,7 +44,7 @@ export class WebDavStorage extends AbstractFileStorage {
           mimeType: directory ? 'application/json' : 'application/octet-stream',
           lastModified: new Date(fileData.lastmod).toISOString(),
           created: new Date(fileData.lastmod).toISOString()
-        }
+        });
       }
       return new File([JSON.stringify(nodes)], stat.filename, {type: stat.mime});
     }

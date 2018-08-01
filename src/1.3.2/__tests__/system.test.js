@@ -10,7 +10,7 @@ import {
   ExecutableMixin
 } from "../js/files/systems.js";
 import {FileObject} from "../js/files/objects.js";
-import {parseTextArrayBuffer, stringToArrayBuffer} from "../js/utils.js";
+import {parseTextArrayBuffer, stringToArrayBuffer, compareById} from "../js/utils.js";
 
 const dir1Name = 'dir1';
 const file1Name = 'file1';
@@ -40,23 +40,51 @@ describe('Test base file system', () => {
   test('System can add files and directories', async () => {
     let fileObjects = await addTestFiles(system);
 
-    let rootFileObjects = await system.listDirectory([]);
-    let dir1FileObjects = await system.listDirectory([dir1Name]);
+    let rootChildFileObjects = await system.listDirectory([]);
+    let dir1ChildFileObjects = await system.listDirectory([dir1Name]);
 
-    expect(rootFileObjects).toHaveProperty(file1Name);
-    expect(rootFileObjects).toHaveProperty(dir1Name);
-    expect(dir1FileObjects).toHaveProperty(file2Name);
+    let rootChildNames = rootChildFileObjects.map((fileObject) => {return fileObject.name});
+    let dir1ChildNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.name});
 
-    expect(rootFileObjects.dir1).toBeInstanceOf(FileObject);
-    expect(rootFileObjects.file1).toBeInstanceOf(FileObject);
-    expect(dir1FileObjects.file2).toBeInstanceOf(FileObject);
+    expect(rootChildNames).toContain(dir1Name);
+    expect(rootChildNames).toContain(file1Name);
+    expect(dir1ChildNames).toContain(file2Name);
+  });
 
-    expect(rootFileObjects.dir1.id).toMatch(fileObjects[0].id);
-    expect(rootFileObjects.dir1.name).toMatch(dir1Name);
-    expect(rootFileObjects.file1.id).toMatch(fileObjects[1].id);
-    expect(rootFileObjects.file1.name).toMatch(file1Name);
-    expect(dir1FileObjects.file2.id).toMatch(fileObjects[2].id);
-    expect(dir1FileObjects.file2.name).toMatch(file2Name);
+  test('System listDirectory returns correct FileObjects', async () => {
+    let fileObjects = await addTestFiles(system);
+    let rootExpectedChildren = [fileObjects[0], fileObjects[1]];
+    let dir1ExpectedChildren = [fileObjects[2]];
+
+    let rootChildFileObjects = await system.listDirectory([]);
+    let dir1ChildFileObjects = await system.listDirectory([dir1Name]);
+
+    // Get the FileObject data which should not change since it was added or directly written to
+    // Directory size, lastModified, and url can change when child files are added.
+    function staticData(fileObject){
+        let staticData = {
+            id: fileObject.id,
+            name: fileObject.name,
+            created: fileObject.created,
+            directory: fileObject.directory,
+            mimeType: fileObject.mimeType
+        };
+        if (!fileObject.directory){
+            staticData.size = fileObject.size;
+            staticData.lastModified = fileObject.lastModified;
+            staticData.url = fileObject.url;
+        }
+        return staticData;
+    }
+
+    let rootFileObjectsStaticData = rootChildFileObjects.map(staticData);
+    let dir1FileObjectsStaticData = dir1ChildFileObjects.map(staticData);
+
+    let rootExpectedStaticData = rootExpectedChildren.map(staticData);
+    let dir1ExpectedStaticData = dir1ExpectedChildren.map(staticData);
+
+    expect(rootFileObjectsStaticData.sort(compareById)).toEqual(rootExpectedStaticData.sort(compareById));
+    expect(dir1FileObjectsStaticData.sort(compareById)).toEqual(dir1ExpectedStaticData.sort(compareById));
   });
 
   test('System can read files', async () => {
@@ -72,9 +100,11 @@ describe('Test base file system', () => {
     let fileObjects = await addTestFiles(system);
 
     await fileObjects[1].delete();
-    let rootFileObjects = await system.listDirectory([]);
-    expect(rootFileObjects).not.toHaveProperty(file1Name);
-    expect(rootFileObjects).toHaveProperty(dir1Name);
+    let rootChildFileObjects = await system.listDirectory([]);
+
+    let rootChildNames = rootChildFileObjects.map((fileObject) => {return fileObject.name});
+    expect(rootChildNames).not.toContain(file1Name);
+    expect(rootChildNames).toContain(dir1Name);
   });
 });
 
@@ -97,9 +127,11 @@ describe('Test mounting mixin', () => {
     let mountedFileNode = await mountedStorage.addFile(rootFileNode.id, stringToArrayBuffer('mount'),
                                                        filename, 'text/plain');
     system.mount(fileObjects[0], mountedStorage, mountName);
-    let dir1FileObjects = await system.listDirectory([dir1Name]);
 
-    expect(dir1FileObjects).toHaveProperty(mountName);
+    let dir1ChildFileObjects = await system.listDirectory([dir1Name]);
+    let dir1ChildNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.name});
+
+    expect(dir1ChildNames).toContain(mountName);
     let mountedFileObject = await system.getFileObject([dir1Name, mountName, filename]);
     expect(mountedFileObject).toBeInstanceOf(FileObject);
     expect(mountedFileObject.id).toMatch(mountedFileNode.id);
@@ -172,17 +204,17 @@ describe('Test hidden reference link mixin', () => {
 
   test('System has link references', async () => {
     let fileObjects = await addTestFiles(system);
-    let rootFileObjects = await system.listDirectory([]);
-    let rootFilenames = Object.keys(rootFileObjects);
+    let rootChildFileObjects = await system.listDirectory([]);
+    let rootChildFileNames = rootChildFileObjects.map((fileObject) => {return fileObject.name});
 
-    expect(rootFilenames).toContain('.');
-    expect(rootFilenames).not.toContain('..');
+    expect(rootChildFileNames).toContain('.');
+    expect(rootChildFileNames).not.toContain('..');
 
-    let dir1FileObjects = await system.listDirectory([dir1Name]);
-    let dir1Filenames = Object.keys(dir1FileObjects);
+    let dir1ChildFileObjects = await system.listDirectory([dir1Name]);
+    let dir1ChildFileNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.name});
 
-    expect(dir1Filenames).toContain('.');
-    expect(dir1Filenames).toContain('..');
+    expect(dir1ChildFileNames).toContain('.');
+    expect(dir1ChildFileNames).toContain('..');
   });
 
   test('System links have right properties', async () => {

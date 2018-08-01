@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>FileObject<span class="signature">(fileStorage, fileNode, name, parent)</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>FileObject<span class="signature">(fileNode, parentFileObject, fileStorage)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -41,7 +41,7 @@
     
 
     
-    <h4 class="name" id="FileObject"><span class="type-signature"></span>new FileObject<span class="signature">(fileStorage, fileNode, name, parent)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="FileObject"><span class="type-signature"></span>new FileObject<span class="signature">(fileNode, parentFileObject, fileStorage)</span><span class="type-signature"></span></h4>
     
 
     
@@ -49,8 +49,7 @@
 
 
 <div class="description">
-    An object representing a file or directory in a file system. Provides API for
-performing operations on the file.
+    An object representing a file or directory in a file system.
 </div>
 
 
@@ -86,29 +85,6 @@ performing operations on the file.
 
         <tr>
             
-                <td class="name"><code>fileStorage</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="AbstractFileStorage.html">AbstractFileStorage</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The file system the file is on</td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>fileNode</code></td>
             
 
@@ -132,36 +108,13 @@ performing operations on the file.
 
         <tr>
             
-                <td class="name"><code>name</code></td>
+                <td class="name"><code>parentFileObject</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The name of this file.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>parent</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="FileObject.html">FileObject</a></span>
+<span class="param-type">FileObject</span>
 |
 
 <span class="param-type">null</span>
@@ -175,6 +128,29 @@ performing operations on the file.
             
 
             <td class="description last">The parent directory for this file. Null if root directory.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fileStorage</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="AbstractFileStorage.html">AbstractFileStorage</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the file storage for this file.</td>
         </tr>
 
     
@@ -215,7 +191,7 @@ performing operations on the file.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_objects.js.html">files/objects.js</a>, <a href="files_objects.js.html#line28">line 28</a>
+        <a href="files_objects.js.html">files/objects.js</a>, <a href="files_objects.js.html#line26">line 26</a>
     </li></ul></dd>
     
 

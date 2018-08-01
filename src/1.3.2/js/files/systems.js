@@ -1,11 +1,12 @@
 import LZString from "../lz-string-1.4.4/lz-string.min.js";
 import {FileObject, Link} from "./objects.js";
 import {FileNotFoundError} from "./storages/base.js";
+import {parseJsonArrayBuffer} from "../utils.js";
 
 
 /**
  *   File system classes provide a hierarchical tree structure of files contained in AbstractFileStorage
- *   implementation.
+ *   implementation via path related operations.
  */
 export class BaseFileSystem {
   constructor(rootFileStorage){
@@ -19,8 +20,7 @@ export class BaseFileSystem {
   async getRootFileObject(){
     if (this._rootFileObject === null){
       let rootFileNode = await this._rootFileStorage.getRootFileNode();
-      this._rootFileObject = new FileObject(this._rootFileStorage, rootFileNode,
-                                            this.constructor.rootFileName, null);
+      this._rootFileObject = new FileObject(rootFileNode, null, this._rootFileStorage);
     }
     return this._rootFileObject;
   }
@@ -43,12 +43,18 @@ export class BaseFileSystem {
 
     let name = pathArray[pathArray.length-1];
     let parentPath = pathArray.slice(0, pathArray.length - 1);
-    let fileObjectsMap = await this.listDirectory(parentPath);
-    let fileObject = fileObjectsMap[name];
-    if (!fileObject) {
+    let fileObjectsArray = await this.listDirectory(parentPath);
+    let matchingFileObject;
+    while (matchingFileObject === undefined && fileObjectsArray.length > 0){
+      let fileObject = fileObjectsArray.pop();
+      if (fileObject.fileNode.name === name){
+        matchingFileObject = fileObject;
+      }
+    }
+    if (matchingFileObject === undefined) {
       throw new FileNotFoundError(`File ${name} not found.`);
     }
-    return fileObject;
+    return matchingFileObject;
   }
 
   /**
@@ -57,15 +63,16 @@ export class BaseFileSystem {
    * @async
    * @abstract
    * @param {FileObject} fileObject - FileObject referring to the directory to list.
-   * @returns {Object} - Object mapping filename to FileObject for each file in the given directory.
+   * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
    */
   async getChildren(fileObject) {
-    let fileNodesMap = await fileObject.readJSON();
-    let fileObjectsMap = {};
-    for (let filename in fileNodesMap){
-      fileObjectsMap[filename] = new FileObject(fileObject.fileStorage, fileNodesMap[filename], filename, fileObject);
+    let arrayBuffer = fileObject.fileStorage.readFileNode(fileObject.fileNode.id);
+    let childNodes = parseJsonArrayBuffer(arrayBuffer);
+    let fileObjects = [];
+    for (let childNode of childNodes){
+      fileObjects.push(new FileObject(childNode, fileObject, fileObject.fileStorage));
     }
-    return fileObjectsMap;
+    return fileObjects;
   }
 
   /**
@@ -74,7 +81,7 @@ export class BaseFileSystem {
    * @async
    * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the file to read.
-   * @returns {Object} - Object mapping filename to FileObject for each file in the given directory.
+   * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
    */
   async listDirectory(pathArray) {
     let fileObject = await this.getFileObject(pathArray);
@@ -91,7 +98,7 @@ export class BaseFileSystem {
    */
   async read(pathArray, params) {
     let fileObject = await this.getFileObject(pathArray);
-    return await fileObject.read(params);
+    return await fileObject.fileStorage.readFileNode(fileObject.fileNode.id, params);
   }
 
   /**
@@ -104,7 +111,7 @@ export class BaseFileSystem {
    */
   async write(pathArray, data){
     let fileObject = await this.getFileObject(pathArray);
-    return await fileObject.write(data);
+    return await fileObject.fileStorage.writeFileNode(fileObject.fileNode.id, data);
   }
 
   /**
@@ -118,9 +125,8 @@ export class BaseFileSystem {
    */
   async addFile(pathArray, fileData, filename) {
     let parentFileObject = await this.getFileObject(pathArray);
-    let newFile = await  parentFileObject.fileStorage.addFile(parentFileObject.id, fileData, filename);
-    return new FileObject(parentFileObject.fileStorage, newFile,
-                          filename,  parentFileObject);
+    let newFileNode = await parentFileObject.fileStorage.addFile(parentFileObject.fileNode.id, fileData, filename);
+    return new FileObject(newFileNode, parentFileObject, parentFileObject.fileStorage);
   }
 
   /**
@@ -133,9 +139,8 @@ export class BaseFileSystem {
    */
   async addDirectory(pathArray, name) {
     let parentFileObject = await this.getFileObject(pathArray);
-    let newDir = await parentFileObject.fileStorage.addDirectory(parentFileObject.id, name);
-    return new FileObject(parentFileObject.fileStorage, newDir,
-                          name, parentFileObject);
+    let newDirNode = await parentFileObject.fileStorage.addDirectory(parentFileObject.fileNode.id, name);
+    return new FileObject(newDirNode, parentFileObject, parentFileObject.fileStorage);
   }
 
   /**
@@ -148,10 +153,10 @@ export class BaseFileSystem {
   async copy(pathArray, fileObject){
     let targetFileObject = await this.getFileObject(pathArray);
     if (fileObject.fileStorage === targetFileObject.fileStorage){
-      await fileObject.fileStorage.copy(fileObject.id, targetFileObject.id);
+      await fileObject.fileStorage.copy(fileObject.fileNode.id, targetFileObject.fileNode.id);
     } else {
-      let fileBuffer = await this.targetFileObject.fileStorage.readFileNode(this.targetFileObject.id);
-      await this.targetFileObject.fileStorage.addFile(this.targetFileObject.id, fileBuffer, fileObject.name);
+      let fileBuffer = await this.targetFileObject.fileStorage.readFileNode(targetFileObject.fileNode.id);
+      await this.targetFileObject.fileStorage.addFile(targetFileObject.fileNode.id, fileBuffer, fileObject.fileNode.name);
     }
   }
 
@@ -165,7 +170,7 @@ export class BaseFileSystem {
   async move(pathArray, fileObject){
     let targetFileObject = await this.getFileObject(pathArray);
     if (fileObject.fileStorage === targetFileObject.fileStorage){
-      await fileObject.fileStorage.move(fileObject.id, targetFileObject.id);
+      await fileObject.fileStorage.move(fileObject.fileNode.id, targetFileObject.fileNode.id);
     } else {
       throw new Error("Cannot move file across file systems.");
     }
@@ -238,7 +243,7 @@ export let StateMixin = (fileSystemClass) => {
     constructor(...args) {
       super(...args);
       this._currentDirectory = null;
-      this._data = {};
+      this._data = [];
       this._path = [];
       this._lastCall = null;
       this._compressor = LZString;
@@ -316,7 +321,7 @@ export let StateMixin = (fileSystemClass) => {
       let clone = super.clone();
       clone._path = this._path;
       clone._currentDirectory = this._currentDirectory;
-      clone._data = Object.assign({}, this._data);
+      clone._data = this._data.slice(0);
       clone.trackState = false;
       return clone;
     }
@@ -328,7 +333,7 @@ export let StateMixin = (fileSystemClass) => {
      * or relative to the current directory.
      */
     async changeDirectory(pathArray){
-      this._path = pathArray.slice();
+      this._path = pathArray.slice(0);
       this._currentDirectory = await this.getFileObject(pathArray);
       await this.refresh();
       if (this.onPathChanged){
@@ -349,7 +354,7 @@ export let StateMixin = (fileSystemClass) => {
     async refresh(){
       this._rootFileObject = null;
       if (this._currentDirectory !== null){
-        this._currentDirectory.clearCache();
+        // this._currentDirectory.clearCache();  //TODO Add caching here
       }
       this._data = await this.listDirectory(this.path);
       if (this.onDataChanged){
@@ -425,30 +430,22 @@ export let HiddenReferenceLinkMixin = (fileSystemClass) => {
       super(...args);
     }
 
-    async changeDirectory(pathArray){
-      let fileObject = await this.getFileObject(pathArray);
-      if (fileObject.mimeType === 'inode/symlink'){
-        pathArray = await fileObject.readJSON();
-      }
-      await super.changeDirectory(pathArray);
-    }
-
-    async getChildren(fileObject){
-      let fileObjectsMap = await super.getChildren(fileObject);
-      fileObjectsMap['.'] = new Link(fileObject, '.', fileObject);
-      if (fileObject.parent){
-        fileObjectsMap['..'] = new Link(fileObject.parent, '..', fileObject);
-      }
-      return fileObjectsMap;
-    }
-
-    async listDirectory(pathArray) {
-      let fileObject = await this.getFileObject(pathArray);
-      if (fileObject.mimeType === 'inode/symlink'){
+    async getFileObject(pathArray) {
+      let fileObject = await super.getFileObject(pathArray);
+      if (fileObject.mimeType === Link.mimeType){
         pathArray = await fileObject.readJSON();
         fileObject = await this.getFileObject(pathArray);
       }
-      return await this.getChildren(fileObject);
+      return fileObject
+    }
+
+    async getChildren(fileObject){
+      let fileObjectsArray = await super.getChildren(fileObject);
+      fileObjectsArray.push(new Link(fileObject, '.', fileObject));
+      if (fileObject.parent){
+        fileObjectsArray.push(new Link(fileObject.parent, '..', fileObject));
+      }
+      return fileObjectsArray;
     }
   };
 };
@@ -479,15 +476,15 @@ export let MountStorageMixin = (fileSystemClass) => {
     }
 
     async getChildren(fileObject){
-      let fileObjectsMap = await super.getChildren(fileObject);
+      let fileObjectsArray = await super.getChildren(fileObject);
       for (let mount of this._mounts){
         if (mount.fileObject.fileStorage === fileObject.fileStorage &&
-            mount.fileObject.id === fileObject.id){
+            mount.fileObject.fileNode.id === fileObject.fileNode.id){
           let mountedRootDirectory = await mount.fileStorage.getRootFileNode();
-          fileObjectsMap[mount.name] = new FileObject(mount.fileStorage, mountedRootDirectory, mount.name, fileObject);
+          fileObjectsArray.push(new FileObject(fileObject, mountedRootDirectory, mount.fileStorage));
         }
       }
-      return fileObjectsMap;
+      return fileObjectsArray;
     }
 
     clone(){
@@ -551,7 +548,7 @@ export let ExecutableMixin = (FileSystemClass) => {
             // Find a js file with the name in command and call the "main" function
             // in the file with the given args.
             let jsName = `${command}.js`;
-            let pathsArray = this.executablePath.slice();
+            let pathsArray = this.executablePath.slice(0);
             let main;
             while (main === undefined && pathsArray.length > 0) {
                 let pathArray = pathsArray.shift();

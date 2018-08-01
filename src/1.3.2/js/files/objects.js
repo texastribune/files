@@ -18,36 +18,15 @@ import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from ".
 
 export class FileObject {
   /**
-   * An object representing a file or directory in a file system. Provides API for
-   * performing operations on the file.
-   * @param {AbstractFileStorage} fileStorage - The file system the file is on
+   * An object representing a file or directory in a file system.
    * @param {FileNode} fileNode - The FileNode object representing the file
-   * @param {string} name - The name of this file.
-   * @param {FileObject|null} parent - The parent directory for this file. Null if root directory.
+   * @param {FileObject|null} parentFileObject - The parent directory for this file. Null if root directory.
+   * @param {AbstractFileStorage} fileStorage - the file storage for this file.
    */
-  constructor(fileStorage, fileNode, name, parent) {
-    this._fileStorage = fileStorage;
-    this._fileNode = fileNode;
-    this._name = name;
-    this._parent = parent;
-    this._filePromiseCache = null;
-  }
-
-  // Getters
-  get fileStorage() {
-    return this._fileStorage;
-  }
-
-  get fileNode() {
-    return this._fileNode;
-  }
-
-  get id() {
-    return this._fileNode.id;
-  }
-
-  get name() {
-    return this._name;
+  constructor(fileNode, parentFileObject, fileStorage) {
+    this.fileNode = fileNode;
+    this.parent = parentFileObject;
+    this.fileStorage = fileStorage;
   }
 
   get path() {
@@ -56,131 +35,6 @@ export class FileObject {
     }
     return this.parent.path.concat([this.name]);
   }
-
-  get url() {
-    return this._fileNode.url;
-  }
-
-  get directory() {
-    return this._fileNode.directory;
-  }
-
-  get icon() {
-    return this._fileNode.icon;
-  }
-
-  get mimeType() {
-    return this._fileNode.mimeType;
-  }
-
-  get size(){
-    return this._fileNode.size;
-  }
-
-  get lastModified() {
-    return this._fileNode.lastModified;
-  }
-
-  get created() {
-    return this._fileNode.created;
-  }
-
-  get parent() {
-    return this._parent;
-  }
-
-  /**
-   * Clear the file cache.
-   */
-  clearCache(){
-    this._filePromiseCache = null;
-    let parent = this.parent;
-    if (parent){
-      parent.clearCache();
-    }
-  }
-
-  /**
-   * Read the file.
-   * @async
-   * @param {Object} [params={}] - Read parameters.
-   * @returns {Blob} - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
-   */
-  async read(params) {
-    if (this._filePromiseCache === null){
-      this._filePromiseCache = this.fileStorage.readFileNode(this.id, params);
-    }
-    return await this._filePromiseCache;
-  }
-
-  /**
-   * Read the file.
-   * @async
-   * @param {File|Blob} data - Raw data to write to the file.
-   * @returns {ArrayBuffer} - Updated file data in an ArrayBuffer
-   */
-  async write(data) {
-    this.clearCache();
-    return await this.fileStorage.writeFileNode(this.id, data);
-  }
-
-  /**
-   * Read the file as a string.
-   * @async
-   * @param {Object} [params={}] - Read parameters.
-   * @returns {string} - File file data converted to a string.
-   */
-  async readText(params) {
-    let buffer = await this.read(params);
-    return parseTextArrayBuffer(buffer);
-  }
-
-  /**
-   * Read the file as a json encoded string and convert to a Javascript Object.
-   * @async
-   * @param {Object} [params={}] - Read parameters.
-   * @returns {Object|Array} - File file data converted to a Javascript Object.
-   */
-  async readJSON(params) {
-    let file = await this.read(params);
-    return parseJsonArrayBuffer(file);
-  }
-
-  /**
-   * Change the name of the file.
-   * @async
-   * @param {string} newName - The new name for the file.
-   */
-  async rename(newName) {
-    this.clearCache();
-    await this.fileStorage.rename(this.id, newName);
-    this._fileNode.name = newName;
-  }
-
-  /**
-   * Delete the file from its storage location.
-   * @async
-   */
-  async delete() {
-    this.clearCache();
-    return await this.fileStorage.delete(this.id);
-  }
-
-  /**
-   * Search the file and all of its children recursively based on the query.
-   * @async
-   * @param {string} query - Words to be searched seperated by spaces.
-   * @returns {FileObject[]} - A list of file objects.
-   */
-  async search(query) {
-    let fileObjectList = [];
-    let fileNodeList = await this.fileStorage.search(this.id, query);
-    for (let node of fileNodeList){
-      fileObjectList.push(new FileObject(this.fileStorage, node, node.name, this));
-    }
-    return fileObjectList;
-  }
-
   toString(){
     return `/${this.path.join('/')}`;
   }
@@ -199,9 +53,13 @@ export class Link extends FileObject {
     this._fileObject = fileObject;
   }
 
+  static get mimeType(){
+    return 'inode/symlink';
+  }
+
 
   get mimeType() {
-    return 'inode/symlink';
+    return this.constructor.mimeType;
   }
 
   async read(params) {

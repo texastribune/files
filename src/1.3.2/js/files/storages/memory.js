@@ -65,19 +65,15 @@ class BaseMemoryFile {
     return this._lastModified.toISOString();
   }
 
+  get size(){
+    return this.fileData.byteLength;
+  }
+
   /**
    * @abstract
    * @returns ArrayBuffer
    */
   get fileData(){
-    throw new Error("Not implemented");
-  }
-
-  /**
-   * @abstract
-   * @returns int
-   */
-  get size(){
     throw new Error("Not implemented");
   }
 
@@ -128,10 +124,6 @@ class MemoryFile extends BaseMemoryFile {
     this._lastModified = new Date();
   }
 
-  get size(){
-    return this._fileData.size;
-  }
-
   get lastModified(){
     return this._lastModified.toISOString();
   }
@@ -152,19 +144,11 @@ class MemoryDirectory extends BaseMemoryFile {
   }
 
   get fileData(){
-    let nodes = {};
+    let nodes = [];
     for (let name in this._children){
-      nodes[name] = this._children[name].fileNode;
+      nodes.push(this._children[name].fileNode);
     }
     return stringToArrayBuffer(JSON.stringify(nodes));
-  }
-
-  get size(){
-    let size = 0;
-    for (let child of Object.values(this._children)){
-      size += child.size;
-    }
-    return size;
   }
 
   get lastModified(){
