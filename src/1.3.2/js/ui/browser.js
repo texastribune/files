@@ -572,16 +572,16 @@ export class FileBrowser extends Element {
    */
   fileObjectToTableData(fileObject){
     return {
-      id: fileObject.id,
+      id: fileObject.fileNode.id,
       path: fileObject.path,
-      name: fileObject.name,
-      directory: fileObject.directory,
-      url: fileObject.url,
-      icon: fileObject.icon,
-      mimeType: fileObject.mimeType,
-      lastModified: fileObject.lastModified,
-      created: fileObject.created,
-      size: fileObject.size
+      name: fileObject.fileNode.name,
+      directory: fileObject.fileNode.directory,
+      url: fileObject.fileNode.url,
+      icon: fileObject.fileNode.icon,
+      mimeType: fileObject.fileNode.mimeType,
+      lastModified: fileObject.fileNode.lastModified,
+      created: fileObject.fileNode.created,
+      size: fileObject.fileNode.size
     }
   }
 
@@ -665,8 +665,7 @@ export class FileBrowser extends Element {
           runButton.onclick = () => {
             this.errorLoggingWrapper(
               (async () => {
-                let fileObject = await this.fileSystem.getFileObject(selectedRowData.path);
-                this.fileSystem.execFileObject(fileObject);
+                await this.fileSystem.execPath(selectedRowData.path);
               })()
             );
           };

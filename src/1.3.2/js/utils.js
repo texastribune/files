@@ -47,7 +47,9 @@ export function parseTextArrayBuffer(arrayBuffer){
  * @returns {Object|Array} - A Javascript Object or Array.
  */
 export function parseJsonArrayBuffer(arrayBuffer){
-  return JSON.parse(parseTextArrayBuffer(arrayBuffer));
+  let text = parseTextArrayBuffer(arrayBuffer);
+  return JSON.parse(text);
+
 }
 
 /**
@@ -133,4 +135,4 @@ export function compareById(a, b) {
         return -1;
     }
     return 0;
-};
+}

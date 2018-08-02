@@ -1,7 +1,7 @@
 import LZString from "../lz-string-1.4.4/lz-string.min.js";
 import {FileObject, Link} from "./objects.js";
 import {FileNotFoundError} from "./storages/base.js";
-import {parseJsonArrayBuffer} from "../utils.js";
+import {parseJsonArrayBuffer, parseTextArrayBuffer} from "../utils.js";
 
 
 /**
@@ -23,10 +23,6 @@ export class BaseFileSystem {
       this._rootFileObject = new FileObject(rootFileNode, null, this._rootFileStorage);
     }
     return this._rootFileObject;
-  }
-
-  static get rootFileName(){
-    return 'root';
   }
 
   /**
@@ -66,8 +62,7 @@ export class BaseFileSystem {
    * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
    */
   async getChildren(fileObject) {
-    let arrayBuffer = fileObject.fileStorage.readFileNode(fileObject.fileNode.id);
-    let childNodes = parseJsonArrayBuffer(arrayBuffer);
+    let childNodes = await fileObject.readJSON();
     let fileObjects = [];
     for (let childNode of childNodes){
       fileObjects.push(new FileObject(childNode, fileObject, fileObject.fileStorage));
@@ -86,32 +81,6 @@ export class BaseFileSystem {
   async listDirectory(pathArray) {
     let fileObject = await this.getFileObject(pathArray);
     return await this.getChildren(fileObject);
-  }
-
-  /**
-   * Read the file at the given path.
-   * @async
-   * @abstract
-   * @param {string[]} pathArray - An array of strings representing the path of the file to read.
-   * @param {Object} params - Query params to read with.
-   * @returns {ArrayBuffer} - ArrayBuffer containing file data.
-   */
-  async read(pathArray, params) {
-    let fileObject = await this.getFileObject(pathArray);
-    return await fileObject.fileStorage.readFileNode(fileObject.fileNode.id, params);
-  }
-
-  /**
-   *
-   * @async
-   * @abstract
-   * @param {string[]} pathArray - An array of strings representing the path of the file to write.
-   * @param {ArrayBuffer} data - data to be written to the file located at the given path.
-   * @returns {ArrayBuffer} - Updated file data in an ArrayBuffer
-   */
-  async write(pathArray, data){
-    let fileObject = await this.getFileObject(pathArray);
-    return await fileObject.fileStorage.writeFileNode(fileObject.fileNode.id, data);
   }
 
   /**
@@ -155,7 +124,7 @@ export class BaseFileSystem {
     if (fileObject.fileStorage === targetFileObject.fileStorage){
       await fileObject.fileStorage.copy(fileObject.fileNode.id, targetFileObject.fileNode.id);
     } else {
-      let fileBuffer = await this.targetFileObject.fileStorage.readFileNode(targetFileObject.fileNode.id);
+      let fileBuffer = await this.targetFileObject.read();
       await this.targetFileObject.fileStorage.addFile(targetFileObject.fileNode.id, fileBuffer, fileObject.fileNode.name);
     }
   }
@@ -174,19 +143,6 @@ export class BaseFileSystem {
     } else {
       throw new Error("Cannot move file across file systems.");
     }
-  }
-
-  /**
-   * Search the location and its subdirectories recursively for files matching the given search term.
-   * @async
-   * @abstract
-   * @param {string[]} pathArray - An array of strings representing the path of the directory to be searched.
-   * @param {string} query - Search terms.
-   * @returns {FileObject[]} - A list of FileObjects that match the query.
-   */
-  async search(pathArray, query){
-    let searchFileObject = await this.getFileObject(pathArray);
-    return await searchFileObject.search(query);
   }
 
   /**
@@ -354,7 +310,7 @@ export let StateMixin = (fileSystemClass) => {
     async refresh(){
       this._rootFileObject = null;
       if (this._currentDirectory !== null){
-        // this._currentDirectory.clearCache();  //TODO Add caching here
+        this._currentDirectory.clearCache();
       }
       this._data = await this.listDirectory(this.path);
       if (this.onDataChanged){
@@ -430,15 +386,6 @@ export let HiddenReferenceLinkMixin = (fileSystemClass) => {
       super(...args);
     }
 
-    async getFileObject(pathArray) {
-      let fileObject = await super.getFileObject(pathArray);
-      if (fileObject.mimeType === Link.mimeType){
-        pathArray = await fileObject.readJSON();
-        fileObject = await this.getFileObject(pathArray);
-      }
-      return fileObject
-    }
-
     async getChildren(fileObject){
       let fileObjectsArray = await super.getChildren(fileObject);
       fileObjectsArray.push(new Link(fileObject, '.', fileObject));
@@ -480,8 +427,9 @@ export let MountStorageMixin = (fileSystemClass) => {
       for (let mount of this._mounts){
         if (mount.fileObject.fileStorage === fileObject.fileStorage &&
             mount.fileObject.fileNode.id === fileObject.fileNode.id){
-          let mountedRootDirectory = await mount.fileStorage.getRootFileNode();
-          fileObjectsArray.push(new FileObject(fileObject, mountedRootDirectory, mount.fileStorage));
+          let mountedRootFileNode = await mount.fileStorage.getRootFileNode();
+          mountedRootFileNode.name = mount.name;
+          fileObjectsArray.push(new FileObject(mountedRootFileNode, fileObject, mount.fileStorage));
         }
       }
       return fileObjectsArray;
@@ -542,7 +490,7 @@ export let ExecutableMixin = (FileSystemClass) => {
          * @memberof ExecutableMixin#
          * @async
          * @param {string} command - The name of a javascript file located in the .bin directory.
-         * @param {Array} args - The arguments to be provided to the "main" function in the file.
+         * @param {string[]} args - The arguments to be provided to the "main" function in the file.
          */
         async exec(command, ...args) {
             // Find a js file with the name in command and call the "main" function
@@ -571,11 +519,11 @@ export let ExecutableMixin = (FileSystemClass) => {
          * Execute the "main" function of the javascript file. The variable "this" will be this fileSystem.
          * @memberof ExecutableMixin#
          * @async
-         * @param {FileObject} fileObject - A fileObject that references a file containing javascript to be executed.
-         * @param {Array} args - The arguments to be provided to the "main" function in the file.
+         * @param {string[]} pathArray - The path of a file containing javascript to be executed.
+         * @param {string[]} args - The arguments to be provided to the "main" function in the file.
          */
-        async execFileObject(fileObject, ...args) {
-            let main = await this.importFromFileObject(fileObject, 'main');
+        async execPath(pathArray, ...args) {
+            let main = await this.import(path, 'main');
             return await main.bind(this)(...args);
         }
 
@@ -594,26 +542,12 @@ export let ExecutableMixin = (FileSystemClass) => {
             // Right now executes script as function with FileSystem bound as "this". In an ideal world
             // with dynamic imports would import as a module and could use relative paths.
             let fileObject = await this.getFileObject(pathArray);
-            return await this.importFromFileObject(fileObject, variableName);
-        }
-
-        /**
-         * Execute the "main" function of the javascript file with the name given in the command parameter
-         * with the given arguments. The file must be located in the executable path, which is an array
-         * of absolute path arrays. The variable "this" will be this fileSystem.
-         * @memberof ExecutableMixin#
-         * @async
-         * @param {FileObject} fileObject - A fileObject that references a file containing javascript from which to import.
-         * @param {string} variableName - The name of the variable to import from the javascript file.
-         * @return {*} The value of the variable.
-         */
-        async importFromFileObject(fileObject, variableName) {
-            let scriptString = await fileObject.readText();
+            let scriptString = await fileObject.readText(pathArray);
             try {
                 let func = new AsyncFunction(`${scriptString};return ${variableName};`);
                 return await func.bind(this)();
             } catch (e) {
-                throw new Error(`Error importing file ${fileObject}: ${e}`);
+                throw new Error(`Error importing file at ${pathArray.join('/')}: ${e}`);
             }
         }
     };

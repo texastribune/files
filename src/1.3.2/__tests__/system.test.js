@@ -43,8 +43,8 @@ describe('Test base file system', () => {
     let rootChildFileObjects = await system.listDirectory([]);
     let dir1ChildFileObjects = await system.listDirectory([dir1Name]);
 
-    let rootChildNames = rootChildFileObjects.map((fileObject) => {return fileObject.name});
-    let dir1ChildNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.name});
+    let rootChildNames = rootChildFileObjects.map((fileObject) => {return fileObject.fileNode.name});
+    let dir1ChildNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.fileNode.name});
 
     expect(rootChildNames).toContain(dir1Name);
     expect(rootChildNames).toContain(file1Name);
@@ -63,16 +63,16 @@ describe('Test base file system', () => {
     // Directory size, lastModified, and url can change when child files are added.
     function staticData(fileObject){
         let staticData = {
-            id: fileObject.id,
-            name: fileObject.name,
-            created: fileObject.created,
-            directory: fileObject.directory,
-            mimeType: fileObject.mimeType
+            id: fileObject.fileNode.id,
+            name: fileObject.fileNode.name,
+            created: fileObject.fileNode.created,
+            directory: fileObject.fileNode.directory,
+            mimeType: fileObject.fileNode.mimeType
         };
-        if (!fileObject.directory){
-            staticData.size = fileObject.size;
-            staticData.lastModified = fileObject.lastModified;
-            staticData.url = fileObject.url;
+        if (!fileObject.fileNode.directory){
+            staticData.size = fileObject.fileNode.size;
+            staticData.lastModified = fileObject.fileNode.lastModified;
+            staticData.url = fileObject.fileNode.url;
         }
         return staticData;
     }
@@ -87,12 +87,13 @@ describe('Test base file system', () => {
     expect(dir1FileObjectsStaticData.sort(compareById)).toEqual(dir1ExpectedStaticData.sort(compareById));
   });
 
-  test('System can read files', async () => {
+  test('Can read file objects', async () => {
     let fileObjects = await addTestFiles(system);
-    let file = await system.read([file1Name]);
+    let fileObject = await system.getFileObject([file1Name]);
+    let fileData = await fileObject.read();
 
-    expect(file).toBeInstanceOf(ArrayBuffer);
-    let text = parseTextArrayBuffer(file);
+    expect(fileData).toBeInstanceOf(ArrayBuffer);
+    let text = parseTextArrayBuffer(fileData);
     expect(text).toMatch(file1Text);
   });
 
@@ -102,7 +103,7 @@ describe('Test base file system', () => {
     await fileObjects[1].delete();
     let rootChildFileObjects = await system.listDirectory([]);
 
-    let rootChildNames = rootChildFileObjects.map((fileObject) => {return fileObject.name});
+    let rootChildNames = rootChildFileObjects.map((fileObject) => {return fileObject.fileNode.name});
     expect(rootChildNames).not.toContain(file1Name);
     expect(rootChildNames).toContain(dir1Name);
   });
@@ -129,13 +130,13 @@ describe('Test mounting mixin', () => {
     system.mount(fileObjects[0], mountedStorage, mountName);
 
     let dir1ChildFileObjects = await system.listDirectory([dir1Name]);
-    let dir1ChildNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.name});
+    let dir1ChildNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.fileNode.name});
 
     expect(dir1ChildNames).toContain(mountName);
     let mountedFileObject = await system.getFileObject([dir1Name, mountName, filename]);
     expect(mountedFileObject).toBeInstanceOf(FileObject);
-    expect(mountedFileObject.id).toMatch(mountedFileNode.id);
-    expect(mountedFileObject.name).toMatch(filename);
+    expect(mountedFileObject.fileNode.id).toMatch(mountedFileNode.id);
+    expect(mountedFileObject.fileNode.name).toMatch(filename);
     expect(mountedFileObject.fileStorage).toBe(mountedStorage);
 
     // Dir1 still has same file storage;
@@ -205,13 +206,13 @@ describe('Test hidden reference link mixin', () => {
   test('System has link references', async () => {
     let fileObjects = await addTestFiles(system);
     let rootChildFileObjects = await system.listDirectory([]);
-    let rootChildFileNames = rootChildFileObjects.map((fileObject) => {return fileObject.name});
+    let rootChildFileNames = rootChildFileObjects.map((fileObject) => {return fileObject.fileNode.name});
 
     expect(rootChildFileNames).toContain('.');
     expect(rootChildFileNames).not.toContain('..');
 
     let dir1ChildFileObjects = await system.listDirectory([dir1Name]);
-    let dir1ChildFileNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.name});
+    let dir1ChildFileNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.fileNode.name});
 
     expect(dir1ChildFileNames).toContain('.');
     expect(dir1ChildFileNames).toContain('..');
@@ -223,8 +224,8 @@ describe('Test hidden reference link mixin', () => {
     let dir1Parentlink = await system.getFileObject([dir1Name, '..']);
 
     // Type should be inode/symlink
-    expect(dir1link.mimeType).toMatch('inode/symlink');
-    expect(dir1Parentlink.mimeType).toMatch('inode/symlink');
+    expect(dir1link.fileNode.mimeType).toMatch('inode/symlink');
+    expect(dir1Parentlink.fileNode.mimeType).toMatch('inode/symlink');
 
     // File should contain JSON path string
     expect(await dir1link.readJSON()).toEqual([dir1Name]);
@@ -236,11 +237,11 @@ describe('Test hidden reference link mixin', () => {
 
     // Type should be inode/symlink
     let fileObject2 = await system.getFileObject([dir1Name, '.', file2Name]);
-    expect(fileObject2.name).toEqual(file2Name);
+    expect(fileObject2.fileNode.name).toEqual(file2Name);
 
     // Type should be inode/symlink
     let fileObject1 = await system.getFileObject([dir1Name, '.', '..', file1Name]);
-    expect(fileObject1.name).toEqual(file1Name);
+    expect(fileObject1.fileNode.name).toEqual(file1Name);
   });
 });
 
