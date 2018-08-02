@@ -37,8 +37,13 @@ export function compareDateStrings(dateString1, dateString2){
  * @returns {string} - The text contained in the file.
  */
 export function parseTextArrayBuffer(arrayBuffer){
-  return String.fromCharCode.apply(null, new Uint8Array(arrayBuffer));
-
+  if (typeof Buffer !== 'undefined'){
+    return Buffer.from(arrayBuffer).toString();
+  } else if (typeof TextDecoder !== 'undefined') {
+    return new TextDecoder().decode(new Uint8Array(arrayBuffer));
+  } else {
+    return String.fromCharCode.apply(null, new Uint8Array(arrayBuffer));
+  }
 }
 
 /**

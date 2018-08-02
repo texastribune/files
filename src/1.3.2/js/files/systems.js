@@ -12,19 +12,9 @@ import {MemoryFileStorage} from "./storages/memory.js";
 export class BaseFileSystem {
   constructor(rootFileStorage){
     this._rootFileStorage = rootFileStorage;
-
-    this._rootFileObject = null;
   }
 
   // getters
-
-  async getRootFileObject(){
-    if (this._rootFileObject === null){
-      let rootFileNode = await this._rootFileStorage.getRootFileNode();
-      this._rootFileObject = new FileObject(rootFileNode, null, this._rootFileStorage);
-    }
-    return this._rootFileObject;
-  }
 
   /**
    * Get the file object at the given path.
@@ -38,7 +28,8 @@ export class BaseFileSystem {
       throw Error(`Path must be an array, not ${typeof pathArray}`);
     }
     if (pathArray.length === 0){
-      return await this.getRootFileObject();
+      let rootFileNode = await this._rootFileStorage.getRootFileNode();
+      return new FileObject(rootFileNode, null, this._rootFileStorage);
     }
 
     let name = pathArray[pathArray.length-1];
@@ -319,7 +310,6 @@ export let StateMixin = (fileSystemClass) => {
      * @abstract
      */
     async refresh(){
-      this._rootFileObject = null;
       if (this._currentDirectory !== null){
         this._currentDirectory.clearCache();
       }
