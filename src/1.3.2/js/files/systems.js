@@ -2,6 +2,9 @@ import LZString from "../lz-string-1.4.4/lz-string.min.js";
 import {FileObject, Link} from "./objects.js";
 import {FileNotFoundError} from "./storages/base.js";
 import {parseJsonArrayBuffer, parseTextArrayBuffer} from "../utils.js";
+import {VirtualFileObject} from "./objects";
+import {stringToArrayBuffer} from "../utils";
+import {MemoryFileStorage} from "./storages/memory";
 
 
 /**
@@ -33,6 +36,9 @@ export class BaseFileSystem {
    * @returns {FileObject} - The file object located at the given path.
    */
   async getFileObject(pathArray) {
+    if (!(pathArray instanceof Array)){
+      throw Error(`Path must be an array, not ${typeof pathArray}`);
+    }
     if (pathArray.length === 0){
       return await this.getRootFileObject();
     }
@@ -62,6 +68,9 @@ export class BaseFileSystem {
    * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
    */
   async getChildren(fileObject) {
+    if (!fileObject.fileNode.directory){
+      throw new Error(`Cannot get children. File ${fileObject.fileNode.name} is not a directory`);
+    }
     let childNodes = await fileObject.readJSON();
     let fileObjects = [];
     for (let childNode of childNodes){
@@ -80,6 +89,9 @@ export class BaseFileSystem {
    */
   async listDirectory(pathArray) {
     let fileObject = await this.getFileObject(pathArray);
+    if (!fileObject.fileNode.directory){
+      throw new Error(`File ${fileObject} is not a directory`);
+    }
     return await this.getChildren(fileObject);
   }
 
@@ -90,11 +102,12 @@ export class BaseFileSystem {
    * @param {string[]} pathArray - An array of strings representing the path of the directory to add the file to.
    * @param {ArrayBuffer} fileData - The file or a dataUrl of a file to be added to the current directory.
    * @param {string} [filename] - A name for the new file.
+   * @param {string} [mimeType=application/octet-stream] - A mimeType for the file.
    * @returns {FileObject} - The data for the newly created directory
    */
-  async addFile(pathArray, fileData, filename) {
+  async addFile(pathArray, fileData, filename, mimeType) {
     let parentFileObject = await this.getFileObject(pathArray);
-    let newFileNode = await parentFileObject.fileStorage.addFile(parentFileObject.fileNode.id, fileData, filename);
+    let newFileNode = await parentFileObject.fileStorage.addFile(parentFileObject.fileNode.id, fileData, filename, mimeType);
     return new FileObject(newFileNode, parentFileObject, parentFileObject.fileStorage);
   }
 
@@ -386,12 +399,41 @@ export let HiddenReferenceLinkMixin = (fileSystemClass) => {
       super(...args);
     }
 
+    static get linkMimeType(){
+      return 'inode/symlink';
+    }
+
+    async _getDirectoryLinks(directoryFileObject){
+      let links = [];
+
+      let tempStorage = new MemoryFileStorage();
+      let tempStorageRoot = await tempStorage.getRootFileNode();
+
+      let pathData = stringToArrayBuffer(JSON.stringify(directoryFileObject.path));
+      let fileNode = await tempStorage.addFile(tempStorageRoot.id, pathData, '.', this.constructor.linkMimeType);
+      links.push(new FileObject(fileNode, directoryFileObject, tempStorage));
+
+      if (directoryFileObject.parent){
+        let parentPathData =stringToArrayBuffer(JSON.stringify(directoryFileObject.parent.path));
+        let parentFileNode = await tempStorage.addFile(tempStorageRoot.id, parentPathData, '..', this.constructor.linkMimeType);
+        links.push(new FileObject(parentFileNode, directoryFileObject, tempStorage));
+      }
+      return links;
+    }
+
+    async getFileObject(pathArray){
+      let fileObject = await super.getFileObject(pathArray);
+      if (fileObject.fileNode.mimeType === this.constructor.linkMimeType){
+        let targetPath = await fileObject.readJSON();
+        fileObject = await this.getFileObject(targetPath);
+      }
+      return fileObject;
+    }
+
     async getChildren(fileObject){
       let fileObjectsArray = await super.getChildren(fileObject);
-      fileObjectsArray.push(new Link(fileObject, '.', fileObject));
-      if (fileObject.parent){
-        fileObjectsArray.push(new Link(fileObject.parent, '..', fileObject));
-      }
+      let links = await this._getDirectoryLinks(fileObject);
+      fileObjectsArray = fileObjectsArray.concat(links);
       return fileObjectsArray;
     }
   };

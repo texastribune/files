@@ -600,16 +600,16 @@ export class FileBrowser extends Element {
    */
   fileObjectToTableData(fileObject){
     return {
-      id: fileObject.id,
+      id: fileObject.fileNode.id,
       path: fileObject.path,
-      name: fileObject.name,
-      directory: fileObject.directory,
-      url: fileObject.url,
-      icon: fileObject.icon,
-      mimeType: fileObject.mimeType,
-      lastModified: fileObject.lastModified,
-      created: fileObject.created,
-      size: fileObject.size
+      name: fileObject.fileNode.name,
+      directory: fileObject.fileNode.directory,
+      url: fileObject.fileNode.url,
+      icon: fileObject.fileNode.icon,
+      mimeType: fileObject.fileNode.mimeType,
+      lastModified: fileObject.fileNode.lastModified,
+      created: fileObject.fileNode.created,
+      size: fileObject.fileNode.size
     }
   }
 
@@ -693,8 +693,7 @@ export class FileBrowser extends Element {
           runButton.onclick = () => {
             this.errorLoggingWrapper(
               (async () => {
-                let fileObject = await this.fileSystem.getFileObject(selectedRowData.path);
-                this.fileSystem.execFileObject(fileObject);
+                await this.fileSystem.execPath(selectedRowData.path);
               })()
             );
           };
@@ -1069,7 +1068,7 @@ export let ConfigFileMixin = (fileSystemClass) => {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject_FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="Link_Link.html">Link</a></li><li><a href="LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="NodeFileStorage.html">NodeFileStorage</a></li><li><a href="PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="NodeFileStorage.html">NodeFileStorage</a></li><li><a href="PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
 </nav>
 
 <br class="clear">

@@ -73,7 +73,7 @@ at arbitrary paths in the file system.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line504">line 504</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line494">line 494</a>
     </li></ul></dd>
     
 
@@ -151,7 +151,7 @@ when the exec method is called.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line530">line 530</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line520">line 520</a>
     </li></ul></dd>
     
 
@@ -264,7 +264,7 @@ of absolute path arrays.
             <td class="type">
             
                 
-<span class="param-type">Array</span>
+<span class="param-type">Array.&lt;string></span>
 
 
             
@@ -325,7 +325,7 @@ of absolute path arrays.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line547">line 547</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line537">line 537</a>
     </li></ul></dd>
     
 
@@ -359,7 +359,7 @@ of absolute path arrays.
     
 
     
-    <h4 class="name" id="execFileObject"><span class="type-signature">(async) </span>execFileObject<span class="signature">(fileObject, &hellip;args)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="execPath"><span class="type-signature">(async) </span>execPath<span class="signature">(pathArray, &hellip;args)</span><span class="type-signature"></span></h4>
     
 
     
@@ -405,13 +405,13 @@ of absolute path arrays.
 
         <tr>
             
-                <td class="name"><code>fileObject</code></td>
+                <td class="name"><code>pathArray</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">FileObject</span>
+<span class="param-type">Array.&lt;string></span>
 
 
             
@@ -429,7 +429,7 @@ of absolute path arrays.
 
             
 
-            <td class="description last">A fileObject that references a file containing javascript to be executed.</td>
+            <td class="description last">The path of a file containing javascript to be executed.</td>
         </tr>
 
     
@@ -442,7 +442,7 @@ of absolute path arrays.
             <td class="type">
             
                 
-<span class="param-type">Array</span>
+<span class="param-type">Array.&lt;string></span>
 
 
             
@@ -503,7 +503,7 @@ of absolute path arrays.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line577">line 577</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line567">line 567</a>
     </li></ul></dd>
     
 
@@ -663,189 +663,7 @@ of absolute path arrays. The variable "this" will be this fileSystem.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line592">line 592</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    The value of the variable.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">*</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="importFromFileObject"><span class="type-signature">(async) </span>importFromFileObject<span class="signature">(fileObject, variableName)</span><span class="type-signature"> &rarr; {*}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Execute the "main" function of the javascript file with the name given in the command parameter
-with the given arguments. The file must be located in the executable path, which is an array
-of absolute path arrays. The variable "this" will be this fileSystem.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fileObject</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">FileObject</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">A fileObject that references a file containing javascript from which to import.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>variableName</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The name of the variable to import from the javascript file.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line610">line 610</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line582">line 582</a>
     </li></ul></dd>
     
 
@@ -911,7 +729,7 @@ of absolute path arrays. The variable "this" will be this fileSystem.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject_FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="Link_Link.html">Link</a></li><li><a href="LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="NodeFileStorage.html">NodeFileStorage</a></li><li><a href="PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="NodeFileStorage.html">NodeFileStorage</a></li><li><a href="PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
 </nav>
 
 <br class="clear">

@@ -218,18 +218,21 @@ describe('Test hidden reference link mixin', () => {
     expect(dir1ChildFileNames).toContain('..');
   });
 
-  test('System links have right properties', async () => {
+  test('Can add link as file', async () => {
     let fileObjects = await addTestFiles(system);
-    let dir1link = await system.getFileObject([dir1Name, '.']);
-    let dir1Parentlink = await system.getFileObject([dir1Name, '..']);
 
-    // Type should be inode/symlink
-    expect(dir1link.fileNode.mimeType).toMatch('inode/symlink');
-    expect(dir1Parentlink.fileNode.mimeType).toMatch('inode/symlink');
+    // Add a file containing json string of file1 path in dir1 as a link to file1.
+    let file1Path = fileObjects[1].path;
+    let linkData = stringToArrayBuffer(JSON.stringify(file1Path));
+    let dir1Path = fileObjects[0].path;
+    let linkFileObject = await system.addFile(dir1Path, linkData, 'file1link', system.constructor.linkMimeType);
 
-    // File should contain JSON path string
-    expect(await dir1link.readJSON()).toEqual([dir1Name]);
-    expect(await dir1Parentlink.readJSON()).toEqual([]);
+    // Make the link and file its linking to are at different paths
+    expect(linkFileObject.path).not.toEqual(file1Path);
+
+    // Trying to read the link path should return the file its linking to
+    let fileObject = await system.getFileObject(linkFileObject.path);
+    expect(fileObject.fileNode).toEqual(fileObjects[1].fileNode);
   });
 
   test('System get file through link path', async () => {

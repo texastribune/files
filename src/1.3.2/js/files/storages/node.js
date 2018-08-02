@@ -52,7 +52,7 @@ export class NodeFileStorage extends AbstractFileStorage {
         return {
             id: fsPath,
             name: name,
-            directory: stat.isDirectory(),
+            directory: directory,
             mimeType: directory ? 'application/json' : 'application/octet-stream',
             size: stat.size,
             created: stat.birthtime.toISOString(),

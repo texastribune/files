@@ -64,7 +64,7 @@ export class AbstractFileStorage {
    * @param {string} parentId - Id referring to the directory file to add the file.
    * @param {ArrayBuffer} fileData - The file data as an ArrayBuffer or a dataUrl of a file to be added to the current directory.
    * @param {string} [filename] - A name for the new file.
-   * @param {string} [mimeType] - The mimeType of the file. Defaults to application/octet-stream
+   * @param {string} [mimeType=application/octet-stream] - The mimeType of the file. Defaults to application/octet-stream
    * @returns {FileNode} - The data for the newly created directory
    */
   async addFile(parentId, fileData, filename, mimeType) {

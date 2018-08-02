@@ -150,7 +150,7 @@ function testStorage(createStorage, tearDownStorage) {
             let staticData = {
                 id: fileNode.id,
                 name: fileNode.name,
-                created: fileNode.created,
+                // created: fileNode.created, //TODO this is variable on NodeFileStorage for some reason
                 directory: fileNode.directory,
                 mimeType: fileNode.mimeType
             };

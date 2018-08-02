@@ -107,7 +107,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line632">line 632</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line608">line 608</a>
     </li></ul></dd>
     
 
@@ -301,7 +301,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line140">line 140</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line122">line 122</a>
     </li></ul></dd>
     
 
@@ -357,7 +357,7 @@
     
 
     
-    <h4 class="name" id="addFile"><span class="type-signature">(async, abstract) </span>addFile<span class="signature">(pathArray, fileData, filename<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {FileObject}</span></h4>
+    <h4 class="name" id="addFile"><span class="type-signature">(async, abstract) </span>addFile<span class="signature">(pathArray, fileData, filename<span class="signature-attributes">opt</span>, mimeType<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="FileObject.html">FileObject</a>}</span></h4>
     
 
     
@@ -393,6 +393,8 @@
         
 
         
+        <th>Default</th>
+        
 
         <th class="last">Description</th>
     </tr>
@@ -426,6 +428,10 @@
             
 
             
+                <td class="default">
+                
+                </td>
+            
 
             <td class="description last">An array of strings representing the path of the directory to add the file to.</td>
         </tr>
@@ -456,6 +462,10 @@
                 </td>
             
 
+            
+                <td class="default">
+                
+                </td>
             
 
             <td class="description last">The file or a dataUrl of a file to be added to the current directory.</td>
@@ -490,8 +500,51 @@
             
 
             
+                <td class="default">
+                
+                </td>
+            
 
             <td class="description last">A name for the new file.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>mimeType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    application/octet-stream
+                
+                </td>
+            
+
+            <td class="description last">A mimeType for the file.</td>
         </tr>
 
     
@@ -537,7 +590,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line126">line 126</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line108">line 108</a>
     </li></ul></dd>
     
 
@@ -575,7 +628,7 @@
     </dt>
     <dd>
         
-<span class="param-type">FileObject</span>
+<span class="param-type"><a href="FileObject.html">FileObject</a></span>
 
 
     </dd>
@@ -650,7 +703,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line196">line 196</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line165">line 165</a>
     </li></ul></dd>
     
 
@@ -779,7 +832,7 @@
             <td class="type">
             
                 
-<span class="param-type">FileObject</span>
+<span class="param-type"><a href="FileObject.html">FileObject</a></span>
 
 
             
@@ -835,7 +888,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line153">line 153</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line135">line 135</a>
     </li></ul></dd>
     
 
@@ -869,7 +922,7 @@
     
 
     
-    <h4 class="name" id="getChildren"><span class="type-signature">(async, abstract) </span>getChildren<span class="signature">(fileObject)</span><span class="type-signature"> &rarr; {Array.&lt;FileObject>}</span></h4>
+    <h4 class="name" id="getChildren"><span class="type-signature">(async, abstract) </span>getChildren<span class="signature">(fileObject)</span><span class="type-signature"> &rarr; {Array.&lt;<a href="FileObject.html">FileObject</a>>}</span></h4>
     
 
     
@@ -920,7 +973,7 @@ directory represented by the given fileObject.
             <td class="type">
             
                 
-<span class="param-type">FileObject</span>
+<span class="param-type"><a href="FileObject.html">FileObject</a></span>
 
 
             
@@ -976,7 +1029,7 @@ directory represented by the given fileObject.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line68">line 68</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line70">line 70</a>
     </li></ul></dd>
     
 
@@ -1014,7 +1067,7 @@ directory represented by the given fileObject.
     </dt>
     <dd>
         
-<span class="param-type">Array.&lt;FileObject></span>
+<span class="param-type">Array.&lt;<a href="FileObject.html">FileObject</a>></span>
 
 
     </dd>
@@ -1032,7 +1085,7 @@ directory represented by the given fileObject.
     
 
     
-    <h4 class="name" id="getFileObject"><span class="type-signature">(async, abstract) </span>getFileObject<span class="signature">(pathArray)</span><span class="type-signature"> &rarr; {FileObject}</span></h4>
+    <h4 class="name" id="getFileObject"><span class="type-signature">(async, abstract) </span>getFileObject<span class="signature">(pathArray)</span><span class="type-signature"> &rarr; {<a href="FileObject.html">FileObject</a>}</span></h4>
     
 
     
@@ -1138,7 +1191,7 @@ directory represented by the given fileObject.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line39">line 39</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line38">line 38</a>
     </li></ul></dd>
     
 
@@ -1176,7 +1229,7 @@ directory represented by the given fileObject.
     </dt>
     <dd>
         
-<span class="param-type">FileObject</span>
+<span class="param-type"><a href="FileObject.html">FileObject</a></span>
 
 
     </dd>
@@ -1194,7 +1247,7 @@ directory represented by the given fileObject.
     
 
     
-    <h4 class="name" id="listDirectory"><span class="type-signature">(async, abstract) </span>listDirectory<span class="signature">(pathArray)</span><span class="type-signature"> &rarr; {Array.&lt;FileObject>}</span></h4>
+    <h4 class="name" id="listDirectory"><span class="type-signature">(async, abstract) </span>listDirectory<span class="signature">(pathArray)</span><span class="type-signature"> &rarr; {Array.&lt;<a href="FileObject.html">FileObject</a>>}</span></h4>
     
 
     
@@ -1301,7 +1354,7 @@ directory represented by the given path.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line86">line 86</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line90">line 90</a>
     </li></ul></dd>
     
 
@@ -1339,7 +1392,7 @@ directory represented by the given path.
     </dt>
     <dd>
         
-<span class="param-type">Array.&lt;FileObject></span>
+<span class="param-type">Array.&lt;<a href="FileObject.html">FileObject</a>></span>
 
 
     </dd>
@@ -1430,7 +1483,7 @@ directory represented by the given path.
             <td class="type">
             
                 
-<span class="param-type">FileObject</span>
+<span class="param-type"><a href="FileObject.html">FileObject</a></span>
 
 
             
@@ -1486,7 +1539,7 @@ directory represented by the given path.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line170">line 170</a>
+        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line152">line 152</a>
     </li></ul></dd>
     
 
@@ -1509,557 +1562,6 @@ directory represented by the given path.
 
 
 
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="read"><span class="type-signature">(async, abstract) </span>read<span class="signature">(pathArray, params)</span><span class="type-signature"> &rarr; {ArrayBuffer}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Read the file at the given path.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>pathArray</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;string></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">An array of strings representing the path of the file to read.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>params</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Query params to read with.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="BaseFileSystem.html#read">BaseFileSystem#read</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line99">line 99</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    - ArrayBuffer containing file data.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">ArrayBuffer</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="search"><span class="type-signature">(async, abstract) </span>search<span class="signature">(pathArray, query)</span><span class="type-signature"> &rarr; {Array.&lt;FileObject>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Search the location and its subdirectories recursively for files matching the given search term.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>pathArray</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;string></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">An array of strings representing the path of the directory to be searched.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>query</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Search terms.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="BaseFileSystem.html#search">BaseFileSystem#search</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line187">line 187</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    - A list of FileObjects that match the query.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Array.&lt;FileObject></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="write"><span class="type-signature">(async, abstract) </span>write<span class="signature">(pathArray, data)</span><span class="type-signature"> &rarr; {ArrayBuffer}</span></h4>
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>pathArray</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;string></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">An array of strings representing the path of the file to write.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">ArrayBuffer</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">data to be written to the file located at the given path.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-    <dt class="inherited-from">Inherited From:</dt>
-    <dd class="inherited-from"><ul class="dummy"><li>
-        <a href="BaseFileSystem.html#write">BaseFileSystem#write</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="files_systems.js.html">files/systems.js</a>, <a href="files_systems.js.html#line112">line 112</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    - Updated file data in an ArrayBuffer
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">ArrayBuffer</span>
-
-
-    </dd>
-</dl>
-
-    
 
 
 
@@ -2081,7 +1583,7 @@ directory represented by the given path.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject_FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="Link_Link.html">Link</a></li><li><a href="LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="NodeFileStorage.html">NodeFileStorage</a></li><li><a href="PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="NodeFileStorage.html">NodeFileStorage</a></li><li><a href="PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
 </nav>
 
 <br class="clear">

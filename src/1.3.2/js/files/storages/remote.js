@@ -121,11 +121,11 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
 
   async readFileNode(id, params) {
     params = params || {};
-    return await this._ajax(id, params, 'GET');
+    return await this._ajax(this._baseUrl + id, params, 'GET');
   }
 
   async writeFileNode(id, data) {
-    return await this._ajax(id, data, 'POST');
+    return await this._ajax(this._baseUrl + id, data, 'POST');
   }
 
   async _ajax(url, data, method) {

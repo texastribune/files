@@ -29,7 +29,10 @@
             <pre class="prettyprint source linenums"><code>import LZString from "../lz-string-1.4.4/lz-string.min.js";
 import {FileObject, Link} from "./objects.js";
 import {FileNotFoundError} from "./storages/base.js";
-import {parseJsonArrayBuffer} from "../utils.js";
+import {parseJsonArrayBuffer, parseTextArrayBuffer} from "../utils.js";
+import {VirtualFileObject} from "./objects";
+import {stringToArrayBuffer} from "../utils";
+import {MemoryFileStorage} from "./storages/memory";
 
 
 /**
@@ -53,10 +56,6 @@ export class BaseFileSystem {
     return this._rootFileObject;
   }
 
-  static get rootFileName(){
-    return 'root';
-  }
-
   /**
    * Get the file object at the given path.
    * @async
@@ -65,6 +64,9 @@ export class BaseFileSystem {
    * @returns {FileObject} - The file object located at the given path.
    */
   async getFileObject(pathArray) {
+    if (!(pathArray instanceof Array)){
+      throw Error(`Path must be an array, not ${typeof pathArray}`);
+    }
     if (pathArray.length === 0){
       return await this.getRootFileObject();
     }
@@ -94,8 +96,10 @@ export class BaseFileSystem {
    * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
    */
   async getChildren(fileObject) {
-    let arrayBuffer = fileObject.fileStorage.readFileNode(fileObject.fileNode.id);
-    let childNodes = parseJsonArrayBuffer(arrayBuffer);
+    if (!fileObject.fileNode.directory){
+      throw new Error(`Cannot get children. File ${fileObject.fileNode.name} is not a directory`);
+    }
+    let childNodes = await fileObject.readJSON();
     let fileObjects = [];
     for (let childNode of childNodes){
       fileObjects.push(new FileObject(childNode, fileObject, fileObject.fileStorage));
@@ -113,33 +117,10 @@ export class BaseFileSystem {
    */
   async listDirectory(pathArray) {
     let fileObject = await this.getFileObject(pathArray);
+    if (!fileObject.fileNode.directory){
+      throw new Error(`File ${fileObject} is not a directory`);
+    }
     return await this.getChildren(fileObject);
-  }
-
-  /**
-   * Read the file at the given path.
-   * @async
-   * @abstract
-   * @param {string[]} pathArray - An array of strings representing the path of the file to read.
-   * @param {Object} params - Query params to read with.
-   * @returns {ArrayBuffer} - ArrayBuffer containing file data.
-   */
-  async read(pathArray, params) {
-    let fileObject = await this.getFileObject(pathArray);
-    return await fileObject.fileStorage.readFileNode(fileObject.fileNode.id, params);
-  }
-
-  /**
-   *
-   * @async
-   * @abstract
-   * @param {string[]} pathArray - An array of strings representing the path of the file to write.
-   * @param {ArrayBuffer} data - data to be written to the file located at the given path.
-   * @returns {ArrayBuffer} - Updated file data in an ArrayBuffer
-   */
-  async write(pathArray, data){
-    let fileObject = await this.getFileObject(pathArray);
-    return await fileObject.fileStorage.writeFileNode(fileObject.fileNode.id, data);
   }
 
   /**
@@ -149,11 +130,12 @@ export class BaseFileSystem {
    * @param {string[]} pathArray - An array of strings representing the path of the directory to add the file to.
    * @param {ArrayBuffer} fileData - The file or a dataUrl of a file to be added to the current directory.
    * @param {string} [filename] - A name for the new file.
+   * @param {string} [mimeType=application/octet-stream] - A mimeType for the file.
    * @returns {FileObject} - The data for the newly created directory
    */
-  async addFile(pathArray, fileData, filename) {
+  async addFile(pathArray, fileData, filename, mimeType) {
     let parentFileObject = await this.getFileObject(pathArray);
-    let newFileNode = await parentFileObject.fileStorage.addFile(parentFileObject.fileNode.id, fileData, filename);
+    let newFileNode = await parentFileObject.fileStorage.addFile(parentFileObject.fileNode.id, fileData, filename, mimeType);
     return new FileObject(newFileNode, parentFileObject, parentFileObject.fileStorage);
   }
 
@@ -183,7 +165,7 @@ export class BaseFileSystem {
     if (fileObject.fileStorage === targetFileObject.fileStorage){
       await fileObject.fileStorage.copy(fileObject.fileNode.id, targetFileObject.fileNode.id);
     } else {
-      let fileBuffer = await this.targetFileObject.fileStorage.readFileNode(targetFileObject.fileNode.id);
+      let fileBuffer = await this.targetFileObject.read();
       await this.targetFileObject.fileStorage.addFile(targetFileObject.fileNode.id, fileBuffer, fileObject.fileNode.name);
     }
   }
@@ -202,19 +184,6 @@ export class BaseFileSystem {
     } else {
       throw new Error("Cannot move file across file systems.");
     }
-  }
-
-  /**
-   * Search the location and its subdirectories recursively for files matching the given search term.
-   * @async
-   * @abstract
-   * @param {string[]} pathArray - An array of strings representing the path of the directory to be searched.
-   * @param {string} query - Search terms.
-   * @returns {FileObject[]} - A list of FileObjects that match the query.
-   */
-  async search(pathArray, query){
-    let searchFileObject = await this.getFileObject(pathArray);
-    return await searchFileObject.search(query);
   }
 
   /**
@@ -382,7 +351,7 @@ export let StateMixin = (fileSystemClass) => {
     async refresh(){
       this._rootFileObject = null;
       if (this._currentDirectory !== null){
-        // this._currentDirectory.clearCache();  //TODO Add caching here
+        this._currentDirectory.clearCache();
       }
       this._data = await this.listDirectory(this.path);
       if (this.onDataChanged){
@@ -458,21 +427,41 @@ export let HiddenReferenceLinkMixin = (fileSystemClass) => {
       super(...args);
     }
 
-    async getFileObject(pathArray) {
-      let fileObject = await super.getFileObject(pathArray);
-      if (fileObject.mimeType === Link.mimeType){
-        pathArray = await fileObject.readJSON();
-        fileObject = await this.getFileObject(pathArray);
+    static get linkMimeType(){
+      return 'inode/symlink';
+    }
+
+    async _getDirectoryLinks(directoryFileObject){
+      let links = [];
+
+      let tempStorage = new MemoryFileStorage();
+      let tempStorageRoot = await tempStorage.getRootFileNode();
+
+      let pathData = stringToArrayBuffer(JSON.stringify(directoryFileObject.path));
+      let fileNode = await tempStorage.addFile(tempStorageRoot.id, pathData, '.', this.constructor.linkMimeType);
+      links.push(new FileObject(fileNode, directoryFileObject, tempStorage));
+
+      if (directoryFileObject.parent){
+        let parentPathData =stringToArrayBuffer(JSON.stringify(directoryFileObject.parent.path));
+        let parentFileNode = await tempStorage.addFile(tempStorageRoot.id, parentPathData, '..', this.constructor.linkMimeType);
+        links.push(new FileObject(parentFileNode, directoryFileObject, tempStorage));
       }
-      return fileObject
+      return links;
+    }
+
+    async getFileObject(pathArray){
+      let fileObject = await super.getFileObject(pathArray);
+      if (fileObject.fileNode.mimeType === this.constructor.linkMimeType){
+        let targetPath = await fileObject.readJSON();
+        fileObject = await this.getFileObject(targetPath);
+      }
+      return fileObject;
     }
 
     async getChildren(fileObject){
       let fileObjectsArray = await super.getChildren(fileObject);
-      fileObjectsArray.push(new Link(fileObject, '.', fileObject));
-      if (fileObject.parent){
-        fileObjectsArray.push(new Link(fileObject.parent, '..', fileObject));
-      }
+      let links = await this._getDirectoryLinks(fileObject);
+      fileObjectsArray = fileObjectsArray.concat(links);
       return fileObjectsArray;
     }
   };
@@ -508,8 +497,9 @@ export let MountStorageMixin = (fileSystemClass) => {
       for (let mount of this._mounts){
         if (mount.fileObject.fileStorage === fileObject.fileStorage &amp;&amp;
             mount.fileObject.fileNode.id === fileObject.fileNode.id){
-          let mountedRootDirectory = await mount.fileStorage.getRootFileNode();
-          fileObjectsArray.push(new FileObject(fileObject, mountedRootDirectory, mount.fileStorage));
+          let mountedRootFileNode = await mount.fileStorage.getRootFileNode();
+          mountedRootFileNode.name = mount.name;
+          fileObjectsArray.push(new FileObject(mountedRootFileNode, fileObject, mount.fileStorage));
         }
       }
       return fileObjectsArray;
@@ -570,7 +560,7 @@ export let ExecutableMixin = (FileSystemClass) => {
          * @memberof ExecutableMixin#
          * @async
          * @param {string} command - The name of a javascript file located in the .bin directory.
-         * @param {Array} args - The arguments to be provided to the "main" function in the file.
+         * @param {string[]} args - The arguments to be provided to the "main" function in the file.
          */
         async exec(command, ...args) {
             // Find a js file with the name in command and call the "main" function
@@ -599,11 +589,11 @@ export let ExecutableMixin = (FileSystemClass) => {
          * Execute the "main" function of the javascript file. The variable "this" will be this fileSystem.
          * @memberof ExecutableMixin#
          * @async
-         * @param {FileObject} fileObject - A fileObject that references a file containing javascript to be executed.
-         * @param {Array} args - The arguments to be provided to the "main" function in the file.
+         * @param {string[]} pathArray - The path of a file containing javascript to be executed.
+         * @param {string[]} args - The arguments to be provided to the "main" function in the file.
          */
-        async execFileObject(fileObject, ...args) {
-            let main = await this.importFromFileObject(fileObject, 'main');
+        async execPath(pathArray, ...args) {
+            let main = await this.import(path, 'main');
             return await main.bind(this)(...args);
         }
 
@@ -622,26 +612,12 @@ export let ExecutableMixin = (FileSystemClass) => {
             // Right now executes script as function with FileSystem bound as "this". In an ideal world
             // with dynamic imports would import as a module and could use relative paths.
             let fileObject = await this.getFileObject(pathArray);
-            return await this.importFromFileObject(fileObject, variableName);
-        }
-
-        /**
-         * Execute the "main" function of the javascript file with the name given in the command parameter
-         * with the given arguments. The file must be located in the executable path, which is an array
-         * of absolute path arrays. The variable "this" will be this fileSystem.
-         * @memberof ExecutableMixin#
-         * @async
-         * @param {FileObject} fileObject - A fileObject that references a file containing javascript from which to import.
-         * @param {string} variableName - The name of the variable to import from the javascript file.
-         * @return {*} The value of the variable.
-         */
-        async importFromFileObject(fileObject, variableName) {
-            let scriptString = await fileObject.readText();
+            let scriptString = await fileObject.readText(pathArray);
             try {
                 let func = new AsyncFunction(`${scriptString};return ${variableName};`);
                 return await func.bind(this)();
             } catch (e) {
-                throw new Error(`Error importing file ${fileObject}: ${e}`);
+                throw new Error(`Error importing file at ${pathArray.join('/')}: ${e}`);
             }
         }
     };
@@ -670,7 +646,7 @@ export class FileSystem extends ExecutableMixin(HiddenReferenceLinkMixin(
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject_FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="Link_Link.html">Link</a></li><li><a href="LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="NodeFileStorage.html">NodeFileStorage</a></li><li><a href="PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="AbstractFileStorage.html">AbstractFileStorage</a></li><li><a href="BaseFileSystem.html">BaseFileSystem</a></li><li><a href="BreadCrumb.html">BreadCrumb</a></li><li><a href="Column.html">Column</a></li><li><a href="DialogBrowser_DialogBrowser.html">DialogBrowser</a></li><li><a href="Element.html">Element</a></li><li><a href="FileAPIFileStorage.html">FileAPIFileStorage</a></li><li><a href="FileBrowser_FileBrowser.html">FileBrowser</a></li><li><a href="FileObject.html">FileObject</a></li><li><a href="FileSystem.html">FileSystem</a></li><li><a href="LocalStorageFileStorage.html">LocalStorageFileStorage</a></li><li><a href="MemoryFileStorage.html">MemoryFileStorage</a></li><li><a href="NodeFileStorage.html">NodeFileStorage</a></li><li><a href="PhotoshelterStorage.html">PhotoshelterStorage</a></li><li><a href="Row.html">Row</a></li><li><a href="Table.html">Table</a></li></ul><h3>Mixins</h3><ul><li><a href="CacheMixin.html">CacheMixin</a></li><li><a href="DraggableMixin.html">DraggableMixin</a></li><li><a href="DroppableMixin.html">DroppableMixin</a></li><li><a href="ExecutableMixin.html">ExecutableMixin</a></li><li><a href="HiddenFileAPIMixin.html">HiddenFileAPIMixin</a></li><li><a href="HiddenReferenceLinkMixin.html">HiddenReferenceLinkMixin</a></li><li><a href="MountStorageMixin.html">MountStorageMixin</a></li><li><a href="StateMixin.html">StateMixin</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul><h3>Global</h3><ul><li><a href="global.html#parseConfigFile">parseConfigFile</a></li><li><a href="global.html#updateConfigFile">updateConfigFile</a></li></ul>
 </nav>
 
 <br class="clear">
