@@ -97,7 +97,7 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
 
     let currentDateString = new Date().toISOString();
     this._rootFileNode = {
-      id: this._baseUrl,
+      id: "",
       name: 'root',
       url: this._baseUrl,
       directory: true,
