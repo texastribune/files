@@ -27,6 +27,8 @@ export class FileObject {
         this._fileNode = fileNode;
         this._parent = parentFileObject;
         this._fileStorage = fileStorage;
+
+        this._filePromiseCache = null;  // Initialize cache with empty value
     }
 
     /**
@@ -72,7 +74,7 @@ export class FileObject {
         if (this._filePromiseCache === null){
           this._filePromiseCache = this.fileStorage.readFileNode(this.fileNode.id, params);
         }
-        return await this.fileStorage.readFileNode(this.fileNode.id, params);
+        return await this._filePromiseCache;
     }
 
     /**
