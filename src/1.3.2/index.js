@@ -21,43 +21,42 @@ import mount from './js/bin/mount.js';
 import mountFileAPI from './js/bin/mount.fileapi.js';
 import mountPhotoshelter from './js/bin/mount.photoshelter.js';
 
-
-let rootStorage = new LocalStorageFileStorage();
-let fileSystem = new FileSystem(rootStorage);
-
 async function setupFileSystem(){
+  let rootStorage = new LocalStorageFileStorage();
+  let fileSystem = new FileSystem(rootStorage);
+
   fileSystem._binFuncs = {};
   let binStorage = new MemoryFileStorage();
   let binStorageRootFileNode =  await binStorage.getRootFileNode();
 
-  function addBinExecutable(name, func){
+  async function addBinExecutable(name, func){
     // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
     fileSystem._binFuncs[name] = func;
     let text = `let main = async (...args) => {return await this._binFuncs["${name}"].bind(this)(...args);}`;
     let filename = `${name}.js`;
-    binStorage.addFile(binStorageRootFileNode.id, utilsModule.stringToArrayBuffer(text),
+    await binStorage.addFile(binStorageRootFileNode.id, utilsModule.stringToArrayBuffer(text),
                        filename, 'application/javascript');
   }
 
-  addBinExecutable('alert', alert);
-  addBinExecutable('archive', archive);
-  addBinExecutable('browser', browser);
-  addBinExecutable('cd', cd);
-  addBinExecutable('find', find);
-  addBinExecutable('ls', ls);
-  addBinExecutable('terminal', terminal);
-  addBinExecutable('mount', mount);
-  addBinExecutable('mount.fileapi', mountFileAPI);
-  addBinExecutable('mount.photoshelter', mountPhotoshelter);
+  await addBinExecutable('alert', alert);
+  await addBinExecutable('archive', archive);
+  await addBinExecutable('browser', browser);
+  await addBinExecutable('cd', cd);
+  await addBinExecutable('find', find);
+  await addBinExecutable('ls', ls);
+  await addBinExecutable('terminal', terminal);
+  await addBinExecutable('mount', mount);
+  await addBinExecutable('mount.fileapi', mountFileAPI);
+  await addBinExecutable('mount.photoshelter', mountPhotoshelter);
 
-  fileSystem.mount([], binStorage, 'bin');
+  await fileSystem.mount([], binStorage, 'bin');
 
 
   fileSystem._modules = {};
   let apiStorage = new MemoryFileStorage();
   let apiStorageRootFileNode =  await apiStorage.getRootFileNode();
 
-  function addApiModule(name, module){
+  async function addApiModule(name, module){
     // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
     fileSystem._modules[name] = module;
     let text = '';
@@ -65,25 +64,27 @@ async function setupFileSystem(){
       text += `let ${variableName} = this._modules["${name}"]["${variableName}"];`
     }
     let filename = `${name}.js`;
-    apiStorage.addFile(apiStorageRootFileNode.id, utilsModule.stringToArrayBuffer(text),
+    await apiStorage.addFile(apiStorageRootFileNode.id, utilsModule.stringToArrayBuffer(text),
                        filename, 'application/javascript');
   }
 
-  addApiModule('browser', browserModule);
-  addApiModule('config', configModule);
-  addApiModule('dialog', dialogModule);
-  addApiModule('messages', messageModule);
-  addApiModule('table', tableModule);
-  addApiModule('storage', {
+  await addApiModule('browser', browserModule);
+  await addApiModule('config', configModule);
+  await addApiModule('dialog', dialogModule);
+  await addApiModule('messages', messageModule);
+  await addApiModule('table', tableModule);
+  await addApiModule('storage', {
     local: LocalStorageFileStorage,
     memory: MemoryFileStorage,
     remote: FileAPIFileStorage
   });
-  addApiModule('utils', utilsModule);
+  await addApiModule('utils', utilsModule);
 
-  fileSystem.mount([], apiStorage, 'api');
+  await fileSystem.mount([], apiStorage, 'api');
 
   await fileSystem.refresh();
+
+  return fileSystem
 }
 
 setupFileSystem()
@@ -93,6 +94,7 @@ setupFileSystem()
     });
 
 
-export {FileSystem, fileSystem, MemoryFileStorage};
+export {FileSystem, setupFileSystem};
 
-export default fileSystem;
+export default setupFileSystem;
+

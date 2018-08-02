@@ -9,10 +9,8 @@
         <div class="icon" data-name="Browser" data-icon="folderIcon" data-command="browser"></div>
         <div class="icon" data-name="Terminal" data-icon="folderIcon" data-command="terminal"></div>
         <script type="module">
-            import fileSystem from "./index.js";
+            import setupFileSystem from "./index.js";
             import * as icons from "./js/ui/icons.js";
-
-            window.__fileSystem = fileSystem;
 
             function createIcon(element){
               element.innerHTML = icons[element.dataset.icon];
@@ -25,9 +23,14 @@
               };
             }
 
-            for (let element of document.querySelectorAll('.icon')){
-              createIcon(element);
-            }
+            setupFileSystem()
+                .then((fileSystem) => {
+                    window.__fileSystem = fileSystem;
+
+                    for (let element of document.querySelectorAll('.icon')){
+                      createIcon(element);
+                    }
+                });
         </script>
     </body>
 </html>

@@ -127,7 +127,7 @@ describe('Test mounting mixin', () => {
     let rootFileNode = await storage.getRootFileNode();
     let mountedFileNode = await mountedStorage.addFile(rootFileNode.id, stringToArrayBuffer('mount'),
                                                        filename, 'text/plain');
-    system.mount(fileObjects[0], mountedStorage, mountName);
+    await system.mount(fileObjects[0].path, mountedStorage, mountName);
 
     let dir1ChildFileObjects = await system.listDirectory([dir1Name]);
     let dir1ChildNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.fileNode.name});

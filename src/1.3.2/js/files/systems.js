@@ -1,10 +1,8 @@
 import LZString from "../lz-string-1.4.4/lz-string.min.js";
-import {FileObject, Link} from "./objects.js";
+import {FileObject} from "./objects.js";
 import {FileNotFoundError} from "./storages/base.js";
-import {parseJsonArrayBuffer, parseTextArrayBuffer} from "../utils.js";
-import {VirtualFileObject} from "./objects";
-import {stringToArrayBuffer} from "../utils";
-import {MemoryFileStorage} from "./storages/memory";
+import {stringToArrayBuffer} from "../utils.js";
+import {MemoryFileStorage} from "./storages/memory.js";
 
 
 /**
@@ -453,10 +451,11 @@ export let MountStorageMixin = (fileSystemClass) => {
       this._mounts = [];
     }
 
-    mount(fileObject, fileStorage, name){
+    async mount(pathArray, fileStorage, name){
       if (!name){
         throw new Error("Mount must have a name.");
       }
+      let fileObject = await this.getFileObject(pathArray);
       this._mounts.push({
         fileObject: fileObject,
         fileStorage: fileStorage,
@@ -480,7 +479,7 @@ export let MountStorageMixin = (fileSystemClass) => {
     clone(){
       let clone = super.clone();
       for (let mount of this._mounts){
-        clone.mount(mount.fileObject, mount.fileStorage, mount.name);
+        clone.mount(mount.fileObject, mount.fileStorage, mount.name);  //TODO Should be async
       }
       return clone;
     }
