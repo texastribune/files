@@ -35,7 +35,7 @@ async function setupFileSystem(){
     let text = `let main = async (...args) => {return await this._binFuncs["${name}"].bind(this)(...args);}`;
     let filename = `${name}.js`;
     await binStorage.addFile(binStorageRootFileNode.id, utilsModule.stringToArrayBuffer(text),
-                       filename, 'application/javascript');
+                             filename, 'application/javascript');
   }
 
   await addBinExecutable('alert', alert);
@@ -86,12 +86,6 @@ async function setupFileSystem(){
 
   return fileSystem
 }
-
-setupFileSystem()
-    .catch((error) => {
-      console.log(error);
-      alert("Error setting up file system: " + error)
-    });
 
 
 export {FileSystem, setupFileSystem};

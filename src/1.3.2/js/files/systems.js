@@ -8,10 +8,12 @@ import {MemoryFileStorage} from "./storages/memory.js";
 /**
  *   File system classes provide a hierarchical tree structure of files contained in AbstractFileStorage
  *   implementation via path related operations.
+ *   @extends Directory
  */
-export class BaseFileSystem {
+export class BaseFileSystem extends FileObject {
   constructor(rootFileStorage){
-    this._rootFileStorage = rootFileStorage;
+      let rootNode = rootFileStorage.getRootFileNode();
+      super(rootNode, null, rootFileStorage);
   }
 
   // getters
@@ -22,14 +24,14 @@ export class BaseFileSystem {
    * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the file to read.
    * @returns {FileObject} - The file object located at the given path.
+   * @throws FileNotFoundError
    */
   async getFileObject(pathArray) {
     if (!(pathArray instanceof Array)){
       throw Error(`Path must be an array, not ${typeof pathArray}`);
     }
     if (pathArray.length === 0){
-      let rootFileNode = await this._rootFileStorage.getRootFileNode();
-      return new FileObject(rootFileNode, null, this._rootFileStorage);
+      return this;
     }
 
     let name = pathArray[pathArray.length-1];
@@ -50,26 +52,6 @@ export class BaseFileSystem {
 
   /**
    * Return a javascript Object mapping file names to file objects for each file in the
-   * directory represented by the given fileObject.
-   * @async
-   * @abstract
-   * @param {FileObject} fileObject - FileObject referring to the directory to list.
-   * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
-   */
-  async getChildren(fileObject) {
-    if (!fileObject.fileNode.directory){
-      throw new Error(`Cannot get children. File ${fileObject.fileNode.name} is not a directory`);
-    }
-    let childNodes = await fileObject.readJSON();
-    let fileObjects = [];
-    for (let childNode of childNodes){
-      fileObjects.push(new FileObject(childNode, fileObject, fileObject.fileStorage));
-    }
-    return fileObjects;
-  }
-
-  /**
-   * Return a javascript Object mapping file names to file objects for each file in the
    * directory represented by the given path.
    * @async
    * @abstract
@@ -77,11 +59,8 @@ export class BaseFileSystem {
    * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
    */
   async listDirectory(pathArray) {
-    let fileObject = await this.getFileObject(pathArray);
-    if (!fileObject.fileNode.directory){
-      throw new Error(`File ${fileObject} is not a directory`);
-    }
-    return await this.getChildren(fileObject);
+    let directory = await this.getFileObject(pathArray);
+    return await directory.getChildren(directory);
   }
 
   /**
@@ -447,6 +426,8 @@ export let MountStorageMixin = (fileSystemClass) => {
       }
       let fileObject = await this.getFileObject(pathArray);
       this._mounts.push({
+          parent: parentMount,
+          id: fileObject.id
         fileObject: fileObject,
         fileStorage: fileStorage,
         name: name

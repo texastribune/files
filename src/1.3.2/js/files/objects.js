@@ -1,4 +1,5 @@
 import {parseJsonArrayBuffer, parseTextArrayBuffer} from "../utils.js";
+import {stringToArrayBuffer} from "../utils";
 
 /**
  * An Object that contains metadata about a file.
@@ -147,5 +148,24 @@ export class FileObject {
 
     toString() {
         return `/${this.path.join('/')}`;
+    }
+
+    /**
+     * Return a javascript Object mapping file names to file objects for each file in the
+     * directory represented by the given fileObject.
+     * @async
+     * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
+     */
+    async getChildren() {
+        if (!this.fileNode.directory){
+            throw new Error(`File ${this} is not a directory`);
+        }
+
+        let childNodes = await this.readJSON();
+        let fileObjects = [];
+        for (let childNode of childNodes) {
+            fileObjects.push(new FileObject(childNode, this, this.fileStorage));
+        }
+        return fileObjects;
     }
 }
