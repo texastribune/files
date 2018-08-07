@@ -1,5 +1,5 @@
 import {parseJsonArrayBuffer, parseTextArrayBuffer} from "../utils.js";
-import {stringToArrayBuffer} from "../utils";
+import {BaseFileSystem} from "./systems.js";
 
 /**
  * An Object that contains metadata about a file.
@@ -40,6 +40,17 @@ export class FileObject {
             return [];
         }
         return this.parent.path.concat([this.fileNode.name]);
+    }
+
+    /**
+     * @returns {BaseFileSystem} - The path of the file.
+     */
+    get root(){
+        let obj = this;
+        while (!(obj.parent === null || obj instanceof BaseFileSystem)){
+            obj = obj.parent;
+        }
+        return obj;
     }
 
     get fileNode() {

@@ -1,27 +1,29 @@
 import LZString from "../lz-string-1.4.4/lz-string.min.js";
 import {FileObject} from "./objects.js";
 import {FileNotFoundError} from "./storages/base.js";
-import {stringToArrayBuffer} from "../utils.js";
-import {MemoryFileStorage} from "./storages/memory.js";
 
 
 /**
  *   File system classes provide a hierarchical tree structure of files contained in AbstractFileStorage
  *   implementation via path related operations.
- *   @extends Directory
+ *   @extends FileObject
  */
 export class BaseFileSystem extends FileObject {
   constructor(rootFileStorage){
       let rootNode = rootFileStorage.getRootFileNode();
       super(rootNode, null, rootFileStorage);
+      this._storage = rootFileStorage;
   }
 
   // getters
 
+  get storage(){
+    return this._storage;
+  }
+
   /**
    * Get the file object at the given path.
    * @async
-   * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the file to read.
    * @returns {FileObject} - The file object located at the given path.
    * @throws FileNotFoundError
@@ -52,21 +54,30 @@ export class BaseFileSystem extends FileObject {
 
   /**
    * Return a javascript Object mapping file names to file objects for each file in the
+   * directory represented by the given fileObject.
+   * @async
+   * @param {FileObject} fileObject - FileObject referring to the directory to list.
+   * @returns {FileObject[]} - An Array of the child FileObjects in the given directory.
+   */
+  async getDirectoryChildren(fileObject) {
+    return await fileObject.getChildren();
+  }
+
+  /**
+   * Return a javascript Object mapping file names to file objects for each file in the
    * directory represented by the given path.
    * @async
-   * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the file to read.
    * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
    */
   async listDirectory(pathArray) {
     let directory = await this.getFileObject(pathArray);
-    return await directory.getChildren(directory);
+    return await this.getDirectoryChildren(directory);
   }
 
   /**
    * Add a file to the current directory.
    * @async
-   * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the directory to add the file to.
    * @param {ArrayBuffer} fileData - The file or a dataUrl of a file to be added to the current directory.
    * @param {string} [filename] - A name for the new file.
@@ -82,10 +93,9 @@ export class BaseFileSystem extends FileObject {
   /**
    * Add a directory to the current directory.
    * @async
-   * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the directory to add the directory to.
    * @param {string} name - A name for the new directory.
-   * @returns {FileNode} - The data for the newly created directory
+   * @returns {FileObject} - The data for the newly created directory
    */
   async addDirectory(pathArray, name) {
     let parentFileObject = await this.getFileObject(pathArray);
@@ -96,7 +106,6 @@ export class BaseFileSystem extends FileObject {
   /**
    * Copy a file into the current directory.
    * @async
-   * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the file to copy to.
    * @param {FileObject} fileObject - The file object representing the file to be copied.
    */
@@ -113,7 +122,6 @@ export class BaseFileSystem extends FileObject {
   /**
    * Move a file into the current directory.
    * @async
-   * @abstract
    * @param {string[]} pathArray - An array of strings representing the path of the destination to move to.
    * @param {FileObject} fileObject - The file object representing the directory to move the file to.
    */
@@ -140,8 +148,8 @@ export class BaseFileSystem extends FileObject {
  * Extends a file system with StateMixin so that it can cache fileObjects that
  * have already been retrieved by their path.
  * @mixin CacheMixin
- * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
- * @returns {BaseFileSystem}
+ * @param {VirtualFileSystem} fileSystemClass - A subclass of BaseFileSystem.
+ * @returns {VirtualFileSystem}
  */
 export let CacheMixin = (FileSystemClass) => {
   return class extends FileSystemClass {
@@ -171,8 +179,8 @@ export let CacheMixin = (FileSystemClass) => {
 /**
  * A mixin that preserves current path of the file system via the url fragment.
  * @mixin StateMixin
- * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
- * @returns {BaseFileSystem}
+ * @param {VirtualFileSystem} fileSystemClass - A subclass of BaseFileSystem.
+ * @returns {VirtualFileSystem}
  */
 export let StateMixin = (fileSystemClass) => {
   fileSystemClass = CacheMixin(fileSystemClass);
@@ -286,7 +294,6 @@ export let StateMixin = (fileSystemClass) => {
      * Refresh the data for the current directory and clear any cached FileObjects.
      * @memberof StateMixin#
      * @async
-     * @abstract
      */
     async refresh(){
       if (this._currentDirectory !== null){
@@ -357,8 +364,8 @@ export let StateMixin = (fileSystemClass) => {
  * Extends a file system so that each directory contains two links. One named "." that is a link to the
  * directory itself and another named ".." that references the directories parent if it exists.
  * @mixin HiddenReferenceLinkMixin
- * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
- * @returns {BaseFileSystem}
+ * @param {VirtualFileSystem} fileSystemClass - A subclass of BaseFileSystem.
+ * @returns {VirtualFileSystem}
  */
 export let HiddenReferenceLinkMixin = (fileSystemClass) => {
   return class extends fileSystemClass {
@@ -397,8 +404,8 @@ export let HiddenReferenceLinkMixin = (fileSystemClass) => {
       return fileObject;
     }
 
-    async getChildren(fileObject){
-      let fileObjectsArray = await super.getChildren(fileObject);
+    async getDirectoryChildren(fileObject){
+      let fileObjectsArray = await super.getDirectoryChildren(fileObject);
       let links = await this._getDirectoryLinks(fileObject);
       fileObjectsArray = fileObjectsArray.concat(links);
       return fileObjectsArray;
@@ -406,12 +413,39 @@ export let HiddenReferenceLinkMixin = (fileSystemClass) => {
   };
 };
 
+class VirtualFileSystem extends BaseFileSystem {
+  constructor(){
+    super(null);
+    this._mounts = [];
+  }
+
+  async mount(pathArray, fileSystem){
+    let fileObject = await this.getFileObject(pathArray);
+    this._mounts.push({
+        parentSystem: fileObject.root,
+        fileObjectId: fileObject.fileNode.id,
+        fileSystem: fileSystem
+    })
+  }
+
+  async getDirectoryChildren(fileObject){
+    let fileObjectsArray = await super.getDirectoryChildren(fileObject);
+    for (let mount of this._mounts){
+      if (mount.parentSystem === fileObject.root &&
+          mount.fileObjectId === fileObject.fileNode.id){
+        fileObjectsArray.push(mount.fileSystem);
+      }
+    }
+    return fileObjectsArray;
+  }
+}
+
 /**
  * Extends a file system so that it can mount file storages other than the root file storage
  * at arbitrary paths in the file system.
  * @mixin MountStorageMixin
- * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
- * @returns {BaseFileSystem}
+ * @param {VirtualFileSystem} fileSystemClass - A subclass of BaseFileSystem.
+ * @returns {VirtualFileSystem}
  */
 export let MountStorageMixin = (fileSystemClass) => {
   return class extends fileSystemClass {
@@ -420,28 +454,26 @@ export let MountStorageMixin = (fileSystemClass) => {
       this._mounts = [];
     }
 
-    async mount(pathArray, fileStorage, name){
+    async mount(pathArray, fileSystem){
       if (!name){
         throw new Error("Mount must have a name.");
       }
       let fileObject = await this.getFileObject(pathArray);
       this._mounts.push({
-          parent: parentMount,
-          id: fileObject.id
-        fileObject: fileObject,
-        fileStorage: fileStorage,
-        name: name
+          parentSystem: fileObject.root,
+          fileObjectId: fileObject.fileNode.id,
+          fileSystem: fileSystem
       })
     }
 
-    async getChildren(fileObject){
-      let fileObjectsArray = await super.getChildren(fileObject);
+    async getDirectoryChildren(fileObject){
+      let fileObjectsArray = await super.getDirectoryChildren(fileObject);
       for (let mount of this._mounts){
-        if (mount.fileObject.fileStorage === fileObject.fileStorage &&
-            mount.fileObject.fileNode.id === fileObject.fileNode.id){
+        if (mount.parentSystem === fileObject.root &&
+            mount.fileObjectId === fileObject.fileNode.id){
           let mountedRootFileNode = await mount.fileStorage.getRootFileNode();
           mountedRootFileNode.name = mount.name;
-          fileObjectsArray.push(new FileObject(mountedRootFileNode, fileObject, mount.fileStorage));
+          fileObjectsArray.push(mount.fileSystem);
         }
       }
       return fileObjectsArray;
@@ -465,8 +497,8 @@ const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
  * Extends a file system so that it can mount file storages other than the root file storage
  * at arbitrary paths in the file system.
  * @mixin ExecutableMixin
- * @param {FileSystem} fileSystemClass - A subclass of BaseFileSystem.
- * @returns {BaseFileSystem} The mixin class.
+ * @param {VirtualFileSystem} fileSystemClass - A subclass of BaseFileSystem.
+ * @returns {VirtualFileSystem} The mixin class.
  */
 export let ExecutableMixin = (FileSystemClass) => {
     return class extends FileSystemClass {
@@ -576,5 +608,5 @@ export let ExecutableMixin = (FileSystemClass) => {
  * @mixes StateMixin
  */
 export class FileSystem extends ExecutableMixin(HiddenReferenceLinkMixin(
-                                MountStorageMixin(StateMixin(BaseFileSystem)))){
+                                MountStorageMixin(StateMixin(VirtualFileSystem)))){
 }

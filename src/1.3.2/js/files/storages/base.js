@@ -13,6 +13,13 @@ export class FileNotFoundError extends Error {
  * file system maintains a current directory and the data in that directory.
  */
 export class AbstractFileStorage {
+  constructor(){
+    this.wrapChangeFunc(this.writeFileNode);
+    this.wrapChangeFunc(this.rename);
+    this.wrapChangeFunc(this.delete);
+    this.wrapChangeFunc(this.move);
+  }
+
   /**
    * Should be overridden to return false if the storage does not save and return the mime type given in
    * addFile.
@@ -21,6 +28,18 @@ export class AbstractFileStorage {
    */
   static get preservesMimeType(){
     return true;
+  }
+
+  wrapChangeFunc(func) {
+    return async (...args) => {
+          let ret = await func(args[0]);
+          this.onFileChanged(id);
+          return ret;
+      }
+  }
+
+  onFileChanged(id){
+    // For adding callback
   }
 
   /**
@@ -51,7 +70,7 @@ export class AbstractFileStorage {
    * @abstract
    * @param {string} id - Id referring to the file to be written to.
    * @param {ArrayBuffer} data - An ArrayBuffer of data to write.
-   * @returns {ArrayBuffer} - An ArrayBuffer with the updated file data.
+   * @returns {fileNode} - The updated fileNode.
    */
   async writeFileNode(id, data) {
     throw new Error("Not implemented")

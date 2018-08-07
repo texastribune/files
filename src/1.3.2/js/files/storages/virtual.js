@@ -3,7 +3,7 @@ import {FileNotFoundError} from "./base";
 
 class VirtualFileSystem extends AbstractFileStorage {
     constructor(){
-        super();
+        super(root);
 
         this._index = 0;
         this._mounts = {};
@@ -14,25 +14,15 @@ class VirtualFileSystem extends AbstractFileStorage {
         super.getRootFileNode();
     }
 
-    _resolveFS(id){
-        let parts = id.split(":");
-        let mountId = parts.shift();
-        let remainder = parts.join(":");
-
-        let storage = this._mounts[mountId];
-        if (storage === undefined){
-            throw FileNotFoundError();
-        }
-
-        return [storage, remainder];
-    }
-
-    _encodeId(storageId, id){
-        return
+    mount(id, storage){
+        this._mounts[id] = storage;
     }
 
     async readFileNode(id, params) {
-        let [storage, storageId] = this._resolveFS(id);
+        let mount = this._mounts[id];
+        if (mount !== undefined){
+            return
+        }
         let fileNode = await storage.readFileNode(storageId, params);
         fileNode.id = id;
         return fileNode;
@@ -73,10 +63,5 @@ class VirtualFileSystem extends AbstractFileStorage {
 
     clone() {
         super.clone();
-    }
-
-    async mount(path, storage){
-        let fileObject = await this.getFileObject(path);
-        this._mounts[fileObject.id] = new VirtualFileSystem(storage);
     }
 }

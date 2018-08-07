@@ -1,7 +1,7 @@
 import {FileAPIFileStorage} from "./js/files/storages/remote.js";
 import {MemoryFileStorage} from "./js/files/storages/memory.js";
 import {LocalStorageFileStorage} from "./js/files/storages/local.js";
-import {FileSystem} from "./js/files/systems.js";
+import {FileSystem, BaseFileSystem} from "./js/files/systems.js";
 
 import * as browserModule from './js/ui/browser.js';
 import * as configModule from './js/ui/config.js';
@@ -22,8 +22,9 @@ import mountFileAPI from './js/bin/mount.fileapi.js';
 import mountPhotoshelter from './js/bin/mount.photoshelter.js';
 
 async function setupFileSystem(){
+  let fileSystem = new FileSystem();
   let rootStorage = new LocalStorageFileStorage();
-  let fileSystem = new FileSystem(rootStorage);
+  fileSystem.mount([], new BaseFileSystem(rootStorage));
 
   fileSystem._binFuncs = {};
   let binStorage = new MemoryFileStorage();
@@ -49,7 +50,8 @@ async function setupFileSystem(){
   await addBinExecutable('mount.fileapi', mountFileAPI);
   await addBinExecutable('mount.photoshelter', mountPhotoshelter);
 
-  await fileSystem.mount([], binStorage, 'bin');
+  await fileSystem.addDirectory('bin');
+  await fileSystem.mount(['bin'], binStorage);
 
 
   fileSystem._modules = {};
@@ -80,7 +82,8 @@ async function setupFileSystem(){
   });
   await addApiModule('utils', utilsModule);
 
-  await fileSystem.mount([], apiStorage, 'api');
+  await fileSystem.addDirectory('api');
+  await fileSystem.mount(['api'], apiStorage);
 
   await fileSystem.refresh();
 
