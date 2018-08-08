@@ -88,7 +88,7 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
   constructor(baseUrl) {
     super();
     this._baseUrl = baseUrl;
-    this.requestTimeout = 10;  // seconds
+    this.requestTimeout = 30;  // seconds
 
     let currentDateString = new Date().toISOString();
     this._rootFileNode = {
@@ -136,34 +136,45 @@ export class FileAPIFileStorage extends HiddenFileAPIMixin(AbstractFileStorage) 
 
       let request = new XMLHttpRequest();
       request.responseType = "arraybuffer";
-      request.onreadystatechange = () => {
-        if (request.readyState === XMLHttpRequest.DONE) {
-          if (request.status === 0) {
-            reject("An error has occurred");
-          } else {
-            let contentType = request.getResponseHeader('content-type');
-            if (request.status >= 200 && request.status < 400) {
-              resolve(new Blob([request.response], {type: contentType}));
-            } else {
-              let errorText = new TextDecoder().decode(request.response);
-              let errorMessage = `${request.status} error: `;
-              if (contentType === 'application/json') {
-                try {
-                  let errorJson = JSON.parse(errorText);
-                  for (let key in errorJson) {
-                    errorMessage += `${key} - ${errorJson[key]}. `;
-                  }
-                  reject(new Error(errorMessage));
-                } catch (e) {
-                  reject("Error parsing response.");
-                }
-              } else {
-                errorMessage += errorText;
-                reject(new Error(errorMessage));
+
+      // Handle response from server
+      request.onload = () => {
+        let contentType = request.getResponseHeader('content-type');
+        if (request.status >= 200 && request.status < 400) {
+          resolve(new Blob([request.response], {type: contentType}));
+        } else {
+          let errorText = new TextDecoder().decode(request.response);
+          let errorMessage = `${request.status} error: `;
+          if (contentType === 'application/json') {
+            try {
+              let errorJson = JSON.parse(errorText);
+              for (let key in errorJson) {
+                errorMessage += `${key} - ${errorJson[key]}. `;
               }
+              reject(new Error(errorMessage));
+            } catch (e) {
+              reject("Error parsing response.");
             }
+          } else {
+            errorMessage += errorText;
+            reject(new Error(errorMessage));
           }
         }
+      };
+
+      // Handle abort
+      request.onabort = () => {
+        reject("Request aborted.");
+      };
+
+      // Handle timeout
+      request.ontimeout = () => {
+        reject(`The request timed out after ${this.requestTimeout} seconds.`);
+      };
+
+      // Handle other error
+      request.onerror = () => {
+        reject("An error has occurred during the request: " + request.statusText);
       };
 
       request.open(method, url, true);
