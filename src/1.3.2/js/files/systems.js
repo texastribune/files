@@ -1,6 +1,7 @@
 import LZString from "../lz-string-1.4.4/lz-string.min.js";
 import {FileObject} from "./objects.js";
 import {FileNotFoundError} from "./storages/base.js";
+import {parseJsonArrayBuffer} from "../utils";
 
 
 /**
@@ -8,10 +9,9 @@ import {FileNotFoundError} from "./storages/base.js";
  *   implementation via path related operations.
  *   @extends FileObject
  */
-export class BaseFileSystem extends FileObject {
+export class BaseFileSystem {
   constructor(rootFileStorage){
       let rootNode = rootFileStorage.getRootFileNode();
-      super(rootNode, null, rootFileStorage);
       this._storage = rootFileStorage;
   }
 
@@ -28,7 +28,7 @@ export class BaseFileSystem extends FileObject {
    * @returns {FileObject} - The file object located at the given path.
    * @throws FileNotFoundError
    */
-  async getFileObject(pathArray) {
+  async stat(pathArray) {
     if (!(pathArray instanceof Array)){
       throw Error(`Path must be an array, not ${typeof pathArray}`);
     }
@@ -38,29 +38,30 @@ export class BaseFileSystem extends FileObject {
 
     let name = pathArray[pathArray.length-1];
     let parentPath = pathArray.slice(0, pathArray.length - 1);
-    let fileObjectsArray = await this.listDirectory(parentPath);
-    let matchingFileObject;
-    while (matchingFileObject === undefined && fileObjectsArray.length > 0){
-      let fileObject = fileObjectsArray.pop();
-      if (fileObject.fileNode.name === name){
-        matchingFileObject = fileObject;
+    let fileNodeArray = await this.listDirectory(parentPath);
+    let matchingNode;
+    while (matchingNode === undefined && fileNodeArray.length > 0){
+      let fileNode = fileNodeArray.pop();
+      if (fileNode.name === name){
+        matchingNode = fileNode;
       }
     }
-    if (matchingFileObject === undefined) {
+    if (matchingNode === undefined) {
       throw new FileNotFoundError(`File ${name} not found.`);
     }
-    return matchingFileObject;
+    return matchingNode;
   }
 
   /**
    * Return a javascript Object mapping file names to file objects for each file in the
    * directory represented by the given fileObject.
    * @async
-   * @param {FileObject} fileObject - FileObject referring to the directory to list.
-   * @returns {FileObject[]} - An Array of the child FileObjects in the given directory.
+   * @param {FileNode} fileNode - FileNodes referring to the directory to list.
+   * @returns {FileNode[]} - An Array of the child FileNodes in the given directory.
    */
-  async getDirectoryChildren(fileObject) {
-    return await fileObject.getChildren();
+  async getDirectoryChildren(fileNode) {
+    let directoryData = await this.fileStorage.readFileNode(fileNode);
+    return parseJsonArrayBuffer(directoryData);
   }
 
   /**
@@ -68,10 +69,10 @@ export class BaseFileSystem extends FileObject {
    * directory represented by the given path.
    * @async
    * @param {string[]} pathArray - An array of strings representing the path of the file to read.
-   * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
+   * @returns {FileNode[]} - Array of FileObjects for each file in the given directory.
    */
   async listDirectory(pathArray) {
-    let directory = await this.getFileObject(pathArray);
+    let directory = await this.stat(pathArray);
     return await this.getDirectoryChildren(directory);
   }
 
@@ -82,12 +83,11 @@ export class BaseFileSystem extends FileObject {
    * @param {ArrayBuffer} fileData - The file or a dataUrl of a file to be added to the current directory.
    * @param {string} [filename] - A name for the new file.
    * @param {string} [mimeType=application/octet-stream] - A mimeType for the file.
-   * @returns {FileObject} - The data for the newly created directory
+   * @returns {FileNode} - The data for the newly created directory
    */
   async addFile(pathArray, fileData, filename, mimeType) {
-    let parentFileObject = await this.getFileObject(pathArray);
-    let newFileNode = await parentFileObject.fileStorage.addFile(parentFileObject.fileNode.id, fileData, filename, mimeType);
-    return new FileObject(newFileNode, parentFileObject, parentFileObject.fileStorage);
+    let parentFileNode = await this.stat(pathArray);
+    return await this.fileStorage.addFile(parentFileNode.id, fileData, filename, mimeType);
   }
 
   /**
@@ -98,25 +98,32 @@ export class BaseFileSystem extends FileObject {
    * @returns {FileObject} - The data for the newly created directory
    */
   async addDirectory(pathArray, name) {
-    let parentFileObject = await this.getFileObject(pathArray);
-    let newDirNode = await parentFileObject.fileStorage.addDirectory(parentFileObject.fileNode.id, name);
-    return new FileObject(newDirNode, parentFileObject, parentFileObject.fileStorage);
+    let parentFileNode = await this.stat(pathArray);
+    return await this.fileStorage.addDirectory(parentFileNode.id, name);
+  }
+
+  /**
+   * Read the file.
+   * @async
+   * @param {string[]} pathArray - An array of strings representing the path of the file to read.
+   * @param {Object} [params={}] - Read parameters.
+   * @returns {ArrayBuffer} - An ArrayBuffer containing the file data.
+   */
+  async read(pathArray, params) {
+      let fileNode = await this.stat(pathArray);
+      return await this.fileStorage.readFileNode(fileNode.id, params);
   }
 
   /**
    * Copy a file into the current directory.
    * @async
    * @param {string[]} pathArray - An array of strings representing the path of the file to copy to.
-   * @param {FileObject} fileObject - The file object representing the file to be copied.
+   * @param {FileNode} fileNode - The file object representing the file to be copied.
    */
-  async copy(pathArray, fileObject){
-    let targetFileObject = await this.getFileObject(pathArray);
-    if (fileObject.fileStorage === targetFileObject.fileStorage){
-      await fileObject.fileStorage.copy(fileObject.fileNode.id, targetFileObject.fileNode.id);
-    } else {
-      let fileBuffer = await this.targetFileObject.read();
-      await this.targetFileObject.fileStorage.addFile(targetFileObject.fileNode.id, fileBuffer, fileObject.fileNode.name);
-    }
+  async copy(sourcePathArray, targetPathArray){
+    let sourceFileNode = await this.stat(sourcePathArray);
+    let tarstat = await this.stat(targetPathArray);
+    await this.fileStorage.copy(sourceFileNode.id, tarstat.id);
   }
 
   /**
@@ -125,13 +132,44 @@ export class BaseFileSystem extends FileObject {
    * @param {string[]} pathArray - An array of strings representing the path of the destination to move to.
    * @param {FileObject} fileObject - The file object representing the directory to move the file to.
    */
-  async move(pathArray, fileObject){
-    let targetFileObject = await this.getFileObject(pathArray);
-    if (fileObject.fileStorage === targetFileObject.fileStorage){
-      await fileObject.fileStorage.move(fileObject.fileNode.id, targetFileObject.fileNode.id);
-    } else {
-      throw new Error("Cannot move file across file systems.");
-    }
+  async move(sourcePathArray, targetPathArray){
+    let sourceFileNode = await this.stat(sourcePathArray);
+    let tarstat = await this.stat(targetPathArray);
+    await this.fileStorage.move(sourceFileNode.id, tarstat.id);
+  }
+
+
+  /**
+   * Change the name of the file.
+   * @async
+   * @param {string[]} pathArray - An array of strings representing the path of the file to rename.
+   * @param {string} newName - The new name for the file.
+   */
+  async rename(pathArray, newName) {
+      let fileNode = await this.stat(pathArray);
+      await this.fileStorage.rename(fileNode.id, newName);
+  }
+
+  /**
+   * Delete the file from its storage location.
+   * @async
+   * @param {string[]} pathArray - An array of strings representing the path of the file to delete.
+   */
+  async delete(pathArray) {
+      let fileNode = await this.stat(pathArray);
+      return await this.fileStorage.delete(fileNode.id);
+  }
+
+  /**
+   * Search the file and all of its children recursively based on the query.
+   * @async
+   * @param {string[]} pathArray - An array of strings representing the path of the file to search.
+   * @param {string} query - Words to be searched seperated by spaces.
+   * @returns {FileObject[]} - A list of file objects.
+   */
+  async search(pathArray, query) {
+    let fileNode = await this.stat(pathArray);
+    return await this.fileStorage.search(fileNode.id, query);
   }
 
   /**
@@ -158,11 +196,11 @@ export let CacheMixin = (FileSystemClass) => {
       this._pathCache = {};
     }
 
-    async getFileObject(path){
+    async stat(path){
       let strPath = JSON.stringify(path);
       let fileObject = this._pathCache[strPath];
       if (!fileObject){
-        fileObject = await super.getFileObject(path);
+        fileObject = await super.stat(path);
         this._pathCache[strPath] = fileObject;
       }
       return fileObject;
@@ -377,38 +415,41 @@ export let HiddenReferenceLinkMixin = (fileSystemClass) => {
       return 'inode/symlink';
     }
 
-    async _getDirectoryLinks(directoryFileObject){
+    async _getDirectoryLinks(path){
       let links = [];
 
       let tempStorage = new MemoryFileStorage();
       let tempStorageRoot = await tempStorage.getRootFileNode();
 
-      let pathData = stringToArrayBuffer(JSON.stringify(directoryFileObject.path));
-      let fileNode = await tempStorage.addFile(tempStorageRoot.id, pathData, '.', this.constructor.linkMimeType);
-      links.push(new FileObject(fileNode, directoryFileObject, tempStorage));
+      let pathData = stringToArrayBuffer(JSON.stringify(path));
+      let fileNode = await this.stat(path);
+      fileNode.name = '.';
+      fileNode.mimeType = this.constructor.linkMimeType;
+      links.push(fileNode);
 
-      if (directoryFileObject.parent){
-        let parentPathData =stringToArrayBuffer(JSON.stringify(directoryFileObject.parent.path));
+      if (directoryFileNode.parent){
+        let parentPathData =stringToArrayBuffer(JSON.stringify(directoryFileNode.parent.path));
         let parentFileNode = await tempStorage.addFile(tempStorageRoot.id, parentPathData, '..', this.constructor.linkMimeType);
-        links.push(new FileObject(parentFileNode, directoryFileObject, tempStorage));
+        links.push(new FileObject(parentFileNode, directoryFileNode, tempStorage));
       }
       return links;
     }
 
-    async getFileObject(pathArray){
-      let fileObject = await super.getFileObject(pathArray);
-      if (fileObject.fileNode.mimeType === this.constructor.linkMimeType){
-        let targetPath = await fileObject.readJSON();
-        fileObject = await this.getFileObject(targetPath);
+    async stat(pathArray){
+      let fileNode = await super.stat(pathArray);
+      if (fileNode.mimeType === this.constructor.linkMimeType){
+        let fileData = this.fileStorage.read(fileNode.id);
+        let targetPath = await parseJsonArrayBuffer(fileData);
+        fileNode = await this.stat(targetPath);
       }
-      return fileObject;
+      return fileNode;
     }
 
-    async getDirectoryChildren(fileObject){
-      let fileObjectsArray = await super.getDirectoryChildren(fileObject);
-      let links = await this._getDirectoryLinks(fileObject);
-      fileObjectsArray = fileObjectsArray.concat(links);
-      return fileObjectsArray;
+    async getDirectoryChildren(fileNode){
+      let fileNodeArray = await super.getDirectoryChildren(fileNode);
+      let links = await this._getDirectoryLinks(fileNode);
+      fileNodeArray = fileNodeArray.concat(links);
+      return fileNodeArray;
     }
   };
 };
@@ -420,16 +461,16 @@ class VirtualFileSystem extends BaseFileSystem {
   }
 
   async mount(pathArray, fileSystem){
-    let fileObject = await this.getFileObject(pathArray);
+    let fileNode = await this.stat(path);
     this._mounts.push({
-        parentSystem: fileObject.root,
-        fileObjectId: fileObject.fileNode.id,
+        fileNodeId: fileNode.id,
         fileSystem: fileSystem
     })
   }
 
-  async getDirectoryChildren(fileObject){
-    let fileObjectsArray = await super.getDirectoryChildren(fileObject);
+  async listDirectory(path){
+    let fileNode = await this.stat(path);
+    let fileObjectsArray = await super.getDirectoryChildren(fileNode);
     for (let mount of this._mounts){
       if (mount.parentSystem === fileObject.root &&
           mount.fileObjectId === fileObject.fileNode.id){

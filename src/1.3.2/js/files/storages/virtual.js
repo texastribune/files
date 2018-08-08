@@ -3,7 +3,7 @@ import {FileNotFoundError} from "./base";
 
 class VirtualFileSystem extends AbstractFileStorage {
     constructor(){
-        super(root);
+        super();
 
         this._index = 0;
         this._mounts = {};
