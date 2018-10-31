@@ -9,8 +9,9 @@ import {parseJsonArrayBuffer} from "../utils";
  *   implementation via path related operations.
  *   @extends FileObject
  */
-export class BaseFileSystem {
+export class BaseFileSystem extends FileObject {
   constructor(rootFileStorage){
+    super(fileNode, parentFileObject, fileStorage);
       let rootNode = rootFileStorage.getRootFileNode();
       this._storage = rootFileStorage;
   }

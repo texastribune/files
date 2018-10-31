@@ -17,13 +17,123 @@ import {BaseFileSystem} from "./systems.js";
  */
 
 
+export class AbstractFile {
+    /**
+     * @returns {string[]} - The path of the file.
+     */
+    get path() {
+        if (this.parent === null) {
+            return [];
+        }
+        return this.parent.path.concat([this.fileNode.name]);
+    }
+
+    /**
+     * @returns {BaseFileSystem} - The path of the file.
+     */
+    get root(){
+        let obj = this;
+        while (!(obj.parent === null || obj instanceof BaseFileSystem)){
+            obj = obj.parent;
+        }
+        return obj;
+    }
+
+    get parent() {
+        throw new Error("Not implemented");
+    }
+
+    /**
+     * Read the file.
+     * @async
+     * @param {Object} [params={}] - Read parameters.
+     * @returns {ArrayBuffer} - An ArrayBuffer containing the file data.
+     */
+    async read(params) {
+        throw new Error("Not implemented")
+    }
+
+    /**
+     * Read the file.
+     * @async
+     * @param {ArrayBuffer} data - Raw data to write to the file.
+     * @returns {ArrayBuffer} - An ArrayBuffer containing the updated file data.
+     */
+    async write(data) {
+        throw new Error("Not implemented");
+    }
+
+    /**
+     * Read the file as a string.
+     * @async
+     * @param {Object} [params={}] - Read parameters.
+     * @returns {string} - File file data converted to a string.
+     */
+    async readText(params) {
+        let arrayBuffer = await this.read(params);
+        return parseTextArrayBuffer(arrayBuffer);
+    }
+
+    /**
+     * Read the file as a json encoded string and convert to a Javascript Object.
+     * @async
+     * @param {Object} [params={}] - Read parameters.
+     * @returns {Object|Array} - File file data converted to a Javascript Object.
+     */
+    async readJSON(params) {
+        let arrayBuffer = await this.read(params);
+        return parseJsonArrayBuffer(arrayBuffer);
+    }
+
+    /**
+     * Change the name of the file.
+     * @async
+     * @param {string} newName - The new name for the file.
+     */
+    async rename(newName) {
+        throw new Error("Not implemented");
+    }
+
+    /**
+     * Delete the file from its storage location.
+     * @async
+     */
+    async delete() {
+        throw new Error("Not implemented");
+    }
+
+    /**
+     * Search the file and all of its children recursively based on the query.
+     * @async
+     * @param {string} query - Words to be searched seperated by spaces.
+     * @returns {FileObject[]} - A list of file objects.
+     */
+    async search(query) {
+        throw new Error("Not implemented");
+    }
+
+    toString() {
+        return `/${this.path.join('/')}`;
+    }
+
+    /**
+     * Return a javascript Object mapping file names to file objects for each file in the
+     * directory represented by the given fileObject.
+     * @async
+     * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
+     */
+    async getChildren() {
+        throw new Error("Not implemented");
+    }
+}
+
 /**
  * An object representing a file or directory in a file system.
  * @param {FileNode} fileNode - The FileNode object representing the file
  * @param {FileObject|null} parentFileObject - The parent directory for this file. Null if root directory.
  * @param {AbstractFileStorage} fileStorage - the file storage for this file.
  */
-export class FileObject {
+export class FileObject extends  AbstractFile {
     constructor(fileNode, parentFileObject, fileStorage) {
         this._fileNode = fileNode;
         this._parent = parentFileObject;
