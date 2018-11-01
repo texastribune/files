@@ -1,5 +1,5 @@
-import {parseJsonArrayBuffer, parseTextArrayBuffer} from "../utils.js";
-import {BaseFileSystem} from "./systems.js";
+
+import {parseJsonFile, parseTextFile} from "../utils.js";
 
 /**
  * An Object that contains metadata about a file.
@@ -17,276 +17,194 @@ import {BaseFileSystem} from "./systems.js";
  */
 
 
-export class AbstractFile {
-    /**
-     * @returns {string[]} - The path of the file.
-     */
-    get path() {
-        if (this.parent === null) {
-            return [];
-        }
-        return this.parent.path.concat([this.fileNode.name]);
-    }
+export class File{
+  /**
+   * An object representing a file or directory in a file system. Provides API for
+   * performing operations on the file.
+   * @param {AbstractFileSystem} fileSystem - The file system the file is on
+   * @param {FileNode} fileNode - The FileNode object representing the file
+   */
+  constructor(fileSystem, fileNode) {
+    this._fileStorage = fileSystem;
+    this._fileNode = fileNode;
+    this._name = name;
+    this._parent = parent;
+    this._filePromiseCache = null;
+  }
 
-    /**
-     * @returns {BaseFileSystem} - The path of the file.
-     */
-    get root(){
-        let obj = this;
-        while (!(obj.parent === null || obj instanceof BaseFileSystem)){
-            obj = obj.parent;
-        }
-        return obj;
-    }
+  // Getters
+  get fileSystem() {
+    return this._fileStorage;
+  }
 
-    get parent() {
-        throw new Error("Not implemented");
-    }
+  get id() {
+    return this._fileNode.id;
+  }
 
-    /**
-     * Read the file.
-     * @async
-     * @param {Object} [params={}] - Read parameters.
-     * @returns {ArrayBuffer} - An ArrayBuffer containing the file data.
-     */
-    async read(params) {
-        throw new Error("Not implemented")
-    }
+  get name() {
+    return this._fileNode.name;
+  }
 
-    /**
-     * Read the file.
-     * @async
-     * @param {ArrayBuffer} data - Raw data to write to the file.
-     * @returns {ArrayBuffer} - An ArrayBuffer containing the updated file data.
-     */
-    async write(data) {
-        throw new Error("Not implemented");
-    }
+  get url() {
+    return this._fileNode.url;
+  }
 
-    /**
-     * Read the file as a string.
-     * @async
-     * @param {Object} [params={}] - Read parameters.
-     * @returns {string} - File file data converted to a string.
-     */
-    async readText(params) {
-        let arrayBuffer = await this.read(params);
-        return parseTextArrayBuffer(arrayBuffer);
-    }
+  get icon() {
+    return this._fileNode.icon;
+  }
 
-    /**
-     * Read the file as a json encoded string and convert to a Javascript Object.
-     * @async
-     * @param {Object} [params={}] - Read parameters.
-     * @returns {Object|Array} - File file data converted to a Javascript Object.
-     */
-    async readJSON(params) {
-        let arrayBuffer = await this.read(params);
-        return parseJsonArrayBuffer(arrayBuffer);
-    }
+  get mimeType() {
+    return this._fileNode.mimeType;
+  }
 
-    /**
-     * Change the name of the file.
-     * @async
-     * @param {string} newName - The new name for the file.
-     */
-    async rename(newName) {
-        throw new Error("Not implemented");
-    }
+  get size(){
+    return this._fileNode.size;
+  }
 
-    /**
-     * Delete the file from its storage location.
-     * @async
-     */
-    async delete() {
-        throw new Error("Not implemented");
-    }
+  get lastModified() {
+    return this._fileNode.lastModified;
+  }
 
-    /**
-     * Search the file and all of its children recursively based on the query.
-     * @async
-     * @param {string} query - Words to be searched seperated by spaces.
-     * @returns {FileObject[]} - A list of file objects.
-     */
-    async search(query) {
-        throw new Error("Not implemented");
-    }
+  get created() {
+    return this._fileNode.created;
+  }
 
-    toString() {
-        return `/${this.path.join('/')}`;
+  /**
+   * Clear the file cache.
+   */
+  clearCache(){
+    this._filePromiseCache = null;
+    let parent = this.parent;
+    if (parent){
+      parent.clearCache();
     }
+  }
 
-    /**
-     * Return a javascript Object mapping file names to file objects for each file in the
-     * directory represented by the given fileObject.
-     * @async
-     * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
-     */
-    async getChildren() {
-        throw new Error("Not implemented");
+  /**
+   * Read the file.
+   * @async
+   * @param {Object} [params={}] - Read parameters.
+   * @returns {Blob} - Blob (https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+   */
+  async read(params) {
+    if (this._filePromiseCache === null){
+      this._filePromiseCache = this.fileSystem.readFile(this.id, params);
     }
+    return await this._filePromiseCache;
+  }
+
+  /**
+   * Read the file.
+   * @async
+   * @param {File|Blob} data - Raw data to write to the file.
+   * @returns {File} - File (https://developer.mozilla.org/en-US/docs/Web/API/File)
+   */
+  async write(data) {
+    this.clearCache();
+    return await this.fileSystem.writeFile(this.id, data);
+  }
+
+  /**
+   * Read the file as a string.
+   * @async
+   * @param {Object} [params={}] - Read parameters.
+   * @returns {string} - File file data converted to a string.
+   */
+  async readText(params) {
+    let file = await this.read(params);
+    return await parseTextFile(file);
+  }
+
+  /**
+   * Read the file as a json encoded string and convert to a Javascript Object.
+   * @async
+   * @param {Object} [params={}] - Read parameters.
+   * @returns {Object|Array} - File file data converted to a Javascript Object.
+   */
+  async readJSON(params) {
+    let file = await this.read(params);
+    return await parseJsonFile(file);
+  }
+
+  /**
+   * Change the name of the file.
+   * @async
+   * @param {string} newName - The new name for the file.
+   */
+  async rename(newName) {
+    this.clearCache();
+    await this.fileSystem.rename(this.id, newName);
+    this._fileNode.name = newName;
+  }
+
+  /**
+   * Delete the file from its storage location.
+   * @async
+   */
+  async delete() {
+    this.clearCache();
+    return await this.fileSystem.delete(this.id);
+  }
+
+  /**
+   * Search the file and all of its children recursively based on the query.
+   * @async
+   * @param {string} query - Words to be searched seperated by spaces.
+   * @returns {File[]} - A list of file objects.
+   */
+  async search(query) {
+    let fileObjectList = [];
+    let fileNodeList = await this.fileSystem.search(this.id, query);
+    for (let node of fileNodeList){
+      fileObjectList.push(new FileObject(this.fileSystem, node, node.name, this));
+    }
+    return fileObjectList;
+  }
+
+  toString(){
+    return `/${this.path.join('/')}`;
+  }
 }
 
-/**
- * An object representing a file or directory in a file system.
- * @param {FileNode} fileNode - The FileNode object representing the file
- * @param {FileObject|null} parentFileObject - The parent directory for this file. Null if root directory.
- * @param {AbstractFileStorage} fileStorage - the file storage for this file.
- */
-export class FileObject extends  AbstractFile {
-    constructor(fileNode, parentFileObject, fileStorage) {
-        this._fileNode = fileNode;
-        this._parent = parentFileObject;
-        this._fileStorage = fileStorage;
+export class Directory extends File {
+  constructor(fileSystem, fileNode){
+    super(fileSystem, fileNode);
+  }
 
-        this._filePromiseCache = null;  // Initialize cache with empty value
-    }
+  static get mimeType(){
+    return 'application/json';
+  }
 
-    /**
-     * @returns {string[]} - The path of the file.
-     */
-    get path() {
-        if (this.parent === null) {
-            return [];
+  get mimeType() {
+    return Directory.mimeType;
+  }
+
+  async read(params) {
+    return
+  }
+
+  async search(query) {
+    return await this.fileSystem.search(this.id, query);
+  }
+
+  async addFile(fileData, filename, mimeType) {
+    return await this.fileSystem.addFile(this.id, fileData, filename, mimeType);
+  }
+
+  async addDirectory(name) {
+    return await this.fileSystem.addDirectory(this.id, name);
+  }
+
+  async getChildren() {
+      let childrenMeta = await this.fileSystem.readJSON();
+      let fileObjects = [];
+      for (let childMeta of childrenMeta) {
+        if (childMeta.directory){
+          fileObjects.push(new Directory(this.fileSystem, childMeta));
+        } else {
+          fileObjects.push(new File(this.fileSystem, childMeta));
         }
-        return this.parent.path.concat([this.fileNode.name]);
-    }
-
-    /**
-     * @returns {BaseFileSystem} - The path of the file.
-     */
-    get root(){
-        let obj = this;
-        while (!(obj.parent === null || obj instanceof BaseFileSystem)){
-            obj = obj.parent;
-        }
-        return obj;
-    }
-
-    get fileNode() {
-        return this._fileNode;
-    }
-
-    get parent() {
-        return this._parent;
-    }
-
-    get fileStorage() {
-        return this._fileStorage;
-    }
-
-    /**
-     * Clear the file cache.
-     */
-    clearCache() {
-        this._filePromiseCache = null;
-        let parent = this.parent;
-        if (parent){
-          parent.clearCache();
-        }
-    }
-
-    /**
-     * Read the file.
-     * @async
-     * @param {Object} [params={}] - Read parameters.
-     * @returns {ArrayBuffer} - An ArrayBuffer containing the file data.
-     */
-    async read(params) {
-        if (this._filePromiseCache === null){
-          this._filePromiseCache = this.fileStorage.readFileNode(this.fileNode.id, params);
-        }
-        return await this._filePromiseCache;
-    }
-
-    /**
-     * Read the file.
-     * @async
-     * @param {ArrayBuffer} data - Raw data to write to the file.
-     * @returns {ArrayBuffer} - An ArrayBuffer containing the updated file data.
-     */
-    async write(data) {
-        this.clearCache();
-        return await this.fileStorage.writeFileNode(this.fileNode.id, data);
-    }
-
-    /**
-     * Read the file as a string.
-     * @async
-     * @param {Object} [params={}] - Read parameters.
-     * @returns {string} - File file data converted to a string.
-     */
-    async readText(params) {
-        let arrayBuffer = await this.read(params);
-        return parseTextArrayBuffer(arrayBuffer);
-    }
-
-    /**
-     * Read the file as a json encoded string and convert to a Javascript Object.
-     * @async
-     * @param {Object} [params={}] - Read parameters.
-     * @returns {Object|Array} - File file data converted to a Javascript Object.
-     */
-    async readJSON(params) {
-        let arrayBuffer = await this.read(params);
-        return parseJsonArrayBuffer(arrayBuffer);
-    }
-
-    /**
-     * Change the name of the file.
-     * @async
-     * @param {string} newName - The new name for the file.
-     */
-    async rename(newName) {
-        this.clearCache();
-        await this.fileStorage.rename(this.fileNode.id, newName);
-        this.fileNode.name = newName;
-    }
-
-    /**
-     * Delete the file from its storage location.
-     * @async
-     */
-    async delete() {
-        this.clearCache();
-        return await this.fileStorage.delete(this.fileNode.id);
-    }
-
-    /**
-     * Search the file and all of its children recursively based on the query.
-     * @async
-     * @param {string} query - Words to be searched seperated by spaces.
-     * @returns {FileObject[]} - A list of file objects.
-     */
-    async search(query) {
-        let fileObjectList = [];
-        let fileNodeList = await this.fileStorage.search(this.fileNode.id, query);
-        for (let node of fileNodeList) {
-            fileObjectList.push(new FileObject(node, this, this.fileStorage));
-        }
-        return fileObjectList;
-    }
-
-    toString() {
-        return `/${this.path.join('/')}`;
-    }
-
-    /**
-     * Return a javascript Object mapping file names to file objects for each file in the
-     * directory represented by the given fileObject.
-     * @async
-     * @returns {FileObject[]} - Array of FileObjects for each file in the given directory.
-     */
-    async getChildren() {
-        if (!this.fileNode.directory){
-            throw new Error(`File ${this} is not a directory`);
-        }
-
-        let childNodes = await this.readJSON();
-        let fileObjects = [];
-        for (let childNode of childNodes) {
-            fileObjects.push(new FileObject(childNode, this, this.fileStorage));
-        }
-        return fileObjects;
-    }
+      }
+      return fileObjects;
+  }
 }

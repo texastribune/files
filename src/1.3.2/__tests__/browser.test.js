@@ -1,11 +1,11 @@
 /* eslint-disable import/first */
 /* global jest, test, expect, describe */
 
-import {MemoryFileStorage} from "../js/files/storages/memory.js";
-import {BaseFileSystem, StateMixin} from "../js/files/systems.js";
+import {MemoryDirectory} from "../js/files/memory.js";
 import {FileBrowser} from "../js/ui/browser.js";
 import {Table, Column} from "../js/ui/table.js";
 import {stringToArrayBuffer} from "../js/utils";
+import {StateMixin} from "../js/files/mixins/state.js";
 
 const dir1Name = 'dir1';
 const file1Name = 'file1';
@@ -36,17 +36,16 @@ global.MutationObserver = MutationObserver;
 
 
 describe('Test browser', () => {
-  let storage;
+  let rootDirectory;
   let system;
   let table;
   let browser;
 
   beforeEach(() => {
-    storage = new MemoryFileStorage();
-    let SystemClass = StateMixin(BaseFileSystem);
-    system = new SystemClass(storage);
+    let DirectoryClass = StateMixin(MemoryDirectory);
+    rootDirectory = new DirectoryClass(null, 'root');
     table = new Table();
-    browser = new FileBrowser(system, table);
+    browser = new FileBrowser(rootDirectory, table);
   });
 
   test('Table has files', async () => {

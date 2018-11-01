@@ -3,7 +3,7 @@ import History from "./history.js";
 import {Dialog, ConfirmDialog} from "./dialog.js";
 import {Element} from "./element.js";
 import {Message} from "./messages.js";
-import {FileNotFoundError} from "../files/storages/base.js";
+import {FileNotFoundError} from "../files/base.js";
 import {convertBytesToReadable, compareDateStrings,
         compareNumbers, compareStrings} from "../utils.js";
 import * as icons from './icons.js';
@@ -14,10 +14,10 @@ import {updateConfigFile} from "./config.js";
 export class FileBrowser extends Element {
   /**
    * An element for browsing a file system.
-   * @param {BaseFileSystem} fileSystem - The file system for browsing.
+   * @param {AbstractDirectory} rootDirectory- The root directory of the browser.
    * @param {Table} table - The table to use for displaying the files.
    */
-  constructor(fileSystem, table) {
+  constructor(rootDirectory, table) {
     super();
 
     // Initialize variables
@@ -83,7 +83,7 @@ export class FileBrowser extends Element {
     this._element.appendChild(this.actionsContainer);
     this._element.appendChild(this.tableContainer);
 
-    this.fileSystem = fileSystem;
+    this.fileSystem = rootDirectory;
     this.table = table;
     this.history = new History();
   }
@@ -533,7 +533,7 @@ export class FileBrowser extends Element {
           for (let rowData of rows){
             // Make sure object isn't already in this directory, and if not move it here.
             let moveFile = async (rowData) => {
-              let fileObject = await this.fileSystem.getFileObject(rowData.path);
+              let fileObject = await this.fileSystem.getFile(rowData.path);
               return await this.fileSystem.move(this.fileSystem.path, fileObject);
             };
             promises.push(moveFile(rowData));
@@ -566,8 +566,8 @@ export class FileBrowser extends Element {
   }
 
   /**
-   * Translate the data for a FileObject to the data that will be in each table row for that file.
-   * @param {FileObject} fileObject - The file for a given row.
+   * Translate the data for a AbstractFile to the data that will be in each table row for that file.
+   * @param {AbstractFile} fileObject - The file for a given row.
    * @returns {Object} - The data for that row in the table.
    */
   fileObjectToTableData(fileObject){
@@ -650,7 +650,7 @@ export class FileBrowser extends Element {
               let newName = prompt("New Name");
               if (newName !== null){
                 this.contextMenu.close();
-                let fileObject = await this.fileSystem.getFileObject(selectedRowData.path);
+                let fileObject = await this.fileSystem.getFile(selectedRowData.path);
                 await fileObject.rename(newName);
                 await this.fileSystem.refresh();
               }
@@ -696,7 +696,7 @@ export class FileBrowser extends Element {
           this.logAndLoadWrapper(
             (async () => {
               for (let rowData of selectedData) {
-                let fileObject = await this.fileSystem.getFileObject(rowData.path);
+                let fileObject = await this.fileSystem.getFile(rowData.path);
                 promises.push(fileObject.delete());
               }
               this.contextMenu.close();
@@ -738,7 +738,7 @@ export class FileBrowser extends Element {
 
                 let movePromises = [];
                 for (let rowData of selectedData) {
-                  let fileObject = await moveBrowser.fileSystem.getFileObject(rowData.path);
+                  let fileObject = await moveBrowser.fileSystem.getFile(rowData.path);
                   movePromises.push(moveBrowser.fileSystem.move(path, fileObject));
                 }
                 await Promise.all(movePromises);
@@ -975,7 +975,7 @@ export let ConfigFileMixin = (fileSystemClass) => {
       while (path.length > 0){
         checked.push(path.shift());
         try{
-          await this.fileSystem.getFileObject(checked);
+          await this.fileSystem.getFile(checked);
         } catch (error) {
           if (error instanceof FileNotFoundError){
             await this.fileSystem.addDirectory(checked.slice(0, checked.length - 1), checked[checked.length-1]);
@@ -990,7 +990,7 @@ export let ConfigFileMixin = (fileSystemClass) => {
     async addLocalConfig(newConfig){
       let dataBuffer;
       try {
-        let configFileObject = await this.fileSystem.getFileObject(this.constructor.localConfigPath);
+        let configFileObject = await this.fileSystem.getFile(this.constructor.localConfigPath);
         let oldDataBuffer = await configFileObject.read();
         dataBuffer = updateConfigFile(newConfig, oldDataBuffer);
       } catch (error) {
@@ -1017,7 +1017,7 @@ export let ConfigFileMixin = (fileSystemClass) => {
         let path = configPath.shift();
         let localConfig;
         try {
-          let configFileObject = await this.fileSystem.getFileObject(path);
+          let configFileObject = await this.fileSystem.getFile(path);
           let data = await configFileObject.read();
           localConfig = parseConfigFile(data);
         } catch (error) {

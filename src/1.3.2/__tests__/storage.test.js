@@ -1,16 +1,16 @@
 /* eslint-disable import/first */
 /* global jest, test, expect, describe */
 
-import {MemoryFileStorage} from "../js/files/storages/memory.js";
+import {MemoryDirectory} from "../js/files/memory.js";
 import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer, compareById} from "../js/utils.js";
 import IndexedDB from "../../../node_modules/fake-indexeddb/build/index.js";
-import {LocalStorageFileStorage} from "../js/files/storages/local.js";
+import {LocalStorageRoot} from "../js/files/local.js";
 import {NodeFileStorage} from "../js/files/storages/node.js";
-import * as fs from 'fs';
+import {AbstractDirectory, AbstractFile} from "../js/files/base.js";
 
 
-async function listStorageDirectory(storage, fileNode) {
-    let directoryArrayBuffer = await storage.readFileNode(fileNode.id);
+async function listDirectoryData(directory) {
+    let directoryArrayBuffer = await directory.read();
     return parseJsonArrayBuffer(directoryArrayBuffer);
 }
 
@@ -27,29 +27,29 @@ function testStorage(createStorage, tearDownStorage) {
     });
 
     async function addTestFiles() {
-        let rootFileNode = await storage.getRootFileNode();
-        let dir1Node = await storage.addDirectory(rootFileNode.id, dir1Name);
-        let file1Node = await storage.addFile(rootFileNode.id, stringToArrayBuffer(file1String), file1Name);
-        let file2Node = await storage.addFile(dir1Node.id, stringToArrayBuffer(file2String), file2Name, 'text/plain');
+        let dir1Node = await storage.addDirectory(dir1Name);
+        let file1Node = await storage.addFile(stringToArrayBuffer(file1String), file1Name);
+        let file2Node = await storage.addFile(stringToArrayBuffer(file2String), file2Name, 'text/plain');
         return [dir1Node, file1Node, file2Node];
     }
 
     test('Storage directories are files with json array string', async () => {
-        let rootFileNode = await storage.getRootFileNode();
-        let arrayBuffer = await storage.readFileNode(rootFileNode.id);
+        let arrayBuffer = await storage.read();
         let rootChildNodes = parseJsonArrayBuffer(arrayBuffer);
         expect(rootChildNodes).toBeInstanceOf(Array);
         expect(rootChildNodes.length).toEqual(0);
     });
 
     test('Storage can add files and directories', async () => {
-        let fileNodes = await addTestFiles();
-        let rootFileNode = await storage.getRootFileNode();
-        let rootChildNodes = await listStorageDirectory(storage, rootFileNode);
-        let dir1ChildNodes = await listStorageDirectory(storage, fileNodes[0]);
+        let files = await addTestFiles();
+        let rootChildFiles = await listDirectoryData(storage);
+        let dir1ChildFiles = await listDirectoryData(files[0]);
 
-        let rootChildNames = rootChildNodes.map((fileNode) => {return fileNode.name});
-        let dir1ChildNames = dir1ChildNodes.map((fileNode) => {return fileNode.name});
+        expect(rootChildFiles[0]).toBeInstanceOf(AbstractDirectory);
+        expect(rootChildFiles[1]).toBeInstanceOf(AbstractFile);
+
+        let rootChildNames = rootChildFiles.map((file) => {return file.name});
+        let dir1ChildNames = dir1ChildFiles.map((file) => {return file.name});
 
         expect(rootChildNames).toContain(dir1Name);
         expect(rootChildNames).toContain(file1Name);
@@ -57,24 +57,23 @@ function testStorage(createStorage, tearDownStorage) {
     });
 
     test('Storage correct mime types', async () => {
-        let fileNodes = await addTestFiles();
+        let files = await addTestFiles();
 
-        expect(fileNodes[0].mimeType).toMatch('application/json'); // All directories should be json files
-        expect(fileNodes[1].mimeType).toMatch('application/octet-stream'); // Fallback since not given in addFile
+        expect(files[0].mimeType).toMatch('application/json'); // All directories should be json files
+        expect(files[1].mimeType).toMatch('application/octet-stream'); // Fallback since not given in addFile
         if (storage.constructor.preservesMimeType){
-            expect(fileNodes[2].mimeType).toMatch('text/plain'); // As was defined in addFile
+            expect(files[2].mimeType).toMatch('text/plain'); // As was defined in addFile
         }
     });
 
     test('Storage cannot add files or directories to non directory', async () => {
-        let rootFileNode = await storage.getRootFileNode();
-        let file1Node = await storage.addFile(rootFileNode.id, stringToArrayBuffer('jkl'), 'file', 'text/plain');
+        let file1 = await storage.addFile(stringToArrayBuffer('jkl'), 'file', 'text/plain');
         let error;
 
         // Try to add a file to file1.
         error = null;
         try {
-            await storage.addFile(file1Node.id, stringToArrayBuffer('mno'), 'anotherFile', 'text/plain');
+            await file1.addFile(stringToArrayBuffer('mno'), 'anotherFile', 'text/plain');
         } catch (e) {
             error = e;
         }
@@ -83,7 +82,7 @@ function testStorage(createStorage, tearDownStorage) {
         // Try to add a directory to file1.
         error = null;
         try {
-            await storage.addDirectory(file1Node.id, 'directory');
+            await file1.addDirectory('directory');
         } catch (e) {
             error = e;
         }
@@ -91,14 +90,12 @@ function testStorage(createStorage, tearDownStorage) {
     });
 
     test('Storage cannot add wrong type', async () => {
-        let rootFileNode = await storage.getRootFileNode();
-
         let error;
 
         // Test can't add Blob
         error = null;
         try {
-            await storage.addFile(rootFileNode.id, new Blob(['stu']), 'file', 'text/plain');
+            await storage.addFile(new Blob(['stu']), 'file', 'text/plain');
         } catch (e) {
             error = e;
         }
@@ -107,7 +104,7 @@ function testStorage(createStorage, tearDownStorage) {
         // Test can't add plain string
         error = null;
         try {
-            await storage.addFile(rootFileNode.id, 'stu', 'file', 'text/plain');
+            await storage.addFile('stu', 'file', 'text/plain');
         } catch (e) {
             error = e;
         }
@@ -115,14 +112,12 @@ function testStorage(createStorage, tearDownStorage) {
     });
 
     test('It can read files and directories', async () => {
-        let fileNodes = await addTestFiles();
+        let files = await addTestFiles();
 
-        let rootFileNode = await storage.getRootFileNode();
-
-        let rootDirArrayBuffer = await storage.readFileNode(rootFileNode.id);
-        let dir1ArrayBuffer = await storage.readFileNode(fileNodes[0].id);
-        let file1ArrayBuffer = await storage.readFileNode(fileNodes[1].id);
-        let file2ArrayBuffer = await storage.readFileNode(fileNodes[2].id);
+        let rootDirArrayBuffer = await storage.read();
+        let dir1ArrayBuffer = await files[0].read();
+        let file1ArrayBuffer = await files[1].read();
+        let file2ArrayBuffer = await files[2].read();
 
         expect(rootDirArrayBuffer).toBeInstanceOf(ArrayBuffer);
         expect(dir1ArrayBuffer).toBeInstanceOf(ArrayBuffer);
@@ -131,14 +126,12 @@ function testStorage(createStorage, tearDownStorage) {
     });
 
     test('Storage directories contain correct child FileNodes', async () => {
-        let fileNodes = await addTestFiles();
-        let rootExpectedChildren = [fileNodes[0], fileNodes[1]];
-        let dir1ExpectedChildren = [fileNodes[2]];
+        let files = await addTestFiles();
+        let rootExpectedChildren = [files[0], files[1]];
+        let dir1ExpectedChildren = [files[2]];
 
-        let rootFileNode = await storage.getRootFileNode();
-
-        let rootDirArrayBuffer = await storage.readFileNode(rootFileNode.id);
-        let dir1ArrayBuffer = await storage.readFileNode(fileNodes[0].id);
+        let rootDirArrayBuffer = await storage.read();
+        let dir1ArrayBuffer = await files[0].read();
 
         // Directories should be files containing json strings of arrays of file node data.
         let rootChildNodes = parseJsonArrayBuffer(rootDirArrayBuffer);
@@ -146,18 +139,18 @@ function testStorage(createStorage, tearDownStorage) {
 
         // Get the FileNode data which should not change since it was added or directly written to
         // Directory size, lastModified, and url can change when child files are added.
-        function staticData(fileNode){
+        function staticData(file){
             let staticData = {
-                id: fileNode.id,
-                name: fileNode.name,
-                // created: fileNode.created, //TODO this is variable on NodeFileStorage for some reason
-                directory: fileNode.directory,
-                mimeType: fileNode.mimeType
+                id: file.id,
+                name: file.name,
+                // created: file.created, //TODO this is variable on NodeFileStorage for some reason
+                directory: file.directory,
+                mimeType: file.mimeType
             };
-            if (!fileNode.directory){
-                staticData.size = fileNode.size;
-                staticData.lastModified = fileNode.lastModified;
-                staticData.url = fileNode.url;
+            if (!file.directory){
+                staticData.size = file.size;
+                staticData.lastModified = file.lastModified;
+                staticData.url = file.url;
             }
             return staticData;
         }
@@ -175,22 +168,21 @@ function testStorage(createStorage, tearDownStorage) {
     test('Storage file data is correct', async () => {
         let fileNodes = await addTestFiles();
 
-        let file1ArrayBuffer = await storage.readFileNode(fileNodes[1].id);
-        let file2ArrayBuffer = await storage.readFileNode(fileNodes[2].id);
+        let file1ArrayBuffer = await fileNodes[1].read();
+        let file2ArrayBuffer = await fileNodes[2].read();
 
         // File should have same data it was given.
         let file1Text = parseTextArrayBuffer(file1ArrayBuffer);
         let file2Text = parseTextArrayBuffer(file2ArrayBuffer);
-        expect(file1Text).toMatch(file1Text);
-        expect(file2Text).toMatch(file2Text);
+        expect(file1Text).toMatch(file1String);
+        expect(file2Text).toMatch(file2String);
     });
 
     test('It can delete files and directories', async () => {
         let fileNodes = await addTestFiles();
-        let rootFileNode = await storage.getRootFileNode();
 
         await storage.delete(fileNodes[1].id);
-        let rootChildNodes = await listStorageDirectory(storage, rootFileNode);
+        let rootChildNodes = await listDirectoryData(storage, rootFileNode);
         let rootChildNames = rootChildNodes.map((fileNode) => {return fileNode.name});
         expect(rootChildNames).not.toContain(file1Name);
         expect(rootChildNames).toContain(dir1Name);
@@ -200,7 +192,7 @@ function testStorage(createStorage, tearDownStorage) {
 
 describe('Test memory file storage', () => {
     testStorage(() => {
-        return new MemoryFileStorage();
+        return new MemoryDirectory(null, 'root');
     })
 });
 
@@ -211,7 +203,7 @@ describe('Test local file storage', () => {
 
     testStorage(() => {
         global.window.indexedDB._databases.clear();
-        storage = new LocalStorageFileStorage();
+        storage = new LocalStorageRoot();
         return storage;
     });
 
@@ -221,26 +213,26 @@ describe('Test local file storage', () => {
     })
 });
 
-describe('Test node file storage', () => {
-    testStorage(() => {
-        let path = '/tmp/jestNodeStorageTest';
-
-        function rmDir(path) {
-            if (fs.existsSync(path)) {
-                fs.readdirSync(path).forEach((fileName, index) => {
-                    let subPath = path + '/' + fileName;
-                    if (fs.lstatSync(subPath).isDirectory()) {
-                        rmDir(subPath);
-                    } else {
-                        fs.unlinkSync(subPath);
-                    }
-                });
-                fs.rmdirSync(path);
-            }
-        }
-
-        rmDir(path);
-        fs.mkdirSync(path);
-        return new NodeFileStorage(path);
-    })
-});
+// describe('Test node file storage', () => {
+//     testStorage(() => {
+//         let path = '/tmp/jestNodeStorageTest';
+//
+//         function rmDir(path) {
+//             if (fs.existsSync(path)) {
+//                 fs.readdirSync(path).forEach((fileName, index) => {
+//                     let subPath = path + '/' + fileName;
+//                     if (fs.lstatSync(subPath).isDirectory()) {
+//                         rmDir(subPath);
+//                     } else {
+//                         fs.unlinkSync(subPath);
+//                     }
+//                 });
+//                 fs.rmdirSync(path);
+//             }
+//         }
+//
+//         rmDir(path);
+//         fs.mkdirSync(path);
+//         return new NodeFileStorage(path);
+//     })
+// });

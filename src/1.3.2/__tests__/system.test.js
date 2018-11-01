@@ -9,7 +9,7 @@ import {
   HiddenReferenceLinkMixin,
   ExecutableMixin
 } from "../js/files/systems.js";
-import {FileObject} from "../js/files/objects.js";
+import {AbstractFile} from "../js/files/base.js";
 import {parseTextArrayBuffer, stringToArrayBuffer, compareById} from "../js/utils.js";
 
 const dir1Name = 'dir1';
@@ -59,7 +59,7 @@ describe('Test base file system', () => {
     let rootChildFileObjects = await system.listDirectory([]);
     let dir1ChildFileObjects = await system.listDirectory([dir1Name]);
 
-    // Get the FileObject data which should not change since it was added or directly written to
+    // Get the AbstractFile data which should not change since it was added or directly written to
     // Directory size, lastModified, and url can change when child files are added.
     function staticData(fileObject){
         let staticData = {
@@ -89,7 +89,7 @@ describe('Test base file system', () => {
 
   test('Can read file objects', async () => {
     let fileObjects = await addTestFiles(system);
-    let fileObject = await system.getFileObject([file1Name]);
+    let fileObject = await system.getFile([file1Name]);
     let fileData = await fileObject.read();
 
     expect(fileData).toBeInstanceOf(ArrayBuffer);
@@ -133,14 +133,14 @@ describe('Test mounting mixin', () => {
     let dir1ChildNames = dir1ChildFileObjects.map((fileObject) => {return fileObject.fileNode.name});
 
     expect(dir1ChildNames).toContain(mountName);
-    let mountedFileObject = await system.getFileObject([dir1Name, mountName, filename]);
-    expect(mountedFileObject).toBeInstanceOf(FileObject);
+    let mountedFileObject = await system.getFile([dir1Name, mountName, filename]);
+    expect(mountedFileObject).toBeInstanceOf(AbstractFile);
     expect(mountedFileObject.fileNode.id).toMatch(mountedFileNode.id);
     expect(mountedFileObject.fileNode.name).toMatch(filename);
-    expect(mountedFileObject.fileStorage).toBe(mountedStorage);
+    expect(mountedFileObject.fileSystem).toBe(mountedStorage);
 
     // Dir1 still has same file storage;
-    expect(fileObjects[0].fileStorage).toBe(storage);
+    expect(fileObjects[0].fileSystem).toBe(storage);
   });
 
   test('System search across mounted directories', async () => {
@@ -231,7 +231,7 @@ describe('Test hidden reference link mixin', () => {
     expect(linkFileObject.path).not.toEqual(file1Path);
 
     // Trying to read the link path should return the file its linking to
-    let fileObject = await system.getFileObject(linkFileObject.path);
+    let fileObject = await system.getFile(linkFileObject.path);
     expect(fileObject.fileNode).toEqual(fileObjects[1].fileNode);
   });
 
@@ -239,11 +239,11 @@ describe('Test hidden reference link mixin', () => {
     let fileObjects = await addTestFiles(system);
 
     // Type should be inode/symlink
-    let fileObject2 = await system.getFileObject([dir1Name, '.', file2Name]);
+    let fileObject2 = await system.getFile([dir1Name, '.', file2Name]);
     expect(fileObject2.fileNode.name).toEqual(file2Name);
 
     // Type should be inode/symlink
-    let fileObject1 = await system.getFileObject([dir1Name, '.', '..', file1Name]);
+    let fileObject1 = await system.getFile([dir1Name, '.', '..', file1Name]);
     expect(fileObject1.fileNode.name).toEqual(file1Name);
   });
 });

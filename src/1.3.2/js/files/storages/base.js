@@ -7,6 +7,23 @@ export class FileNotFoundError extends Error {
   }
 }
 
+
+/**
+ * An Object that contains metadata about a file.
+ * @typedef {Object} FileNode
+ * @property {string} id - A unique identifier for the file specific to its storage. Does not change for the life of the file.
+ * @property {string} name - The name of the file.
+ * @property {string} url - The URL the file data can be accessed from. May be a Data URL.
+ * @property {boolean} directory - Is the file a directory.
+ * @property {string|null} icon - The url the file data can be accessed from.
+ * @property {number|null} size - The size in bytes of the file.
+ * @property {string} mimeType - The MIME type of the file.
+ * @property {string} lastModified - An ISO 8601 date string of when the file was last modified.
+ * @property {string} created - An ISO 8601 date string of when the file was created.
+ * @property {Object|null} extra - Any extra properties
+ */
+
+
 /**
  * The base class to use for building and implementation of a file system. It allows for
  * interaction with a hierarchical tree structure of files connected by directories. The
