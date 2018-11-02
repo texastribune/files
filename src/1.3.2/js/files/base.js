@@ -26,7 +26,8 @@ export class FileNotFoundError extends Error {
 
 
 /**
- * An object representing a file or directory in a file system.
+ * @abstract
+ * An object representing a file.
  */
 export class AbstractFile {
     constructor() {
@@ -150,7 +151,7 @@ export class AbstractFile {
     /**
      * @abstract
      * @async
-     * @returns {AbstractFile} - The parent directory of the file.
+     * @returns {AbstractDirectory} - The parent directory of the file.
      */
     async getParent() {
         throw new Error("Not implemented");
@@ -243,6 +244,11 @@ export class AbstractFile {
     }
 }
 
+
+/**
+ * @abstract
+ * An object representing a file.
+ */
 export class AbstractDirectory extends AbstractFile {
     static get mimeType() {
         return 'application/json';

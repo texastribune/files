@@ -28,5 +28,14 @@ export let CacheMixin = (DirectoryClass) => {
             this._pathCache = {};
             await super.refresh();
         }
+
+        async getChildren(){
+          for (let child of super.getChildren()) {
+              child.getFile = async (pathArray) => {
+                  return this.stat(pathArray);
+              };
+              child.getChildren = this.getChildren;
+          }
+        }
     };
 };

@@ -111,35 +111,3 @@ class VirtualRootDirectory extends VirtualDirectory {
     this._mounts[mountPoint.id] =  file;
   }
 }
-
-
-/**
- * Extends a file system with StateMixin so that it can cache fileObjects that
- * have already been retrieved by their path.
- * @mixin CacheMixin
- * @param {VirtualFileSystem} fileSystemClass - A subclass of BaseFileSystem.
- * @returns {VirtualFileSystem}
- */
-export let CacheMixin = (FileSystemClass) => {
-  return class extends FileSystemClass {
-    constructor(...args) {
-      super(...args);
-      this._pathCache = {};
-    }
-
-    async getFileObject(path) {
-      let strPath = JSON.stringify(path);
-      let fileObject = this._pathCache[strPath];
-      if (!fileObject) {
-        fileObject = await super.getFile(path);
-        this._pathCache[strPath] = fileObject;
-      }
-      return fileObject;
-    }
-
-    async refresh() {
-      this._pathCache = {};
-      await super.refresh();
-    }
-  };
-};

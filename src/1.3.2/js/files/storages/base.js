@@ -47,18 +47,6 @@ export class AbstractFileStorage {
     return true;
   }
 
-  wrapChangeFunc(func) {
-    return async (...args) => {
-          let ret = await func(args[0]);
-          this.onFileChanged(id);
-          return ret;
-      }
-  }
-
-  onFileChanged(id){
-    // For adding callback
-  }
-
   /**
    * Get the file object representing the root directory.
    * @async

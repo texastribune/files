@@ -1,14 +1,14 @@
-import {AbstractDirectory, AbstractFile} from "./base";
+import {AbstractDirectory, AbstractFile} from "./base.js";
 
 
+/**
+ * Proxy to an file
+ * @property {AbstractFile} concreteFile - The file to proxy
+ */
 export class ProxyFile extends AbstractFile {
   constructor(concreteFile){
     super();
     this._concreteFile = concreteFile;
-  }
-
-  get parent() {
-    return this._concreteFile._parent;
   }
 
   get id() {
@@ -47,128 +47,133 @@ export class ProxyFile extends AbstractFile {
     return this._concreteFile.created;
   }
 
-  async read(params) {
-    return await this._concreteFile.read(params);
+  getParent() {
+    return this._concreteFile.getParent();
   }
 
-  async write(data) {
-    return await this._concreteFile.write(data);
+  read(params) {
+    return this._concreteFile.read(params);
   }
 
-  async rename(newName) {
-    await this._concreteFile.rename(newName);
+  write(data) {
+    return this._concreteFile.write(data);
   }
 
-  async copy(targetDirectory) {
-    await this._concreteFile.copy(targetDirectory);
+  rename(newName) {
+    return this._concreteFile.rename(newName);
   }
 
-  async move(targetDirectory) {
-    await this._concreteFile.move(targetDirectory);
+  copy(targetDirectory) {
+    return this._concreteFile.copy(targetDirectory);
   }
 
-  async delete() {
-    await this._concreteFile.delete();
+  move(targetDirectory) {
+    return this._concreteFile.move(targetDirectory);
   }
 
-  async search(query) {
-    return await this._concreteFile.search(query);
+  delete() {
+    return this._concreteFile.delete();
   }
 
-  async addFile(fileData, filename, mimeType) {
-    return await this._concreteFile.addFile(fileData, filename, mimeType);
+  search(query) {
+    return this._concreteFile.search(query);
   }
 
-  async addDirectory(name) {
-    return await this._concreteFile.addDirectory(name);
+  addFile(fileData, filename, mimeType) {
+    return this._concreteFile.addFile(fileData, filename, mimeType);
+  }
+
+  addDirectory(name) {
+    return this._concreteFile.addDirectory(name);
   }
 
 
-  async getFile(pathArray) {
-    return await this._concreteFile.getFile();
+  getFile(pathArray) {
+    return this._concreteFile.getFile();
   }
 
 
-  async getChildren() {
-    return await this._concreteFile.getChildren();
-  }
-
-  createChild(metadata){
-    return this._concreteFile.createChild(metadata);
+  getChildren() {
+    return this._concreteFile.getChildren();
   }
 }
 
-export class ProxyDirectory extends AbstractDirectory {
-  constructor(concreteFile){
-    super();
-    this._concreteFile = concreteFile;
-  }
 
-  get parent() {
-    return this._concreteFile._parent;
+/**
+ * Proxy to an file
+ * @property {AbstractDirectory} concreteDirectory - The directory to proxy
+ */
+export class ProxyDirectory extends AbstractDirectory {
+  constructor(concreteDirectory){
+    super();
+    this._concreteDirectory = concreteDirectory;
   }
 
   get id() {
-    return this._concreteFile.id;
+    return this._concreteDirectory.id;
   }
 
   get name() {
-    return this._concreteFile.name;
+    return this._concreteDirectory.name;
   }
 
   get directory() {
-    return this._concreteFile.directory;
+    return this._concreteDirectory.directory;
   }
 
   get url() {
-    return this._concreteFile.url;
+    return this._concreteDirectory.url;
   }
 
   get icon() {
-    return this._concreteFile.icon;
+    return this._concreteDirectory.icon;
   }
 
   get lastModified() {
-    return this._concreteFile.lastModified;
+    return this._concreteDirectory.lastModified;
   }
 
   get created() {
-    return this._concreteFile.created;
+    return this._concreteDirectory.created;
   }
 
-  async rename(newName) {
-    await this._concreteFile.rename(newName);
+  getParent() {
+    return this._concreteDirectory.getParent();
   }
 
-  async copy(targetDirectory) {
-    await this._concreteFile.copy(targetDirectory);
+  rename(newName) {
+    return this._concreteDirectory.rename(newName);
   }
 
-  async move(targetDirectory) {
-    await this._concreteFile.move(targetDirectory);
+  copy(targetDirectory) {
+    return this._concreteDirectory.copy(targetDirectory);
   }
 
-  async delete() {
-    await this._concreteFile.delete();
+  move(targetDirectory) {
+    return this._concreteDirectory.move(targetDirectory);
   }
 
-  async search(query) {
-    return await this._concreteFile.search(query);
+  delete() {
+    return this._concreteDirectory.delete();
   }
 
-  async addFile(fileData, filename, mimeType) {
-    return await this._concreteFile.addFile(fileData, filename, mimeType);
+  search(query) {
+    return this._concreteDirectory.search(query);
   }
 
-  async addDirectory(name) {
-    return await this._concreteFile.addDirectory(name);
+  addFile(fileData, filename, mimeType) {
+    return this._concreteDirectory.addFile(fileData, filename, mimeType);
   }
 
-  async getFile(pathArray) {
-    return await this._concreteFile.getFile();
+  addDirectory(name) {
+    return this._concreteDirectory.addDirectory(name);
   }
 
-  async getChildren() {
-    return await this._concreteFile.getChildren();
+  getFile(pathArray) {
+    return this._concreteDirectory.getFile();
+  }
+
+  getChildren() {
+    return this._concreteDirectory.getChildren();
   }
 }
