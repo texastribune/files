@@ -1,17 +1,21 @@
-import {AbstractDirectory, AbstractFile} from "./base";
+import {AbstractDirectory, AbstractFile, DirectoryMixin} from "./base";
 
 
 let idCounter = 0;
 
+
 export class MemoryFile extends AbstractFile {
     constructor(parent, name, mimeType, data) {
-        super();
+        if (data && !(data instanceof ArrayBuffer)){
+            throw new Error("File data must be an instance of ArrayBuffer");
+        }
+        super(parent, name);
         this._parent = parent;
         this._name = name;
-        this._mimeType = mimeType;
+        this._mimeType = mimeType || 'application/octet-stream';
         this._fileData = data;
-        this._created = new Date();
         this._lastModified = new Date();
+        this._created = new Date();
 
         idCounter ++;
         this._id = idCounter;
@@ -29,26 +33,16 @@ export class MemoryFile extends AbstractFile {
         return null;
     }
 
+    get url(){
+        return null;
+    }
+
     get mimeType(){
         return this._mimeType;
     }
 
     get size(){
         return this._fileData.byteLength;
-    }
-
-    async getParent(){
-        return this._parent;
-    }
-
-    set parent(parent){
-        if (this._parent){
-            this._parent.removeChild(this.name);
-        }
-        if (parent !== null){
-            parent.addChild(this);
-        }
-        this._parent = parent
     }
 
     get lastModified(){
@@ -69,8 +63,7 @@ export class MemoryFile extends AbstractFile {
     }
 
     async delete() {
-        let parent = await this.getParent();
-        parent.removeChild(this);
+        this._parent.removeChild(this);
     }
 
     async rename(newName){
@@ -78,32 +71,10 @@ export class MemoryFile extends AbstractFile {
     }
 }
 
-export class MemoryDirectory extends AbstractDirectory {
+export class MemoryDirectory extends DirectoryMixin(MemoryFile) {
     constructor(parent, name) {
-        super();
-        this._parent = parent;
-        this._name = name;
+        super(parent, name, null, null);
         this._children = [];
-        this._created = new Date();
-
-        idCounter ++;
-        this._id = idCounter;
-    }
-
-    async getParent(){
-        return this._parent;
-    }
-
-    get id(){
-        return this._id;
-    }
-
-    get name(){
-        return this._name;
-    }
-
-    get icon(){
-        return null;
     }
 
     get lastModified(){
@@ -114,10 +85,6 @@ export class MemoryDirectory extends AbstractDirectory {
         return new Date(Math.max.apply(null, Object.values(this._children).map(function(e) {
             return new Date(e.lastModified);
         })));
-    }
-
-    get created(){
-        return this._created;
     }
 
     async getChildren(){
@@ -138,15 +105,6 @@ export class MemoryDirectory extends AbstractDirectory {
         let newDir = new MemoryDirectory(this, name);
         this.addChild(newDir);
         return newDir;
-    }
-
-    async delete() {
-        let parent = await this.getParent();
-        parent.removeChild(this);
-    }
-
-    async rename(newName){
-        this._name = newName;
     }
 
     addChild(memoryFile){

@@ -36,12 +36,7 @@ class VirtualDirectory extends ProxyDirectory {
         let children = await super.getChildren();
         let virtualChildren = [];
         for (let child of children){
-            let file = this.root._mounts[child.id] || child;
-            if (file instanceof AbstractDirectory){
-                virtualChildren.push(new VirtualDirectory(file, this));
-            } else {
-                virtualChildren.push(new VirtualFile(file, this));
-            }
+            virtualChildren.push(this.root._mounts[child.id] || child);
         }
     }
 }

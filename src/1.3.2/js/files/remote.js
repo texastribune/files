@@ -87,6 +87,8 @@ async function ajax(url, data, method) {
 }
 
 
+
+
 class RemoteFile extends AbstractFile {
   constructor(parent, fileData) {
     super();
@@ -156,7 +158,7 @@ class RemoteFile extends AbstractFile {
 }
 
 
-class RemoteDirectory extends AbstractDirectory {
+class RemoteDirectory extends DirectoryMixin(RemoteFile) {
   constructor(parent, fileData){
     super();
     this._parent = parent;
