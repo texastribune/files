@@ -387,12 +387,12 @@ export class LocalStorageDirectory extends DirectoryMixin(LocalStorageFile) {
 
     async getChildren() {
         let children = [];
-        let childData = await database.getChildren(this.id);
-        for (let child of childData){
-            if (child.file){
-                children.push(new LocalStorageFile(child));
+        let childDataArray = await database.getChildren(this.id);
+        for (let childData of childDataArray){
+            if (childData.file){
+                children.push(new LocalStorageFile(childData));
             } else {
-                children.push(new LocalStorageDirectory(child));
+                children.push(new LocalStorageDirectory(childData));
             }
         }
         return children;

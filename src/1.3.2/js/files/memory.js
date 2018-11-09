@@ -18,7 +18,7 @@ export class MemoryFile extends AbstractFile {
         this._created = new Date();
 
         idCounter ++;
-        this._id = idCounter;
+        this._id = idCounter.toString();
     }
 
     get id(){

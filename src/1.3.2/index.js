@@ -20,19 +20,30 @@ import terminal from './js/bin/terminal.js';
 import mount from './js/bin/mount.js';
 import mountFileAPI from './js/bin/mount.fileapi.js';
 import mountPhotoshelter from './js/bin/mount.photoshelter.js';
+import {LocalStorageRoot} from "./js/files/local.js";
+import {VirtualRootDirectory} from "./js/files/virtual";
+import {MemoryDirectory, MemoryFile} from "./js/files/memory.js";
+import {stringToArrayBuffer} from "./js/utils";
+
+let initramfs = new MemoryDirectory();
+let initScript = `
+  await this.exec('mount', 
+`;
+let buf = stringToArrayBuffer(`
+  
+`);
+initramfs.addFile()
 
 async function setupFileSystem(){
-  let fileSystem = new FileSystem();
-  let rootStorage = new LocalStorageFileStorage();
-  fileSystem.mount([], new BaseFileSystem(rootStorage));
+  let rootStorage = new VirtualRootDirectory(new MemoryDirectory());
 
-  fileSystem._binFuncs = {};
+  rootStorage._binFuncs = {};
   let binStorage = new MemoryFileStorage();
   let binStorageRootFileNode =  await binStorage.getRootFileNode();
 
   async function addBinExecutable(name, func){
     // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
-    fileSystem._binFuncs[name] = func;
+    rootStorage._binFuncs[name] = func;
     let text = `let main = async (...args) => {return await this._binFuncs["${name}"].bind(this)(...args);}`;
     let filename = `${name}.js`;
     await binStorage.addFile(binStorageRootFileNode.id, utilsModule.stringToArrayBuffer(text),

@@ -82,7 +82,7 @@ export class NodeFileStorage extends AbstractFileStorage {
     }
 
     async writeFileNode(id, data) {
-        await this.writeFile(id, data);
+        await this.writeFile(id, new Buffer.from(data));
     }
 
     async addFile(parentId, fileData, filename, type) {

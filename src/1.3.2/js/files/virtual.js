@@ -1,108 +1,51 @@
-import {AbstractFile} from "../files/base.js";
-import {stringToArrayBuffer} from "../utils";
-import {ProxyFile} from "../files/proxy.js";
-import {ProxyDirectory} from "../files/proxy";
-import {AbstractDirectory} from "../files/base";
-import LZString from "../lz-string-1.4.4/lz-string";
+import {ProxyDirectory} from "./proxy.js";
 
-class VirtualFile extends ProxyFile {
-    constructor(concreteFile, virtualRoot, parent){
-        super(concreteFile);
-        this._virtualRoot = virtualRoot;
-        this._parent = parent;
+class AbstractVirtualDirectory extends ProxyDirectory {
+  constructor(concreteFile){
+    super(concreteFile);
+  }
+
+  get virtualRoot(){
+    throw new Error("Not implemented");
+  }
+
+  async getChildren(){
+    let children = await this._concreteDirectory.getChildren();
+    let virtualChildren = [];
+    for (let child of children){
+      if (child.directory){
+        virtualChildren.push(new VirtualDirectory(this.virtualRoot, child));
+      } else {
+        virtualChildren.push(child);
+      }
     }
-
-    get parent(){
-        return this._parent;
-    }
-
-    // get id(){
-    //   let jsonString = JSON.stringify([this._mountPoint.id, this.id]);
-    //   return LZString.compressToUTF16(jsonString);
-    // }
+    return virtualChildren;
+  }
 }
 
-class VirtualDirectory extends ProxyDirectory {
-    constructor(concreteFile, parent){
-        super(concreteFile);
-        this._parent = parent;
-    }
+class VirtualDirectory extends AbstractVirtualDirectory {
+  constructor(virtualRoot, concreteFile){
+    super(concreteFile);
+    this._virtualRoot = virtualRoot;
+  }
 
-    get parent(){
-        return this._parent;
-    }
-
-    async getChildren(){
-        let children = await super.getChildren();
-        let virtualChildren = [];
-        for (let child of children){
-            virtualChildren.push(this.root._mounts[child.id] || child);
-        }
-    }
+  get virtualRoot(){
+    return this._virtualRoot;
+  }
 }
 
-class VirtualRootDirectory extends VirtualDirectory {
-  constructor(){
-    super();
-    this._created = new Date();
-    this._lastModified = new Date();
+export class VirtualRootDirectory extends AbstractVirtualDirectory {
+  constructor(concreteFile){
+    super(concreteFile);
 
     this._mounts = {};
   }
 
-  get parent(){
-    return null;
+  get virtualRoot(){
+    return this;
   }
 
-  get id() {
-    return 'root';
-  }
-
-  get name() {
-    return 'root';
-  }
-
-  get icon() {
-    return null;
-  }
-
-  get created() {
-    return this._created;
-  }
-
-  get lastModified(){
-    return this._lastModified;
-  }
-
-  async rename(newName) {
-    throw new Error("Cannot rename root file.");
-  }
-
-  async copy(targetDirectory) {
-    super.copy(targetDirectory);
-  }
-
-  async move(targetDirectory) {
-    throw new Error("Cannot move root file.");
-  }
-
-  async delete() {
-    throw new Error("Cannot delete root file.");
-  }
-
-  async search(query) {
-    throw new Error("Cannot search root file.");
-  }
-
-  async addFile(fileData, filename, mimeType) {
-    throw new Error("Cannot add file to root file.");
-  }
-
-  async addDirectory(name) {
-    throw new Error("Cannot add directory to root file.");
-  }
-
-  async mount(mountPoint, file) {
-    this._mounts[mountPoint.id] =  file;
+  async mount(mountPoint, directory) {
+    this._mounts[mountPoint.id] = directory;
   }
 }
