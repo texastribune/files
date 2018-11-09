@@ -1,4 +1,4 @@
-import {AbstractDirectory} from "../base";
+import {AbstractDirectory} from "../base.js";
 
 function wrapChangeFunc(func, callback) {
   return async (...args) => {

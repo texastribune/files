@@ -1,4 +1,4 @@
-import {AbstractDirectory, AbstractFile, DirectoryMixin} from "./base";
+import {AbstractFile, DirectoryMixin} from "./base.js";
 
 
 let idCounter = 0;
@@ -88,7 +88,7 @@ export class MemoryDirectory extends DirectoryMixin(MemoryFile) {
     }
 
     async getChildren(){
-        return this._children;
+        return this._children.slice();
     }
 
     async search(query) {

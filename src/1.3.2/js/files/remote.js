@@ -1,6 +1,5 @@
-import {AbstractDirectory, AbstractFile} from "./base";
-import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
-import {FileNotFoundError} from "./storages/base";
+import {AbstractDirectory, AbstractFile, FileNotFoundError} from "./base.js";
+import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils.js";
 
 function configureAjaxRequest(request, method, url, data) {
   if (!this.isCrossDomain(url)) {

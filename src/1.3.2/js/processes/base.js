@@ -1,12 +1,13 @@
-import {ProcessFile} from "./files.js";
+import {ProcessFile, ProcessDirectory} from "./files.js";
+import {stringToArrayBuffer} from "../utils.js";
 
 let idCounter = 0;
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
 
-export class Process extends ProcessFile {
-    constructor(parentProcess, workingDirectory, name, script, stdout, stderr){
+export class Process extends ProcessDirectory {
+    constructor(parentProcess, workingDirectory, executableName, stdout, stderr){
         super();
 
         idCounter ++;
@@ -14,19 +15,25 @@ export class Process extends ProcessFile {
 
         this._parentProcess = parentProcess;
         this._workingDirectory = workingDirectory;
-        this._name = name;
+        this._executableName = executableName;
 
         this._stdout = stdout;
         this._stderr = stderr;
 
-        this._script = script;
-        this.runScript(this._script)
-            .then((returnValue) => {
+        this._created = new Date();
+        this._lastModified = new Date();
 
+        this._workingDirectory.getFile([this._executableName])
+            .then((executableFile) => {
+                return executableFile.readText();
+            })
+            .then((script) => {
+                return this.runScript(script);
             })
             .catch((error) => {
-                return `The process ${this.name} returned an error: ${error}`
-            })
+                let buffer = stringToArrayBuffer(`The process ${this.name} returned an error: ${error}`);
+                return this._stderr.write(buffer);
+            });
     }
 
     get id(){
@@ -34,11 +41,19 @@ export class Process extends ProcessFile {
     }
 
     get name(){
-        return this._name;
+        return this._executableName;
+    }
+
+    created(){
+        return this._created;
+    }
+
+    lastModified(){
+        return this._lastModified;
     }
 
     fork(){
-        return new Process(this, this._workingDirectory, this._name, this._script, this._stdout, this._stderr);
+        return new Process(this, this._workingDirectory, this._executableName, this._stdout, this._stderr);
     }
 
     /**
@@ -120,6 +135,7 @@ export class Process extends ProcessFile {
     }
 
     async runScript(scriptString){
+        console.log("RUNNING");
         let func = new AsyncFunction('exit', 'stdout', 'stderr', scriptString);
         await func.bind(this)(this.exit, this._stdout, this._stderr);
     }

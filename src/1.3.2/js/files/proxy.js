@@ -170,7 +170,7 @@ export class ProxyDirectory extends AbstractDirectory {
   }
 
   getFile(pathArray) {
-    return this._concreteDirectory.getFile();
+    return this._concreteDirectory.getFile(pathArray);
   }
 
   getChildren() {

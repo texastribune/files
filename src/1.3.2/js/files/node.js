@@ -70,7 +70,9 @@ class AbstractNodeFileBase extends AbstractFile {
 
   async rename(newName) {
     let dirName = path.dirname(this.id);
-    await this.fsrename(this.id, path.join(dirName, newName));
+    let newPath = path.join(dirName, newName);
+    await this.fsrename(this.id, newPath);
+    this._path = newPath;
   }
 
   async delete() {

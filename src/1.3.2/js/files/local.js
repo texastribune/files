@@ -47,7 +47,6 @@ class Database {
     }
 
     getDB() {
-        console.log("READ", this._readyPromise === null);
         if (this._readyPromise === null){
             this._readyPromise = new Promise((resolve, reject) => {
                 let newVersion = this.constructor.migrations.length;
@@ -362,6 +361,7 @@ export class LocalStorageFile extends AbstractFile {
 
     async rename(newName) {
         await database.update(this.id, {name: newName});
+        this._name = newName;
     }
 
     async delete() {
@@ -413,22 +413,6 @@ export class LocalStorageDirectory extends DirectoryMixin(LocalStorageFile) {
     async addDirectory(name) {
         let fileData = await database.add(this.id, name, null, AbstractDirectory.mimeType);
         return new LocalStorageDirectory(fileData);
-    }
-
-    async rename(newName) {
-        await database.update(this.id, {name: newName});
-    }
-
-    async delete() {
-        await database.delete(this.id);
-    }
-
-    async copy(targetParentId) {
-        await database.copy(this.id, targetParentId);
-    }
-
-    async move(targetParentId) {
-        await database.move(this.id, targetParentId);
     }
 
     async search(id, query) {

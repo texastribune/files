@@ -219,6 +219,23 @@ function testStorage(rootDirectory) {
         expect(rootChildNames).toContain(dir1Name);
     });
 
+    test('It can rename files and directories', async () => {
+        let files = await addTestFiles();
+
+        await files[0].rename("dir1-new-name");
+        await files[1].rename("file1-new-name");
+
+        expect(files[0].name).toMatch("dir1-new-name");
+        expect(files[1].name).toMatch("file1-new-name");
+
+        let rootChildren = await listDirectoryDataFromGetChildren(rootDirectory);
+        let rootChildNames = rootChildren.map((fileNode) => {return fileNode.name});
+        expect(rootChildNames).toContain("dir1-new-name");
+        expect(rootChildNames).toContain("file1-new-name");
+        expect(rootChildNames).not.toContain(dir1Name);
+        expect(rootChildNames).not.toContain(file1Name);
+    });
+
     test('Ids are unique strings', async () => {
         let files = await addTestFiles();
         files.push(rootDirectory);
@@ -230,6 +247,16 @@ function testStorage(rootDirectory) {
         }
 
         expect(files.length).toBe(set.size);  // Check no duplicates, set will be smaller if so.
+    });
+
+    test('getFile method', async () => {
+        let files = await addTestFiles();
+
+        let dir1 = await rootDirectory.getFile([dir1Name]);
+        let file2 = await rootDirectory.getFile([dir1Name, file2Name]);
+
+        expect(dir1.id).toMatch(files[0].id);
+        expect(file2.id).toMatch(files[2].id);
     });
 }
 
