@@ -22,13 +22,32 @@ export class Process extends ProcessDirectory {
 
         this._created = new Date();
         this._lastModified = new Date();
+        let things = document.createElement('script');
+        console.log("THING", things.src);
+        this._worker = new Worker('js/processes/worker.js');
+
+        this._worker.onmessage = (event) => {
+            console.log("DATA", event.data);
+            let id = event.data[0];
+            let name = event.data[1];
+            let args = event.data.slice(2);
+            let func = this[name].bind(this);
+            if (func){
+                func(...args)
+                    .then((returnValue) => {
+                        this._worker.postMessage([id, returnValue]);
+                    });
+            } else {
+                console.log(`Invalid operation ${name}`);
+            }
+        };
 
         this._workingDirectory.getFile([this._executableName])
             .then((executableFile) => {
                 return executableFile.readText();
             })
             .then((script) => {
-                return this.runScript(script);
+                return this._worker.postMessage(script);
             })
             .catch((error) => {
                 let buffer = stringToArrayBuffer(`The process ${this.name} returned an error: ${error}`);
@@ -130,8 +149,18 @@ export class Process extends ProcessDirectory {
         }
     }
 
-    exit(returnValue){
+    async read(path){
+        let file = await this._workingDirectory.getFile(path);
+        return await file.read();
+    }
 
+    async readText(path){
+        let file = await this._workingDirectory.getFile(path);
+        return await file.readText();
+    }
+
+    exit(returnValue){
+        this._worker.terminate();
     }
 
     async runScript(scriptString){

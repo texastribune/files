@@ -9,51 +9,8 @@
         <div class="icon" data-name="Browser" data-icon="folderIcon" data-command="browser"></div>
         <div class="icon" data-name="Terminal" data-icon="folderIcon" data-command="terminal"></div>
         <script type="module">
-            import {MemoryDirectory} from "./js/files/memory.js";
-            import {Process} from "./js/processes/base.js";
-            import {stringToArrayBuffer} from "./js/utils.js";
-            import * as icons from "./js/ui/icons.js";
-            import {ConsoleFile} from "./js/files/devices/console.js";
-
-            function createIcon(element){
-              element.innerHTML = icons[element.dataset.icon];
-              let name = document.createElement('p');
-              name.innerText = element.dataset.name;
-              element.appendChild(name);
-              element.onclick = (event) => {
-                event.preventDefault();
-                window.__fileSystem.exec(element.dataset.command);
-              };
-            }
-
-            function run(bootDirectory, stdout, stderr){
-                let initProcess = new Process(null, bootDirectory, 'init.js', stdout, stderr);
-            }
-
-            async function start(){
-                let initramfs = new MemoryDirectory();
-                let initScript = `
-                  import(
-                `;
-                await initramfs.addFile(stringToArrayBuffer(initScript), 'init.js', 'application/javascript');
-
-                let console = new ConsoleFile();
-                run(initramfs, console, console);
-            }
-
-            start()
-                .then(() => {
-
-                })
-
-            // setupFileSystem()
-            //     .then((fileSystem) => {
-            //         window.__fileSystem = fileSystem;
-            //
-            //         for (let element of document.querySelectorAll('.icon')){
-            //           createIcon(element);
-            //         }
-            //     });
+            import {start} from "./index.js";
+            console.log("INIT" , start());
         </script>
     </body>
 </html>

@@ -1,5 +1,5 @@
-import {MemoryDirectory} from "../memory";
-import {ConsoleFile} from "./console";
+import {MemoryDirectory} from "../memory.js";
+import {ConsoleFile} from "./console.js";
 
 
 const deviceFiles = [
