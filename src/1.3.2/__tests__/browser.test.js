@@ -14,11 +14,11 @@ const file2Name = 'file2';
 const file1Text = 'abc';
 const file2Text = 'def';
 
-async function addTestFiles(system){
-  let dir1FileObject = await system.addDirectory([], dir1Name);
-  let file1FileObject = await system.addFile([], stringToArrayBuffer(file1Text),
+async function addTestFiles(rootDirectory){
+  let dir1FileObject = await rootDirectory.addDirectory([], dir1Name);
+  let file1FileObject = await rootDirectory.addFile([], stringToArrayBuffer(file1Text),
                                              file1Name, 'text/plain');
-  let file2FileObject = await system.addFile([dir1Name], stringToArrayBuffer(file2Text),
+  let file2FileObject = await rootDirectory.addFile([dir1Name], stringToArrayBuffer(file2Text),
                                              file2Name, 'text/plain');
   return [dir1FileObject, file1FileObject, file2FileObject];
 }
@@ -37,19 +37,17 @@ global.MutationObserver = MutationObserver;
 
 describe('Test browser', () => {
   let rootDirectory;
-  let system;
   let table;
   let browser;
 
   beforeEach(() => {
-    let DirectoryClass = StateMixin(MemoryDirectory);
-    rootDirectory = new DirectoryClass(null, 'root');
+    rootDirectory = new MemoryDirectory(null, 'root');
     table = new Table();
     browser = new FileBrowser(rootDirectory, table);
   });
 
   test('Table has files', async () => {
-    let fileObjects = await addTestFiles(system);
+    let fileObjects = await addTestFiles(rootDirectory);
     await browser.goTo([], true);
 
     let rowData = {};

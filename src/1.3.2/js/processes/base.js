@@ -1,41 +1,94 @@
-import {ProcessFile, ProcessDirectory} from "./files.js";
+import {ProcessFile} from "./files.js";
 import {stringToArrayBuffer} from "../utils.js";
-
-let idCounter = 0;
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
+// language=JavaScript
+const script = `
+    // wrap onmessage setup in function so that variables created (id, calls, etc.)
+    // aren't in worker script scope.
+    onmessage = function () {
+        const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+    
+        let id = 0;
+        const calls = {};
+    
+        const system = new Proxy({}, {
+            get: function (obj, sysCallName) {
+                // Make a system call "prop"
+                return (...args) => {
+                    return new Promise((resolve, reject) => {
+                        id ++;
+                        calls[id] = resolve;
+                        postMessage([id, sysCallName].concat(args));
+                    });
+                }
+            }
+        });
+    
+    
+        return function(e) {
+            // The onmessage callback
+            if (Array.isArray(e.data)){
+                // Must be the return of a system call with format ["call id", data] 
+                let id = e.data[0];
+                let data = e.data[1];
+                let sysCall = calls[id];
+                if (sysCall){
+                    delete calls[id];
+                    sysCall(data);
+                }
+            } else {
+                // Must be a script to run.
+                let func = new AsyncFunction('system', e.data);
+                func.bind(this)(system)
+                    .then(() => {
+                        return system.exit("");
+                    }).catch((error) => {
+                        system.error(error.toString());
+                        console.log(error);
+                    });
+            }
+        };
+    }();
+`;
 
-export class Process extends ProcessDirectory {
+let fileDescriptorCounter = 0;
+
+export class Process extends ProcessFile {
     constructor(parentProcess, workingDirectory, executableName, stdout, stderr){
         super();
-
-        idCounter ++;
-        this._id = idCounter;
 
         this._parentProcess = parentProcess;
         this._workingDirectory = workingDirectory;
         this._executableName = executableName;
 
+        this._stdin = this;
         this._stdout = stdout;
         this._stderr = stderr;
 
         this._created = new Date();
         this._lastModified = new Date();
-        let things = document.createElement('script');
-        console.log("THING", things.src);
-        this._worker = new Worker('js/processes/worker.js');
+
+        this._fileDescriptors = {};
+
+        this._worker = new Worker('data:application/javascript,' + encodeURIComponent(script));
 
         this._worker.onmessage = (event) => {
-            console.log("DATA", event.data);
+            // sys call. Should be an array.
             let id = event.data[0];
             let name = event.data[1];
             let args = event.data.slice(2);
-            let func = this[name].bind(this);
+            let func = this.systemCalls[name].bind(this);
             if (func){
                 func(...args)
                     .then((returnValue) => {
                         this._worker.postMessage([id, returnValue]);
+                    })
+                    .catch((error) => {
+                        let buffer = stringToArrayBuffer(`System error: ${error}`);
+                        this.onExit();
+                        return this._stderr.write(buffer);
                     });
             } else {
                 console.log(`Invalid operation ${name}`);
@@ -50,25 +103,14 @@ export class Process extends ProcessDirectory {
                 return this._worker.postMessage(script);
             })
             .catch((error) => {
-                let buffer = stringToArrayBuffer(`The process ${this.name} returned an error: ${error}`);
+                let buffer = stringToArrayBuffer(`File ${executableName} could not be executed: ${error}`);
+                this.onExit();
                 return this._stderr.write(buffer);
             });
     }
 
-    get id(){
-        return this._id;
-    }
-
     get name(){
         return this._executableName;
-    }
-
-    created(){
-        return this._created;
-    }
-
-    lastModified(){
-        return this._lastModified;
     }
 
     fork(){
@@ -83,6 +125,54 @@ export class Process extends ProcessDirectory {
         return this._fileSystem.executablePath;
     }
 
+    get systemCalls(){
+        return {
+            import: async (pathArray, variableName) => {
+                // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
+                // Right now executes script as function with FileSystem bound as "this". In an ideal world
+                // with dynamic imports would import as a module and could use relative paths.
+                let file = await this._fileSystem.getFile(pathArray);
+                let scriptString = await file.readText();
+                try {
+                    let func = new AsyncFunction(`${scriptString};return ${variableName};`);
+                    return await func.bind(this)();
+                } catch (e) {
+                    throw new Error(`Error importing file at ${pathArray.join('/')}: ${e}`);
+                }
+            },
+            open: async (path) => {
+                return await this.openFile(path);
+            },
+            close: async (fileDescriptor) => {
+                this.closeFile(fileDescriptor);
+            },
+            read: async (fileDescriptor) => {
+                let file = this.getFile(fileDescriptor);
+                return await file.read();
+            },
+            readText: async (fileDescriptor) => {
+                let file = this.getFile(fileDescriptor);
+                return await file.readText();
+            },
+            write: async (fileDescriptor, data) => {
+                let file = this.getFile(fileDescriptor);
+                return await file.write(data);
+            },
+            fork: this.fork,
+            exec: this.execPath,
+            exit: async (message) => {
+                let buffer = stringToArrayBuffer(message);
+                await this._stdout.write(buffer);
+                this.onExit();
+            },
+            error: async (message) => {
+                let buffer = stringToArrayBuffer(`The process ${this.name} returned an error: ${message}`);
+                await this._stderr.write(buffer);
+                this.onExit();
+            },
+        }
+    }
+
     /**
      * Execute the "main" function of the javascript file with the name given in the command parameter
      * with the given arguments. The variable "this" will be this fileSystem. The file must be located in the executable path, which is an array
@@ -91,7 +181,7 @@ export class Process extends ProcessDirectory {
      * @param {string} command - The name of a javascript file located in the .bin directory.
      * @param {string[]} args - The arguments to be provided to the "main" function in the file.
      */
-    async exec(command, ...args) {
+    async exec(pathArray, ...args) {
         // Find a js file with the name in command and call the "main" function
         // in the file with the given args.
         let jsName = `${command}.js`;
@@ -121,51 +211,33 @@ export class Process extends ProcessDirectory {
      * @param {string[]} args - The arguments to be provided to the "main" function in the file.
      */
     async execPath(pathArray, ...args) {
-        let file = await this._fileSystem.getFile(pathArray);
-        let scriptString = await file.readText();
-        return await this.runScript(scriptString);
+        let name = pathArray.pop();
+        let workingDirectory = await this._workingDirectory.getFile(pathArray);
+        let process = new Process(this, workingDirectory, name, this._stdout, this._stderr);
+        return process.id;
     }
 
-    /**
-     * Execute the "main" function of the javascript file with the name given in the command parameter
-     * with the given arguments. The file must be located in the executable path, which is an array
-     * of absolute path arrays. The variable "this" will be this fileSystem.
-     * @async
-     * @param {string[]} pathArray - An array of strings representing the path of the file to copy to.
-     * @param {string} variableName - The name of the variable to import from the javascript file.
-     * @return {*} The value of the variable.
-     */
-    async import(pathArray, variableName) {
-        // TODO Update to use dynamic import when available https://developers.google.com/web/updates/2017/11/dynamic-import
-        // Right now executes script as function with FileSystem bound as "this". In an ideal world
-        // with dynamic imports would import as a module and could use relative paths.
-        let file = await this._fileSystem.getFile(pathArray);
-        let scriptString = await file.readText();
-        try {
-            let func = new AsyncFunction(`${scriptString};return ${variableName};`);
-            return await func.bind(this)();
-        } catch (e) {
-            throw new Error(`Error importing file at ${pathArray.join('/')}: ${e}`);
+    async openFile(path){
+        let file = await this._workingDirectory.getFile(path);
+        fileDescriptorCounter ++;
+        this._fileDescriptors[fileDescriptorCounter] = file;
+        return fileDescriptorCounter;
+    }
+
+    getFile(fileDescriptor){
+        let file = this._fileDescriptors[fileDescriptor];
+        if (file === undefined){
+            throw new Error("File is not open.");
         }
+        return file;
     }
 
-    async read(path){
-        let file = await this._workingDirectory.getFile(path);
-        return await file.read();
+    closeFile(fileDescriptor){
+        delete this._fileDescriptors[fileDescriptor];
     }
 
-    async readText(path){
-        let file = await this._workingDirectory.getFile(path);
-        return await file.readText();
-    }
-
-    exit(returnValue){
+    onExit(){
         this._worker.terminate();
-    }
-
-    async runScript(scriptString){
-        console.log("RUNNING");
-        let func = new AsyncFunction('exit', 'stdout', 'stderr', scriptString);
-        await func.bind(this)(this.exit, this._stdout, this._stderr);
+        this.delete();
     }
 }

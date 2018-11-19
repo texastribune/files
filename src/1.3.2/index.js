@@ -118,6 +118,7 @@ import {MemoryDirectory} from "./js/files/memory.js";
 import {DeviceDirectory} from "./js/files/devices/base.js";
 import {Process} from "./js/processes/base.js";
 import {stringToArrayBuffer} from "./js/utils.js";
+import {ProcessDirectory} from "./js/processes/files.js";
 
 class InitFS extends MemoryDirectory {
   constructor(){
@@ -127,6 +128,7 @@ class InitFS extends MemoryDirectory {
   async getChildren(){
     let children = await super.getChildren();
     children.push(new DeviceDirectory());
+    children.push(new ProcessDirectory());
     return children;
   }
 }
@@ -134,9 +136,10 @@ class InitFS extends MemoryDirectory {
 let fs = new InitFS();
 
 export async function start(){
-    await fs.addFile(stringToArrayBuffer('let file = await system.readText([]);console.log("FILE", file);'), 'init.js');
+    await fs.addFile(stringToArrayBuffer('let fd = await system.open(["proc"]); let file = await system.readText(fd);await system.exec(["alert.js"]);console.log("FILE", file);await system.exit("DONE");'), 'init.js');
+    await fs.addFile(stringToArrayBuffer('console.log("ALERT");let fd = await system.open(["proc"]); let file = await system.readText(fd);console.log("FILE", file);'), 'alert.js');
 
-    let console = await fs.getFile(['dev', 'console']);
+    let devConsole = await fs.getFile(['dev', 'console']);
 
-    new Process(null, fs, 'init.js', console, console);
+    new Process(null, fs, 'init.js', devConsole, devConsole);
 }

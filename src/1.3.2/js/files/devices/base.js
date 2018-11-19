@@ -1,9 +1,11 @@
 import {MemoryDirectory} from "../memory.js";
 import {ConsoleFile} from "./console.js";
+import {NullFile} from "./null.js";
 
 
 const deviceFiles = [
-    new ConsoleFile()
+  new ConsoleFile(),
+  new NullFile()
 ];
 
 export class DeviceDirectory extends MemoryDirectory {
@@ -11,7 +13,7 @@ export class DeviceDirectory extends MemoryDirectory {
         super(null, 'dev');
     }
 
-    getChildren(){
-        return deviceFiles;
+    async getChildren(){
+        return deviceFiles.slice();
     }
 }

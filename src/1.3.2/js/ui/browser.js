@@ -11,13 +11,13 @@ import {parseConfigFile} from "./config.js";
 import {updateConfigFile} from "./config.js";
 
 
+/**
+ * An element for browsing a file system.
+ * @param {AbstractDirectory} currentDirectory - The root directory of the browser.
+ * @param {Table} table - The table to use for displaying the files.
+ */
 export class FileBrowser extends Element {
-  /**
-   * An element for browsing a file system.
-   * @param {AbstractDirectory} rootDirectory- The root directory of the browser.
-   * @param {Table} table - The table to use for displaying the files.
-   */
-  constructor(rootDirectory, table) {
+  constructor(currentDirectory, table) {
     super();
 
     // Initialize variables
@@ -73,6 +73,7 @@ export class FileBrowser extends Element {
     this.breadcrumbsContainer = this.createBreadcrumbs();
     this.searchContainer = this.createSearchElements();
     this.tableContainer = this.createTableContainer();
+    this.tableContainer.appendChild(table.element);
 
     // Add action elements
     this.actionsContainer.appendChild(this.breadcrumbsContainer);
@@ -83,9 +84,40 @@ export class FileBrowser extends Element {
     this._element.appendChild(this.actionsContainer);
     this._element.appendChild(this.tableContainer);
 
-    this.fileSystem = rootDirectory;
-    this.table = table;
+
+    this._table = table;
+
+    this._table.columns = this.columns;
+    this._table.onRowDblClick = (row, event) => {
+        if (row.data.directory){
+            this.currentDirectory = row.data;
+        } else {
+            if (row.data.url.startsWith('data')){
+                // Download if its a data url.
+                let link = document.createElement('a');
+                link.href = row.data.url;
+                link.setAttribute('download', row.data.name);
+                link.click();
+            } else {
+                window.open(row.data.url);
+            }
+        }
+    };
+    this._table.onContextMenu = (event) => {
+        this.showContextMenu(event.pageX, event.pageY);
+    };
+    this._table.onRowsChanged = (rows) => {
+        for (let row of rows) {
+            this.initializeNewRow(row);
+        }
+    };
+
+    this._table.onDrop = (event) => {
+        this.handleDataTransfer(event.dataTransfer);
+    };
     this.history = new History();
+
+    this.currentDirectory = currentDirectory;
   }
 
   // getters
@@ -237,10 +269,10 @@ export class FileBrowser extends Element {
   }
 
   /**
-   * An instance of AbstractFileSystem to browse.
+   * An instance of AbstractcurrentDirectory to browse.
    */
-  get fileSystem(){
-    return this._fileSystem;
+  get currentDirectory(){
+    return this._currentDirectory;
   }
 
   /**
@@ -252,21 +284,24 @@ export class FileBrowser extends Element {
 
   // setters
 
-  set table(value){
-    if (this._table){
-      this.tableContainer.removeChild(this._table.element);
-    }
+  set currentDirectory(directory){
+      this.clearMessages();
+      this.element.classList.remove(this.dragOverClass);
 
-    // Setup table
-    this._table = value;
-    this.syncTable();
-    this.tableContainer.appendChild(this._table.element);
-  }
-
-  set fileSystem(value){
-    // Setup storage
-    this._fileSystem = value;
-    this.syncFileSystem();
+      // TODO remove old on change listeners
+      this._currentDirectory = directory;
+      this._currentDirectory.addOnChangeListener(() => {
+          this._currentDirectory.getChildren()
+              .then((files) => {
+                  this.setTableData(files);
+              });
+      });
+      this.logAndLoadWrapper(
+          this._currentDirectory.getChildren()
+          .then((files) => {
+              this.setTableData(files);
+          })
+      );
   }
 
   set history(value){
@@ -280,37 +315,18 @@ export class FileBrowser extends Element {
   }
 
   clone(){
-    return new this.constructor(this.fileSystem.clone(),
+    return new this.constructor(this.currentDirectory.clone(),
                                 this.table.clone());
   }
 
   // Sync Elements
 
-  syncFileSystemAndHistory(){
-    if (this.fileSystem && this.history){
-      this.history.path = this.fileSystem.path;
-      this.fileSystem.onPathChanged = (path) => {
+  synccurrentDirectoryAndHistory(){
+    if (this.currentDirectory && this.history){
+      this.history.path = this.currentDirectory.path;
+      this.currentDirectory.onPathChanged = (path) => {
         this.history.path = path;
       };
-    }
-  }
-
-  syncFileSystemAndTable(){
-    if (this.fileSystem && this.table){
-      this.setTableData(this.fileSystem.data);
-      this.fileSystem.onDataChanged = (storageData) => {
-        this.setTableData(storageData);
-      };
-      this.table.onDrop = (event) => {
-        this.handleDataTransfer(event.dataTransfer);
-      };
-    }
-  }
-
-  syncFileSystem(){
-    if (this.fileSystem){
-      this.syncFileSystemAndHistory();
-      this.syncFileSystemAndTable();
     }
   }
 
@@ -323,38 +339,7 @@ export class FileBrowser extends Element {
         this.goTo(path, true);
       };
 
-      this.syncFileSystemAndHistory();
-    }
-  }
-
-  syncTable(){
-    if (this.table){
-      this.table.columns = this.columns;
-      this.table.onRowDblClick = (row, event) => {
-        if (row.data.directory){
-          this.goTo([row.data.name]);
-        } else {
-          if (row.data.url.startsWith('data')){
-            // Download if its a data url.
-            let link = document.createElement('a');
-            link.href = row.data.url;
-            link.setAttribute('download', row.data.name);
-            link.click();
-          } else {
-            window.open(row.data.url);
-          }
-        }
-      };
-      this.table.onContextMenu = (event) => {
-        this.showContextMenu(event.pageX, event.pageY);
-      };
-      this.table.onRowsChanged = (rows) => {
-        for (let row of rows) {
-          this.initializeNewRow(row);
-        }
-      };
-
-      this.syncFileSystemAndTable();
+      this.synccurrentDirectoryAndHistory();
     }
   }
 
@@ -481,7 +466,7 @@ export class FileBrowser extends Element {
     let promises = [];
 
     for (let file of dataTransfer.files) {
-      promises.push(this.fileSystem.addFile(this.fileSystem.path, file, file.name));
+      promises.push(this.currentDirectory.addFile(this.currentDirectory.path, file, file.name));
     }
 
     let uris = dataTransfer.getData("text/uri-list");
@@ -495,9 +480,9 @@ export class FileBrowser extends Element {
           if (!uri.startsWith("#")) {
             let splitUri = uri.split('/');
             if (splitUri.length > 0 && splitUri[splitUri.length-1].length < 255){
-              promises.push(this.fileSystem.addFile(this.fileSystem.path, uri, splitUri[splitUri.length-1]));
+              promises.push(this.currentDirectory.addFile(this.currentDirectory.path, uri, splitUri[splitUri.length-1]));
             } else {
-              promises.push(this.fileSystem.addFile(this.fileSystem.path, uri, 'unknown'));
+              promises.push(this.currentDirectory.addFile(this.currentDirectory.path, uri, 'unknown'));
             }
           }
         }
@@ -512,7 +497,7 @@ export class FileBrowser extends Element {
       let names = [];
       let rowsToMove = [];
       for (let rowData of rows){
-        if (!this.fileSystem.data[rowData.name]) {
+        if (!this.currentDirectory.data[rowData.name]) {
           // Only move files that aren't already here.
           rowsToMove.push(rowData);
           names.push(rowData.name);
@@ -533,8 +518,8 @@ export class FileBrowser extends Element {
           for (let rowData of rows){
             // Make sure object isn't already in this directory, and if not move it here.
             let moveFile = async (rowData) => {
-              let fileObject = await this.fileSystem.getFile(rowData.path);
-              return await this.fileSystem.move(this.fileSystem.path, fileObject);
+              let fileObject = await this.currentDirectory.getFile(rowData.path);
+              return await this.currentDirectory.move(this.currentDirectory.path, fileObject);
             };
             promises.push(moveFile(rowData));
           }
@@ -551,9 +536,9 @@ export class FileBrowser extends Element {
     this.clearMessages();
     if (searchTerm){
       try{
-        let data = await this.loadingWrapper(this.fileSystem.search(this.fileSystem.path, searchTerm));
+        let data = await this.loadingWrapper(this.currentDirectory.search(this.currentDirectory.path, searchTerm));
         this.setTableData(data);
-        let readablePath = [this.history.baseName].concat(this.fileSystem.path).join('/');
+        let readablePath = [this.history.baseName].concat(this.currentDirectory.path).join('/');
         this.addMessage(
           `${data.length} search results for "${searchTerm}" in ${readablePath}.`
         );
@@ -561,7 +546,7 @@ export class FileBrowser extends Element {
         this.addMessage(error, true);
       }
     } else {
-      this.setTableData(this.fileSystem.data);
+      this.setTableData(this.currentDirectory.data);
     }
   }
 
@@ -619,7 +604,7 @@ export class FileBrowser extends Element {
         openButton.innerText = 'Open';
         openButton.onclick = () => {
           if (selectedRowData.directory) {
-            this.goTo([selectedRowData.name]);
+            this.currentDirectory = selectedRowData;
           } else {
             window.open(selectedRowData.url);
           }
@@ -650,9 +635,9 @@ export class FileBrowser extends Element {
               let newName = prompt("New Name");
               if (newName !== null){
                 this.contextMenu.close();
-                let fileObject = await this.fileSystem.getFile(selectedRowData.path);
+                let fileObject = await this.currentDirectory.getFile(selectedRowData.path);
                 await fileObject.rename(newName);
-                await this.fileSystem.refresh();
+                await this.currentDirectory.refresh();
               }
             })()
           );
@@ -665,7 +650,7 @@ export class FileBrowser extends Element {
           runButton.onclick = () => {
             this.errorLoggingWrapper(
               (async () => {
-                await this.fileSystem.execPath(selectedRowData.path);
+                await this.currentDirectory.execPath(selectedRowData.path);
               })()
             );
           };
@@ -696,12 +681,12 @@ export class FileBrowser extends Element {
           this.logAndLoadWrapper(
             (async () => {
               for (let rowData of selectedData) {
-                let fileObject = await this.fileSystem.getFile(rowData.path);
+                let fileObject = await this.currentDirectory.getFile(rowData.path);
                 promises.push(fileObject.delete());
               }
               this.contextMenu.close();
               await Promise.all(promises);
-              await this.fileSystem.refresh();
+              await this.currentDirectory.refresh();
             })()
           );
         };
@@ -721,7 +706,7 @@ export class FileBrowser extends Element {
           event.preventDefault();
           event.stopPropagation();
 
-          let moveBrowser = new DialogBrowser(this.fileSystem.clone(), this.table.clone());
+          let moveBrowser = new DialogBrowser(this.currentDirectory.clone(), this.table.clone());
           moveBrowser.table.selectMultiple = false;
           moveBrowser.dialog.parent = this.contextMenu;
           moveBrowser.dialog.name = "Move Files";
@@ -730,7 +715,7 @@ export class FileBrowser extends Element {
           moveBrowser.dialog.onConfirmed = () => {
             this.logAndLoadWrapper(
               (async () => {
-                let path = moveBrowser.fileSystem.path;
+                let path = moveBrowser.currentDirectory.path;
                 if (moveBrowser.table.selectedData.size === 1){
                   let selectedName = moveBrowser.table.selectedData.values().next().value.name;
                   path.push(selectedName);
@@ -738,11 +723,11 @@ export class FileBrowser extends Element {
 
                 let movePromises = [];
                 for (let rowData of selectedData) {
-                  let fileObject = await moveBrowser.fileSystem.getFile(rowData.path);
-                  movePromises.push(moveBrowser.fileSystem.move(path, fileObject));
+                  let fileObject = await moveBrowser.currentDirectory.getFile(rowData.path);
+                  movePromises.push(moveBrowser.currentDirectory.move(path, fileObject));
                 }
                 await Promise.all(movePromises);
-                await this.fileSystem.refresh();
+                await this.currentDirectory.refresh();
               })()
             );
           };
@@ -780,7 +765,7 @@ export class FileBrowser extends Element {
           (async () => {
             let promises = [];
             for (let file of fileInput.files) {
-              promises.push(this.fileSystem.addFile(this.fileSystem.path, file));
+              promises.push(this.currentDirectory.addFile(this.currentDirectory.path, file));
             }
             this.contextMenu.close();
 
@@ -799,7 +784,7 @@ export class FileBrowser extends Element {
     addDirectoryButton.onclick = () => {
       let name = prompt("Directory Name");
       if (name !== null){
-        this.logAndLoadWrapper(this.fileSystem.addDirectory(this.fileSystem.path, name));
+        this.logAndLoadWrapper(this.currentDirectory.addDirectory(this.currentDirectory.path, name));
       }
       this.contextMenu.close();
     };
@@ -847,16 +832,6 @@ export class FileBrowser extends Element {
       this.messagesContainer.removeChild(this.messagesContainer.firstChild);
     }
   }
-
-  goTo(path, absolute){
-    if (!absolute){
-      path = this.fileSystem.path.concat(path);
-    }
-    // If name is not provided, will refresh the current location
-    this.clearMessages();
-    this.element.classList.remove(this.dragOverClass);
-    this.logAndLoadWrapper(this.fileSystem.changeDirectory(path));
-  }
 }
 
 
@@ -864,11 +839,11 @@ export class DialogBrowser extends FileBrowser {
   /**
    * An file browser inside a dialog.
    */
-  constructor(fileSystem, table, dialog){
+  constructor(currentDirectory, table, dialog){
     // Dialog must be created before browser element any child dialogs for proper order in dom to appear on top
     dialog = dialog || new ConfirmDialog();
 
-    super(fileSystem, table);
+    super(currentDirectory, table);
 
     this._dialog = dialog;
     this.contextMenu.parent = this._dialog;
@@ -881,8 +856,8 @@ export class DialogBrowser extends FileBrowser {
   }
 }
 
-export let ConfigFileMixin = (fileSystemClass) => {
-  return class extends fileSystemClass {
+export let ConfigFileMixin = (currentDirectoryClass) => {
+  return class extends currentDirectoryClass {
     constructor(...args) {
       super(...args);
 
@@ -938,14 +913,14 @@ export let ConfigFileMixin = (fileSystemClass) => {
               func = column.sortCompare;
             }
             this.table.defaultSortFunc = func;
-            this.setTableData(Object.values(this.fileSystem.data)); // Refresh data to resort with default sort
+            this.setTableData(Object.values(this.currentDirectory.data)); // Refresh data to resort with default sort
           }
         }
       }
     }
 
-    syncTable() {
-      super.syncTable();
+    setupTable() {
+      super.setupTable();
       if (this.table){
         for (let column of this.table.columns){
           let existing = column.onVisibilityChange;
@@ -975,36 +950,36 @@ export let ConfigFileMixin = (fileSystemClass) => {
       while (path.length > 0){
         checked.push(path.shift());
         try{
-          await this.fileSystem.getFile(checked);
+          await this.currentDirectory.getFile(checked);
         } catch (error) {
           if (error instanceof FileNotFoundError){
-            await this.fileSystem.addDirectory(checked.slice(0, checked.length - 1), checked[checked.length-1]);
+            await this.currentDirectory.addDirectory(checked.slice(0, checked.length - 1), checked[checked.length-1]);
           } else {
             throw error;
           }
         }
       }
-      await this.fileSystem.addFile(checked, new File([""], name, {type: 'text/plain'}), name);
+      await this.currentDirectory.addFile(checked, new File([""], name, {type: 'text/plain'}), name);
     }
 
     async addLocalConfig(newConfig){
       let dataBuffer;
       try {
-        let configFileObject = await this.fileSystem.getFile(this.constructor.localConfigPath);
+        let configFileObject = await this.currentDirectory.getFile(this.constructor.localConfigPath);
         let oldDataBuffer = await configFileObject.read();
         dataBuffer = updateConfigFile(newConfig, oldDataBuffer);
       } catch (error) {
         if (error instanceof FileNotFoundError){
-          await this.fileSystem.waitOn(this.addLocalConfigFile.bind(this))();
+          await this.currentDirectory.waitOn(this.addLocalConfigFile.bind(this))();
         }
         dataBuffer = updateConfigFile({});
       }
 
       try{
-        await this.fileSystem.write(this.constructor.localConfigPath, dataBuffer);
+        await this.currentDirectory.write(this.constructor.localConfigPath, dataBuffer);
       } catch (e) {
         if (e instanceof FileNotFoundError){
-          await this.fileSystem.write(this.constructor.localConfigPath, dataBuffer);
+          await this.currentDirectory.write(this.constructor.localConfigPath, dataBuffer);
         }
       }
     }
@@ -1017,7 +992,7 @@ export let ConfigFileMixin = (fileSystemClass) => {
         let path = configPath.shift();
         let localConfig;
         try {
-          let configFileObject = await this.fileSystem.getFile(path);
+          let configFileObject = await this.currentDirectory.getFile(path);
           let data = await configFileObject.read();
           localConfig = parseConfigFile(data);
         } catch (error) {

@@ -1,5 +1,4 @@
 import {PhotoshelterStorage} from "../files/storages/photoshelter.js";
-import {BaseFileSystem} from "../files/systems.js";
 
 
 export default async function main(email, password, apiKey) {
