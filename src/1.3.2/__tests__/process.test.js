@@ -3,10 +3,10 @@
 
 
 import {MemoryDirectory} from "../js/files/memory.js";
-import {stringToArrayBuffer} from "../js/utils";
-import {Process} from "../js/processes/base";
-import {DeviceDirectory} from "../js/files/devices/base";
-import {ProcessDirectory} from "../js/processes/files";
+import {stringToArrayBuffer} from "../js/utils.js";
+import {Process} from "../js/processes/base.js";
+import {DeviceDirectory} from "../js/files/devices/base.js";
+import {ProcessDirectory} from "../js/processes/files.js";
 
 class MockWorker {
     constructor(url){

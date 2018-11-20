@@ -137,7 +137,7 @@ let fs = new InitFS();
 
 export async function start(){
     await fs.addFile(stringToArrayBuffer('let fd = await system.open(["proc"]); let file = await system.readText(fd);await system.exec(["alert.js"]);console.log("FILE", file);await system.exit("DONE");'), 'init.js');
-    await fs.addFile(stringToArrayBuffer('console.log("ALERT");let fd = await system.open(["proc"]); let file = await system.readText(fd);console.log("FILE", file);'), 'alert.js');
+    await fs.addFile(stringToArrayBuffer('console.log("ALERT");let fd = await system.open(["dev"]); let file = await system.readText(fd);console.log("FILE", file);'), 'alert.js');
 
     let devConsole = await fs.getFile(['dev', 'console']);
 

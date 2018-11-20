@@ -1,5 +1,5 @@
 import {AbstractFile} from "./base.js";
-import {parseTextArrayBuffer} from "../utils";
+import {parseTextArrayBuffer} from "../utils.js";
 
 class StaticFile extends AbstractFile {
     constructor(path) {

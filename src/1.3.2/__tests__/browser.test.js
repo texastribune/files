@@ -4,7 +4,7 @@
 import {MemoryDirectory} from "../js/files/memory.js";
 import {FileBrowser} from "../js/ui/browser.js";
 import {Table, Column} from "../js/ui/table.js";
-import {stringToArrayBuffer} from "../js/utils";
+import {stringToArrayBuffer} from "../js/utils.js";
 import {StateMixin} from "../js/files/mixins/state.js";
 
 const dir1Name = 'dir1';

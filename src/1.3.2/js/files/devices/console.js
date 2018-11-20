@@ -5,6 +5,8 @@ import {parseTextArrayBuffer} from "../../utils.js";
 export class ConsoleFile extends AbstractFile {
     constructor() {
         super();
+        this._created = new Date();
+        this._lastModified = new Date();
     }
 
     get id(){

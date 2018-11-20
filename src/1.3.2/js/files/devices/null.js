@@ -1,10 +1,11 @@
 import {AbstractFile} from "../base.js";
-import {parseTextArrayBuffer} from "../../utils.js";
 
 
 export class NullFile extends AbstractFile {
   constructor() {
     super();
+    this._created = new Date();
+    this._lastModified = new Date();
   }
 
   get id(){
