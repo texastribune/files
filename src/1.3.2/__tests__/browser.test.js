@@ -15,11 +15,13 @@ const file1Text = 'abc';
 const file2Text = 'def';
 
 async function addTestFiles(rootDirectory){
-  let dir1FileObject = await rootDirectory.addDirectory([], dir1Name);
-  let file1FileObject = await rootDirectory.addFile([], stringToArrayBuffer(file1Text),
-                                             file1Name, 'text/plain');
-  let file2FileObject = await rootDirectory.addFile([dir1Name], stringToArrayBuffer(file2Text),
-                                             file2Name, 'text/plain');
+  let dir1FileObject = await rootDirectory.addDirectory(dir1Name);
+  let file1FileObject = await rootDirectory.addFile(stringToArrayBuffer(file1Text),
+                                                    file1Name,
+                                                    'text/plain');
+  let file2FileObject = await dir1FileObject.addFile(stringToArrayBuffer(file2Text),
+                                                    file2Name,
+                                                    'text/plain');
   return [dir1FileObject, file1FileObject, file2FileObject];
 }
 
@@ -42,21 +44,30 @@ describe('Test browser', () => {
 
   beforeEach(() => {
     rootDirectory = new MemoryDirectory(null, 'root');
-    table = new Table();
-    browser = new FileBrowser(rootDirectory, table);
+    browser = new FileBrowser(rootDirectory,);
   });
 
   test('Table has files', async () => {
     let fileObjects = await addTestFiles(rootDirectory);
-    await browser.goTo([], true);
+    await browser.setPath([]);
 
     let rowData = {};
-    for (let row of table.rows){
+    for (let row of browser.table.rows){
       rowData[row.data.name] = row.data;
     }
 
-    expect(table.rows.length).toEqual(2);
+    expect(browser.table.rows.length).toEqual(2);
     expect(rowData).toHaveProperty(dir1Name);
     expect(rowData).toHaveProperty(file1Name);
+
+    await browser.setPath([dir1Name]);
+
+    rowData = {};
+    for (let row of browser.table.rows){
+        rowData[row.data.name] = row.data;
+    }
+
+    expect(browser.table.rows.length).toEqual(1);
+    expect(rowData).toHaveProperty(file2Name);
   });
 });

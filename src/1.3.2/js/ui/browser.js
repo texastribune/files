@@ -17,8 +17,12 @@ import {updateConfigFile} from "./config.js";
  * @param {Table} table - The table to use for displaying the files.
  */
 export class FileBrowser extends Element {
-  constructor(currentDirectory, table) {
+  constructor(rootDirectory) {
     super();
+
+    // Sub elements
+    this._table = new Table();
+    this._history = new History();
 
     // Initialize variables
     this.searchPending = false;  // For search debounce
@@ -73,7 +77,7 @@ export class FileBrowser extends Element {
     this.breadcrumbsContainer = this.createBreadcrumbs();
     this.searchContainer = this.createSearchElements();
     this.tableContainer = this.createTableContainer();
-    this.tableContainer.appendChild(table.element);
+    this.tableContainer.appendChild(this._table.element);
 
     // Add action elements
     this.actionsContainer.appendChild(this.breadcrumbsContainer);
@@ -84,13 +88,10 @@ export class FileBrowser extends Element {
     this._element.appendChild(this.actionsContainer);
     this._element.appendChild(this.tableContainer);
 
-
-    this._table = table;
-
     this._table.columns = this.columns;
     this._table.onRowDblClick = (row, event) => {
         if (row.data.directory){
-            this.currentDirectory = row.data;
+            this.setPath(this.path.concat([row.data.name]));
         } else {
             if (row.data.url.startsWith('data')){
                 // Download if its a data url.
@@ -115,9 +116,19 @@ export class FileBrowser extends Element {
     this._table.onDrop = (event) => {
         this.handleDataTransfer(event.dataTransfer);
     };
-    this.history = new History();
 
-    this.currentDirectory = currentDirectory;
+    this._history.onClick = (path) => {
+        this.setPath(path);
+    };
+    this._history.onDragOver = (path) => {
+        this.setPath(path);
+    };
+
+    this._rootDirectory = rootDirectory;
+    this._currentDirectory = rootDirectory;
+
+    this._busy = Promise.resolve();
+    this.setPath([]);
   }
 
   // getters
@@ -269,78 +280,36 @@ export class FileBrowser extends Element {
   }
 
   /**
-   * An instance of AbstractcurrentDirectory to browse.
+   * An instance of AbstractDirectory to browse.
    */
   get currentDirectory(){
     return this._currentDirectory;
   }
 
-  /**
-   * The breadcrumbs showing the current path.
-   */
-  get history(){
-    return this._history;
+  get path(){
+    return this._path;
   }
 
-  // setters
-
-  set currentDirectory(directory){
-      this.clearMessages();
-      this.element.classList.remove(this.dragOverClass);
-
-      // TODO remove old on change listeners
-      this._currentDirectory = directory;
-      this._currentDirectory.addOnChangeListener(() => {
-          this._currentDirectory.getChildren()
+  async setPath(path){
+      await this._busy;
+      this._busy = this.logAndLoadWrapper(
+          this._rootDirectory.getFile(path)
+              .then((newDirectory) => {
+                  this._path = path;
+                  this._history.path = path;
+                  this._currentDirectory = newDirectory;
+                  return this._currentDirectory.getChildren();
+              })
               .then((files) => {
                   this.setTableData(files);
-              });
-      });
-      this.logAndLoadWrapper(
-          this._currentDirectory.getChildren()
-          .then((files) => {
-              this.setTableData(files);
-          })
+              })
       );
-  }
-
-  set history(value){
-    if (this._history){
-      this.actionsContainer.removeChild(this._history.element);
-    }
-
-    this._history = value;
-    this.syncHistory();
-    this.breadcrumbsContainer.appendChild(this._history.element);
+      return await this._busy;
   }
 
   clone(){
     return new this.constructor(this.currentDirectory.clone(),
                                 this.table.clone());
-  }
-
-  // Sync Elements
-
-  synccurrentDirectoryAndHistory(){
-    if (this.currentDirectory && this.history){
-      this.history.path = this.currentDirectory.path;
-      this.currentDirectory.onPathChanged = (path) => {
-        this.history.path = path;
-      };
-    }
-  }
-
-  syncHistory(){
-    if (this.history){
-      this.history.onClick = (path) => {
-        this.goTo(path, true);
-      };
-      this.history.onDragOver = (path) => {
-        this.goTo(path, true);
-      };
-
-      this.synccurrentDirectoryAndHistory();
-    }
   }
 
 
@@ -443,6 +412,7 @@ export class FileBrowser extends Element {
   createBreadcrumbs(){
     let breadcrumbsContainer = document.createElement('div');
     breadcrumbsContainer.className = this.stateManagerContainerClass;
+    breadcrumbsContainer.appendChild(this._history.element);
     return breadcrumbsContainer;
   }
 
@@ -452,7 +422,7 @@ export class FileBrowser extends Element {
     // When a directory is dragged over for a period of time, go to the directory.
     if (row.data.directory){
       row.addDragoverAction(() => {
-        this.goTo([row.data.name]);
+        this.setPath(this.path.concat([row.data.name]));
       });
     }
   }
@@ -536,9 +506,9 @@ export class FileBrowser extends Element {
     this.clearMessages();
     if (searchTerm){
       try{
-        let data = await this.loadingWrapper(this.currentDirectory.search(this.currentDirectory.path, searchTerm));
+        let data = await this.loadingWrapper(this.currentDirectory.search(searchTerm));
         this.setTableData(data);
-        let readablePath = [this.history.baseName].concat(this.currentDirectory.path).join('/');
+        let readablePath = [this._history.baseName].concat(this.path).join('/');
         this.addMessage(
           `${data.length} search results for "${searchTerm}" in ${readablePath}.`
         );
@@ -556,23 +526,26 @@ export class FileBrowser extends Element {
    * @returns {Object} - The data for that row in the table.
    */
   fileObjectToTableData(fileObject){
+    if (fileObject.name === undefined){
+      console.log("F", fileObject);
+    }
     return {
-      id: fileObject.fileNode.id,
-      path: fileObject.path,
-      name: fileObject.fileNode.name,
-      directory: fileObject.fileNode.directory,
-      url: fileObject.fileNode.url,
-      icon: fileObject.fileNode.icon,
-      mimeType: fileObject.fileNode.mimeType,
-      lastModified: fileObject.fileNode.lastModified,
-      created: fileObject.fileNode.created,
-      size: fileObject.fileNode.size
+      id: fileObject.id,
+      path: this._path.concat([fileObject.name]),
+      name: fileObject.name,
+      directory: fileObject.directory,
+      url: fileObject.url,
+      icon: fileObject.icon,
+      mimeType: fileObject.mimeType,
+      lastModified: fileObject.lastModified,
+      created: fileObject.created,
+      size: fileObject.size
     }
   }
 
-  setTableData(storageData){
+  setTableData(files){
     let tableData = [];
-    for (let fileObject of storageData){
+    for (let fileObject of files){
       tableData.push(this.fileObjectToTableData(fileObject));
     }
     this.table.data = tableData;
@@ -604,7 +577,7 @@ export class FileBrowser extends Element {
         openButton.innerText = 'Open';
         openButton.onclick = () => {
           if (selectedRowData.directory) {
-            this.currentDirectory = selectedRowData;
+            this.setPath(this.path.concat([selectedRowData.name]));
           } else {
             window.open(selectedRowData.url);
           }
@@ -681,7 +654,7 @@ export class FileBrowser extends Element {
           this.logAndLoadWrapper(
             (async () => {
               for (let rowData of selectedData) {
-                let fileObject = await this.currentDirectory.getFile(rowData.path);
+                let fileObject = await this._rootDirectory.getFile(rowData.path);
                 promises.push(fileObject.delete());
               }
               this.contextMenu.close();
@@ -727,7 +700,7 @@ export class FileBrowser extends Element {
                   movePromises.push(moveBrowser.currentDirectory.move(path, fileObject));
                 }
                 await Promise.all(movePromises);
-                await this.currentDirectory.refresh();
+                await this.refresh();
               })()
             );
           };
@@ -831,6 +804,10 @@ export class FileBrowser extends Element {
     while (this.messagesContainer.firstChild) {
       this.messagesContainer.removeChild(this.messagesContainer.firstChild);
     }
+  }
+
+  async refresh(){
+    await this.setPath(this.path);
   }
 }
 
@@ -1005,3 +982,4 @@ export let ConfigFileMixin = (currentDirectoryClass) => {
     }
   };
 };
+

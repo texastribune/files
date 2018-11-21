@@ -106,7 +106,7 @@ describe('Test Process', () => {
         `;
         await root.addFile(stringToArrayBuffer(script), 'init.js');
 
-        let process = new Process(null, root, 'init.js', out, err);
+        let process = new Process(null, root, ['init.js'], out, err);
         await onProcessExit(process);
         let text = await out.readText();
         expect(text).toMatch("text text");
@@ -119,7 +119,7 @@ describe('Test Process', () => {
             await system.exit(procDirText);
         `;
         await root.addFile(stringToArrayBuffer(script), 'init.js');
-        let process = new Process(null, root, 'init.js', out, err);
+        let process = new Process(null, root, ['init.js'], out, err);
         await onProcessExit(process);
         let inProcessData = await out.readJSON();
         expect(inProcessData.length).toBe(1);
@@ -138,7 +138,7 @@ describe('Test Process', () => {
         `;
         await root.addFile(stringToArrayBuffer(script), 'init.js');
         let testFile = await root.addFile(new ArrayBuffer(0), 'test.txt', 'text/plain');
-        let process = new Process(null, root, 'init.js', out, err);
+        let process = new Process(null, root, ['init.js'], out, err);
         await onProcessExit(process);
         let outText = await testFile.readText();
         expect(outText).toMatch('text');

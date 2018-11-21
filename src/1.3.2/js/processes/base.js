@@ -56,12 +56,13 @@ const script = `
 let fileDescriptorCounter = 0;
 
 export class Process extends ProcessFile {
-    constructor(parentProcess, workingDirectory, executableName, stdout, stderr){
+    constructor(parentProcess, workingDirectory, executablePathArray, stdout, stderr){
         super();
 
         this._parentProcess = parentProcess;
         this._workingDirectory = workingDirectory;
-        this._executableName = executableName;
+        this._executablePath = executablePathArray;
+        this._executableName = executablePathArray[executablePathArray.length-1];
 
         this._stdin = this;
         this._stdout = stdout;
@@ -95,7 +96,7 @@ export class Process extends ProcessFile {
             }
         };
 
-        this._workingDirectory.getFile([this._executableName])
+        this._workingDirectory.getFile(this._executablePath)
             .then((executableFile) => {
                 return executableFile.readText();
             })
@@ -103,7 +104,7 @@ export class Process extends ProcessFile {
                 return this._worker.postMessage(script);
             })
             .catch((error) => {
-                let buffer = stringToArrayBuffer(`File ${executableName} could not be executed: ${error}`);
+                let buffer = stringToArrayBuffer(`File ${this._executableName} could not be executed: ${error}`);
                 this.onExit();
                 return this._stderr.write(buffer);
             });

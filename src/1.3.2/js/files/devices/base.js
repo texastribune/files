@@ -28,6 +28,10 @@ export class DeviceDirectory extends AbstractDirectory {
         return 'dev';
     }
 
+    get icon() {
+        return null;
+    }
+
     get created(){
         return this._created;
     }
@@ -36,9 +40,7 @@ export class DeviceDirectory extends AbstractDirectory {
         return this._lastModified;
     }
 
-
     async getChildren(){
-        console.log("CHILD", this);
         return deviceFiles.slice();
     }
 }

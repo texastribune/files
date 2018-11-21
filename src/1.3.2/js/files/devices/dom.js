@@ -2,15 +2,43 @@ import {AbstractDirectory, AbstractFile} from "../base.js";
 import {parseTextArrayBuffer, stringToArrayBuffer} from "../../utils.js";
 
 
-
-class AbstractEventFile extends AbstractFile {
-    constructor(element){
+export class AbstractElementFile extends AbstractFile {
+    constructor(element) {
         super();
 
         this._created = new Date();
         this._lastModified = new Date();
 
         this._element = element;
+    }
+
+    get id() {
+        return `${this.name}-${this._element.id}`;
+    }
+
+    get icon(){
+        return null;
+    }
+
+    get url(){
+        return null;
+    }
+
+    get created(){
+        return this._created;
+    }
+
+    get lastModified() {
+        return this._lastModified;
+    }
+}
+
+
+
+class AbstractEventFile extends AbstractElementFile {
+    constructor(element){
+        super(element);
+
         this._eventBuffer = [];
         this._readBuffer = [];
 
@@ -26,24 +54,8 @@ class AbstractEventFile extends AbstractFile {
         }, false);
     }
 
-    get id() {
-        return `${this.name}-${this._element.id}`;
-    }
-
-    get created(){
-        return this._created;
-    }
-
-    get lastModified() {
-        return this._lastModified;
-    }
-
     get size(){
         return 0;
-    }
-
-    get icon(){
-        return null;
     }
 
     static get eventName(){
@@ -125,6 +137,68 @@ class MouseDevice extends AbstractEventFile {
     }
 }
 
+class TextFile extends AbstractElementFile {
+    constructor(element) {
+        super(element);
+    }
+
+    get name(){
+        return 'text';
+    }
+
+    get size(){
+        return stringToArrayBuffer(this._element.innerText).byteLength;
+    }
+
+    get mimeType() {
+        return 'text/plain';
+    }
+
+    get url(){
+        return `data:,${encodeURIComponent(this._element.innerText)},`;
+    }
+
+    async read(params){
+        return stringToArrayBuffer(this._element.innerText)
+    }
+
+    async write(data){
+        this._element.innerText = parseTextArrayBuffer(data);
+        return data;
+    }
+}
+
+class ClassFile extends AbstractElementFile {
+    constructor(element) {
+        super(element);
+    }
+
+    get name(){
+        return 'class';
+    }
+
+    get size(){
+        return stringToArrayBuffer(this._element.className).byteLength;
+    }
+
+    get mimeType() {
+        return 'text/plain';
+    }
+
+    get url(){
+        return `data:,${encodeURIComponent(this._element.className)},`;
+    }
+
+    async read(params){
+        return stringToArrayBuffer(this._element.className)
+    }
+
+    async write(data){
+        this._element.className = parseTextArrayBuffer(data);
+        return data;
+    }
+}
+
 
 export class DomElementDevice extends AbstractDirectory {
     constructor(element){
@@ -132,13 +206,19 @@ export class DomElementDevice extends AbstractDirectory {
         this._created = new Date();
         this._lastModified = new Date();
 
-        if (element.id === null){
-            element.id = `device-${Math.random().toString(36).substr(2, 9)}`;
+        if (element.id === ""){
+            element.id = `${Math.random().toString(36).substr(2, 9)}`;
         }
         this._element = element;
 
         this._keyboard = new KeyboardDevice(element);
         this._mouse = new MouseDevice(element);
+        this._text = new TextFile(element);
+        this._class = new ClassFile(element);
+    }
+
+    get id() {
+        return this._element.id;
     }
 
     get name(){
@@ -147,10 +227,6 @@ export class DomElementDevice extends AbstractDirectory {
 
     get element(){
         return this._element;
-    }
-
-    get id() {
-        return this._element.id;
     }
 
     get created(){
@@ -181,7 +257,9 @@ export class DomElementDevice extends AbstractDirectory {
     async getChildren(){
         let children = [
             this._keyboard,
-            this._mouse
+            this._mouse,
+            this._text,
+            this._class
         ];
         for (let child of this._element.children){
             children.push(new DomElementDevice(child));

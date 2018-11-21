@@ -119,17 +119,23 @@ import {DeviceDirectory} from "./js/files/devices/base.js";
 import {Process} from "./js/processes/base.js";
 import {stringToArrayBuffer} from "./js/utils.js";
 import {ProcessDirectory} from "./js/processes/files.js";
+import {FileBrowserDevice} from "./js/files/devices/browser.js";
 
 class InitFS extends MemoryDirectory {
   constructor(){
     super(null, 'root');
+
+    this._children = [];
+    this._children.push(new DeviceDirectory());
+    this._children.push(new ProcessDirectory());
+    for (let element of document.querySelectorAll('.browser')){
+      this._children.push(new FileBrowserDevice(this, element, 'browser'));
+    }
   }
 
   async getChildren(){
     let children = await super.getChildren();
-    children.push(new DeviceDirectory());
-    children.push(new ProcessDirectory());
-    return children;
+    return children.concat(this._children);
   }
 }
 
@@ -141,5 +147,5 @@ export async function start(){
 
     let devConsole = await fs.getFile(['dev', 'console']);
 
-    new Process(null, fs, 'init.js', devConsole, devConsole);
+    new Process(null, fs, ['init.js'], devConsole, devConsole);
 }

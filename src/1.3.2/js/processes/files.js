@@ -72,6 +72,10 @@ export class ProcessDirectory extends AbstractDirectory {
         return null;
     }
 
+    get icon() {
+        return null;
+    }
+
     get created(){
         return this._created;
     }
