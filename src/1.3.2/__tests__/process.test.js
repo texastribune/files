@@ -74,13 +74,16 @@ function onProcessExit(process) {
 class TestFS extends MemoryDirectory {
     constructor(){
         super(null, 'root');
+
+        this._extraChildren = [
+            new DeviceDirectory(),
+            new ProcessDirectory()
+        ]
     }
 
     async getChildren(){
         let children = await super.getChildren();
-        children.push(new DeviceDirectory());
-        children.push(new ProcessDirectory());
-        return children;
+        return children.concat(this._extraChildren);
     }
 }
 

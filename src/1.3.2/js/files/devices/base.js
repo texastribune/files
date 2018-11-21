@@ -9,15 +9,16 @@ const deviceFiles = [
   new NullFile()
 ];
 
-for (let element of document.querySelectorAll('.device')){
-    deviceFiles.push(new DomElementDevice(element));
-}
-
 export class DeviceDirectory extends AbstractDirectory {
     constructor(){
         super();
         this._created = new Date();
         this._lastModified = new Date();
+
+        this._extraChildren = [];
+        for (let element of document.querySelectorAll('.device')){
+            this._extraChildren.push(new DomElementDevice(element));
+        }
     }
 
     get name(){
@@ -41,6 +42,6 @@ export class DeviceDirectory extends AbstractDirectory {
     }
 
     async getChildren(){
-        return deviceFiles.slice();
+        return deviceFiles.slice().concat(this._extraChildren);
     }
 }

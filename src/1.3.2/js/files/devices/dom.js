@@ -132,12 +132,12 @@ class MouseDevice extends AbstractEventFile {
 
     getEventData(event) {
         let data = {
-            clientX: event.clientX,
-            clientY: event.clientY,
-            offsetX: event.offsetX,
-            offsetY: event.offsetY,
-            pageX: event.pageX,
-            pageY: event.pageY
+            clientX: event.clientX || null,
+            clientY: event.clientY || null,
+            offsetX: event.offsetX || null,
+            offsetY: event.offsetY || null,
+            pageX: event.pageX || null,
+            pageY: event.pageY || null
         };
         return stringToArrayBuffer(JSON.stringify(data));
     }

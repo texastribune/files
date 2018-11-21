@@ -125,17 +125,19 @@ class InitFS extends MemoryDirectory {
   constructor(){
     super(null, 'root');
 
-    this._children = [];
-    this._children.push(new DeviceDirectory());
-    this._children.push(new ProcessDirectory());
+    this._extraChildren = [
+        new DeviceDirectory(),
+        new ProcessDirectory()
+    ];
+
     for (let element of document.querySelectorAll('.browser')){
-      this._children.push(new FileBrowserDevice(this, element, 'browser'));
+      this._extraChildren.push(new FileBrowserDevice(this, element, 'browser'));
     }
   }
 
   async getChildren(){
     let children = await super.getChildren();
-    return children.concat(this._children);
+    return children.concat(this._extraChildren);
   }
 }
 
