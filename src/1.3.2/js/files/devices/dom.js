@@ -39,16 +39,13 @@ class AbstractEventFile extends AbstractElementFile {
     constructor(element){
         super(element);
 
-        this._eventBuffer = [];
         this._readBuffer = [];
 
         this._element.addEventListener(this.constructor.eventName, (event) => {
             console.log("EVENT", event);
-            let callback = this._readBuffer.shift();
-            if (callback !== undefined){
+            while (this._readBuffer.length > 0){
+                let callback = this._readBuffer.shift();
                 callback(event);
-            } else {
-                this._eventBuffer.push(event);
             }
             this._lastModified = new Date();
         }, false);
@@ -62,14 +59,21 @@ class AbstractEventFile extends AbstractElementFile {
         throw new Error("Event name not implemented");
     }
 
-    async getEvent(){
-        let event = this._eventBuffer.shift();
-        if (event === undefined){
-            event = await new Promise((resolve, reject) => {
-                this._readBuffer.push(resolve);
+    /**
+     *
+     * @param event - The event returned by the event listener
+     * @return {ArrayBuffer} - The data to return when read.
+     */
+    getEventData(event){
+        throw new Error("getEventData not implemented.");
+    }
+
+    read(params){
+        return new Promise((resolve, reject) => {
+            this._readBuffer.push((event) => {
+                resolve(this.getEventData(event));
             });
-        }
-        return event;
+        });
     }
 }
 
@@ -90,8 +94,7 @@ class KeyboardDevice extends AbstractEventFile {
         return 'text/plain';
     }
 
-    async read(params) {
-        let event = await this.getEvent();
+    getEventData(event) {
         return stringToArrayBuffer(event.char);
     }
 
@@ -124,12 +127,19 @@ class MouseDevice extends AbstractEventFile {
     }
 
     get mimeType() {
-        return 'text/plain';
+        return 'application/json';
     }
 
-    async read(params) {
-        let event = await this.getEvent();
-        return new ArrayBuffer(0);
+    getEventData(event) {
+        let data = {
+            clientX: event.clientX,
+            clientY: event.clientY,
+            offsetX: event.offsetX,
+            offsetY: event.offsetY,
+            pageX: event.pageX,
+            pageY: event.pageY
+        };
+        return stringToArrayBuffer(JSON.stringify(data));
     }
 
     async write(data){
