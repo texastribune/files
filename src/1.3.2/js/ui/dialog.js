@@ -264,3 +264,8 @@ export class ConfirmDialog extends Dialog {
     }
   }
 }
+
+
+export class Window {
+
+}

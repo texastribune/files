@@ -232,7 +232,7 @@ export class DomElementDevice extends AbstractDirectory {
     }
 
     get name(){
-        return `${this._element.tagName}-${this.id}`;
+        return `${this._element.tagName.toLowerCase()}-${this.id}`;
     }
 
     get element(){
@@ -261,6 +261,7 @@ export class DomElementDevice extends AbstractDirectory {
 
     async addDirectory(name){
         let element = document.createElement(name);
+        this._element.appendChild(element);
         return new DomElementDevice(element);
     }
 

@@ -281,7 +281,6 @@ export const DirectoryMixin = (FileClass) => {
       let fileData = [];
       let children = await this.getChildren();
       for (let child of children) {
-        console.log("CCCC", child);
         fileData.push({
           id: child.id,
           name: child.name,

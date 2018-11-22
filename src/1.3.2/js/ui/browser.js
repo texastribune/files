@@ -436,7 +436,7 @@ export class FileBrowser extends Element {
     let promises = [];
 
     for (let file of dataTransfer.files) {
-      promises.push(this.currentDirectory.addFile(this.currentDirectory.path, file, file.name));
+      promises.push(this.currentDirectory.addFile(file, file.name));
     }
 
     let uris = dataTransfer.getData("text/uri-list");
@@ -450,9 +450,9 @@ export class FileBrowser extends Element {
           if (!uri.startsWith("#")) {
             let splitUri = uri.split('/');
             if (splitUri.length > 0 && splitUri[splitUri.length-1].length < 255){
-              promises.push(this.currentDirectory.addFile(this.currentDirectory.path, uri, splitUri[splitUri.length-1]));
+              promises.push(this.currentDirectory.addFile(uri, splitUri[splitUri.length-1]));
             } else {
-              promises.push(this.currentDirectory.addFile(this.currentDirectory.path, uri, 'unknown'));
+              promises.push(this.currentDirectory.addFile(uri, 'unknown'));
             }
           }
         }
@@ -757,7 +757,7 @@ export class FileBrowser extends Element {
     addDirectoryButton.onclick = () => {
       let name = prompt("Directory Name");
       if (name !== null){
-        this.logAndLoadWrapper(this.currentDirectory.addDirectory(this.currentDirectory.path, name));
+        this.logAndLoadWrapper(this._currentDirectory.addDirectory(name));
       }
       this.contextMenu.close();
     };

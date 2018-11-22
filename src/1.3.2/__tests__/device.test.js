@@ -42,9 +42,21 @@ describe('Test Device Directory', () => {
     });
 
     test('Dom device exists for element', async () => {
+        // All directories should be dom devices. Should be one for the div created above.
         let children = await deviceDirectory.getChildren();
-        let domDevices = children.filter((file) => {return file instanceof DomElementDevice});
+        let domDevices = children.filter((file) => {return file.directory});
+
         expect(domDevices.length).toBe(1);
+        expect(domDevices[0]).toBeInstanceOf(DomElementDevice);
+        expect(domDevices[0].id).toMatch(elementId);
+        expect(domDevices[0].name).toMatch(`div-${elementId}`);
+    });
+
+    test('Add child dom device', async () => {
+        let domElementDeviceDirectory = await deviceDirectory.getFile([`div-${elementId}`]);
+        let subElement = await domElementDeviceDirectory.addDirectory('span');
+        let hmtlElement = document.getElementById(subElement.id);
+        expect(hmtlElement.tagName.toLowerCase()).toMatch('span');
     });
 
     test('Dom element text device', async () => {
