@@ -40,14 +40,35 @@ const script = `
                 }
             } else {
                 // Must be a script to run.
-                let func = new AsyncFunction('system', e.data);
-                func.bind(this)(system)
-                    .then(() => {
-                        return system.exit("");
-                    }).catch((error) => {
-                        system.error(error.toString());
-                        console.log(error);
+                console.log("MODULE", e.data);
+                const memory = new WebAssembly.Memory({initial: 256, maximum: 256});
+                WebAssembly.instantiate(e.data, {
+                    env: {
+                        'abortStackOverflow': _ => { throw new Error('overflow'); },
+                        'table': new WebAssembly.Table({initial: 0, maximum: 0, element: 'anyfunc'}),
+                        'tableBase': 0,
+                        'memory': memory,
+                        'memoryBase': 1024,
+                        '__memory_base': 0,
+                        'STACKTOP': 0,
+                        'STACK_MAX': memory.buffer.byteLength,
+                        _do_log: function(int){
+                            console.log("INT", int);
+                        }
+                    }
+                })
+                    .then((result) => {
+                        console.log("INSTANCE", result.instance);
+                        result.instance.exports._main();
                     });
+                // let func = new AsyncFunction('system', e.data);
+                // func.bind(this)(system)
+                //     .then(() => {
+                //         return system.exit("");
+                //     }).catch((error) => {
+                //         system.error(error.toString());
+                //         console.log(error);
+                //     });
             }
         };
     }();
@@ -101,7 +122,15 @@ export class Process extends ProcessFile {
                 return executableFile.readText();
             })
             .then((script) => {
-                return this._worker.postMessage(script);
+                console.log("SCRIPT", script);
+                return fetch(script);
+            })
+            .then((response) => {
+                return response.arrayBuffer();
+            })
+            .then((buffer) => {
+                console.log("BUFFER", buffer);
+                this._worker.postMessage(buffer);
             })
             .catch((error) => {
                 let buffer = stringToArrayBuffer(`File ${this._executableName} could not be executed: ${error}`);
