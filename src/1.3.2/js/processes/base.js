@@ -12,6 +12,19 @@ const script = `
     
         let id = 0;
         const calls = {};
+        
+        function pointerToString(memory, pointer) {
+            let i8 = new Uint8Array(memory.buffer);
+            let str = '';
+            
+            // Loop and add each character until we reach a null character
+            while (i8[pointer] !== 0){
+                str += String.fromCharCode(i8[pointer]);
+                pointer ++;
+            }
+            
+            return str;
+        }
     
         const system = new Proxy({}, {
             get: function (obj, sysCallName) {
@@ -52,6 +65,25 @@ const script = `
                         '__memory_base': 0,
                         'STACKTOP': 0,
                         'STACK_MAX': memory.buffer.byteLength,
+                        _fopen: function(pathPointer, modePointer) {
+                            console.log("PATH", pathPointer);
+                            
+                            let path = pointerToString(memory, pathPointer);
+                            let mode = pointerToString(memory, modePointer);
+                            
+                            console.log("PATH2", path);
+                            
+                            path = path.split('/');
+                            system.open(path)
+                                .then((fp) => {
+                                    console.log("POINT", fp);
+                                    return fp;
+                                })
+                                .catch((error) => {
+                                    throw error;
+                                });
+                            return 5;
+                        },
                         _do_log: function(int){
                             console.log("INT", int);
                         }
