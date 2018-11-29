@@ -15,6 +15,10 @@ class Element extends HTMLElement {
     this.refresh();
   }
 
+  static get observedAttributes() {
+    return [];
+  }
+
   static create(){
       return document.createElement(this.type);
   }
@@ -27,11 +31,11 @@ class Element extends HTMLElement {
     `;
   }
 
-  get flatChildren(){
-    return this.shadowRoot.getElementsByTagName('*');
+  connectedCallback(){
   }
 
-  connectedCallback(){
+  attributeChangedCallback(name, oldValue, newValue) {
+      this[name] = newValue;
   }
 
   /**
