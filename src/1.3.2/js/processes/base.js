@@ -10,7 +10,7 @@ const script = `
     onmessage = function () {
         const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
     
-        let id = 0;
+        let module;
         const calls = {};
         
         function pointerToString(memory, pointer) {
@@ -28,80 +28,69 @@ const script = `
     
         const system = new Proxy({}, {
             get: function (obj, sysCallName) {
-                // Make a system call "prop"
-                return (...args) => {
-                    return new Promise((resolve, reject) => {
-                        id ++;
-                        calls[id] = resolve;
-                        postMessage([id, sysCallName].concat(args));
-                    });
-                }
+              return (...args) => {
+                let ia = new Int32Array(new SharedArrayBuffer(1024));
+                postMessage({
+                  name: sysCallName,
+                  args: args,
+                  buff: ia
+                });
+                Atomics.wait(ia, 0, 0);
+                return ia;
+              }
+                // // Make a system call "prop"
+                // return (...args) => {
+                //     return new Promise((resolve, reject) => {
+                //         id ++;
+                //         calls[id] = resolve;
+                //         postMessage([id, sysCallName].concat(args));
+                //     });
+                // }
             }
         });
     
     
         return function(e) {
-            // The onmessage callback
-            if (Array.isArray(e.data)){
-                // Must be the return of a system call with format ["call id", data] 
-                let id = e.data[0];
-                let data = e.data[1];
-                let sysCall = calls[id];
-                if (sysCall){
-                    delete calls[id];
-                    sysCall(data);
-                }
-            } else {
-                // Must be a script to run.
-                console.log("MODULE", e.data);
-                const memory = new WebAssembly.Memory({initial: 256, maximum: 256});
-                WebAssembly.instantiate(e.data, {
-                    env: {
-                        'abortStackOverflow': _ => { throw new Error('overflow'); },
-                        'table': new WebAssembly.Table({initial: 0, maximum: 0, element: 'anyfunc'}),
-                        'tableBase': 0,
-                        'memory': memory,
-                        'memoryBase': 1024,
-                        '__memory_base': 0,
-                        'STACKTOP': 0,
-                        'STACK_MAX': memory.buffer.byteLength,
-                        _fopen: function(pathPointer, modePointer) {
-                            console.log("PATH", pathPointer);
-                            
-                            let path = pointerToString(memory, pathPointer);
-                            let mode = pointerToString(memory, modePointer);
-                            
-                            console.log("PATH2", path);
-                            
-                            path = path.split('/');
-                            system.open(path)
-                                .then((fp) => {
-                                    console.log("POINT", fp);
-                                    return fp;
-                                })
-                                .catch((error) => {
-                                    throw error;
-                                });
-                            return 5;
-                        },
-                        _do_log: function(int){
-                            console.log("INT", int);
-                        }
-                    }
-                })
-                    .then((result) => {
-                        console.log("INSTANCE", result.instance);
-                        result.instance.exports._main();
-                    });
-                // let func = new AsyncFunction('system', e.data);
-                // func.bind(this)(system)
-                //     .then(() => {
-                //         return system.exit("");
-                //     }).catch((error) => {
-                //         system.error(error.toString());
-                //         console.log(error);
-                //     });
+          const memory = new WebAssembly.Memory({initial: 256, maximum: 256});
+          module = WebAssembly.instantiate(e.data, {
+            env: {
+              'abortStackOverflow': _ => { throw new Error('overflow'); },
+              'table': new WebAssembly.Table({initial: 0, maximum: 0, element: 'anyfunc'}),
+              'tableBase': 0,
+              'memory': memory,
+              'memoryBase': 1024,
+              '__memory_base': 0,
+              'STACKTOP': 0,
+              'STACK_MAX': memory.buffer.byteLength,
+              _fopen: function(pathPointer, modePointer) {
+                console.log("PATH", pathPointer);
+
+                let path = pointerToString(memory, pathPointer);
+                let mode = pointerToString(memory, modePointer);
+
+                console.log("PATH2", path);
+
+                path = path.split('/');
+                let ret = system.open(path);
+                    // .then((fp) => {
+                    //   console.log("POINT", fp);
+                    //   return fp;
+                    // })
+                    // .catch((error) => {
+                    //   throw error;
+                    // });
+                console.log("RET", ret);
+                return 5;
+              },
+              _do_log: function(int){
+                console.log("INT", int);
+              }
             }
+          })
+              .then((result) => {
+                console.log("INSTANCE", result.instance);
+                result.instance.exports._main();
+              });
         };
     }();
 `;
@@ -130,16 +119,19 @@ export class Process extends ProcessFile {
 
         this._worker.onmessage = (event) => {
             // sys call. Should be an array.
-            let id = event.data[0];
-            let name = event.data[1];
-            let args = event.data.slice(2);
+            let name = event.data.name;
+            let args = event.data.args;
+            let ia = event.data.buff;
             let func = this.systemCalls[name].bind(this);
             if (func){
                 func(...args)
                     .then((returnValue) => {
-                        this._worker.postMessage([id, returnValue]);
+                        console.log("RETURN", returnValue, ia);
+                      Atomics.store(ia, 0, 1);
+                      Atomics.notify(ia, 0, 1);
                     })
                     .catch((error) => {
+                        console.log("ERR", error);
                         let buffer = stringToArrayBuffer(`System error: ${error}`);
                         this.onExit();
                         return this._stderr.write(buffer);
