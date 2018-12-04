@@ -11,7 +11,8 @@ const script = `
         const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
     
         let module;
-        const calls = {};
+        const wasmMemoryPageSizeBytes = 65536;
+        const memory = new WebAssembly.Memory({initial: 256, maximum: 256});
         
         function pointerToString(memory, pointer) {
             let i8 = new Uint8Array(memory.buffer);
@@ -36,7 +37,8 @@ const script = `
                   buff: ia
                 });
                 Atomics.wait(ia, 0, 0);
-                return ia;
+                console.log("SYS", ia.slice(1, ia[0] + 1));
+                return ia.slice(1, ia[0] + 1);
               }
                 // // Make a system call "prop"
                 // return (...args) => {
@@ -51,7 +53,6 @@ const script = `
     
     
         return function(e) {
-          const memory = new WebAssembly.Memory({initial: 256, maximum: 256});
           module = WebAssembly.instantiate(e.data, {
             env: {
               'abortStackOverflow': _ => { throw new Error('overflow'); },
@@ -62,8 +63,9 @@ const script = `
               '__memory_base': 0,
               'STACKTOP': 0,
               'STACK_MAX': memory.buffer.byteLength,
-              _fopen: function(pathPointer, modePointer) {
-                console.log("PATH", pathPointer);
+                // _returnvals: 1,
+              _open: function(pathPointer, modePointer, returnBufferPointer) {
+                console.log("PATH", pathPointer, modePointer);
 
                 let path = pointerToString(memory, pathPointer);
                 let mode = pointerToString(memory, modePointer);
@@ -71,15 +73,12 @@ const script = `
                 console.log("PATH2", path);
 
                 path = path.split('/');
-                let ret = system.open(path);
-                    // .then((fp) => {
-                    //   console.log("POINT", fp);
-                    //   return fp;
-                    // })
-                    // .catch((error) => {
-                    //   throw error;
-                    // });
-                console.log("RET", ret);
+                let returnBuff = system.open(path);
+                  let memArray = new Int32Array(memory.buffer);
+                  for (let i = 0; i < returnBuff.length; i++) {
+                      memArray[returnBufferPointer / Int32Array.BYTES_PER_ELEMENT + i] = returnBuff[i];
+                  }
+                  
                 return 5;
               },
               _do_log: function(int){
@@ -127,8 +126,11 @@ export class Process extends ProcessFile {
                 func(...args)
                     .then((returnValue) => {
                         console.log("RETURN", returnValue, ia);
-                      Atomics.store(ia, 0, 1);
-                      Atomics.notify(ia, 0, 1);
+                        Atomics.store(ia, 0, 1);
+                        for (let i = 0; i < returnValue.length; i++) {
+                            ia[i+1] = returnValue[i];
+                        }
+                        Atomics.notify(ia, 0, returnValue.length);
                     })
                     .catch((error) => {
                         console.log("ERR", error);
@@ -195,14 +197,16 @@ export class Process extends ProcessFile {
                 }
             },
             open: async (path) => {
-                return await this.openFile(path);
+                let fileDescriptor = await this.openFile(path);
+                return new Int32Array([fileDescriptor]);
             },
             close: async (fileDescriptor) => {
                 this.closeFile(fileDescriptor);
             },
             read: async (fileDescriptor) => {
                 let file = this.getFile(fileDescriptor);
-                return await file.read();
+                let buffer = await file.read();
+                return new Uint32Array(buffer);
             },
             readText: async (fileDescriptor) => {
                 let file = this.getFile(fileDescriptor);
