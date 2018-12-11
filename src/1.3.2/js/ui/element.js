@@ -23,12 +23,12 @@ class Element extends HTMLElement {
       return document.createElement(this.type);
   }
 
+  get css(){
+    return null;
+  }
+
   get template(){
-    return `
-      <div>
-        <slot></slot>
-      </div>
-    `;
+    return null;
   }
 
   connectedCallback(){
@@ -94,14 +94,32 @@ class Element extends HTMLElement {
   refresh(){
     this.removeShadowChildren();
     this.render(this.shadowRoot);
+    this.setStyles();
   }
 
   /**
    * Render the shadow dom. By default adds the string returned by template to shadow dom innerHTML.
-   * @param {ShadowRoot} root - The root shadow dom element.
+   * @param {ShadowRoot} shadowRoot - The root shadow dom element.
    */
-  render(root){
-    root.innerHTML = this.template;
+  render(shadowRoot){
+    let css = this.css;
+    if (css) {
+        let styleElement = document.createElement('style');
+        styleElement.type = 'text/css';
+        styleElement.innerHTML= css.toString();
+        shadowRoot.appendChild(styleElement);
+    }
+
+    let template = this.template;
+    if (template) {
+      if (!(template instanceof HTMLTemplateElement)){
+        let t = document.createElement('template');
+        t.innerHTML = template.toString();
+        template = t;
+      }
+      let clone = document.importNode(template.content, true);
+      shadowRoot.appendChild(clone);
+    }
   }
 }
 

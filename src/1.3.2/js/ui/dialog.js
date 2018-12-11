@@ -187,7 +187,7 @@ export class Dialog extends Element {
       return childSet;
   }
 
-  static get CSS(){
+  get css(){
     return styleText;
   }
 
@@ -217,10 +217,8 @@ export class Dialog extends Element {
     }
   }
 
-  render(root){
-    this._styleElement = document.createElement('style');
-    this._styleElement.type = 'text/css';
-    this._styleElement.innerHTML= this.constructor.CSS;
+  render(shadowRoot){
+    super.render(shadowRoot);
 
     this._headerElement = document.createElement('div');
     this._headerElement.className = 'header';
@@ -269,9 +267,8 @@ export class Dialog extends Element {
     slot.innerHTML= '<span>SLOT</span>';
     this._itemElement.appendChild(slot);
 
-    root.appendChild(this._styleElement);
-    root.appendChild(this._headerElement);
-    root.appendChild(this._itemElement);
+    shadowRoot.appendChild(this._headerElement);
+    shadowRoot.appendChild(this._itemElement);
   }
 
   show(){

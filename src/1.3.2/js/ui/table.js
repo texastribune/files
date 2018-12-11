@@ -41,24 +41,27 @@ class Column extends Element {
   // getters
   static get observedAttributes() { return ['path', 'visible']; }
 
+  get css(){
+      // language=CSS
+      return `
+        :root {
+            display: flex;
+            padding: 0;
+            height: 50px;
+        }
+
+        .file-browser-table-container > .table .column-header.asc::after {
+            content: "\\25B2";
+        }
+
+        .file-browser-table-container > .table .column-header.dsc::after {
+            content: "\\25BC";
+        }
+   `
+  }
 
   get template() {
     return `
-        <style>
-            :root{
-                display: flex;
-                padding = '0';
-                height = '100%';
-            }
-            
-            .file-browser-table-container > .table .column-header.asc::after {
-              content: "\\25B2";
-            }
-            
-            .file-browser-table-container > .table .column-header.dsc::after {
-              content: "\\25BC";
-            }
-        </style>
         <slot></slot>
       `;
   }
@@ -154,7 +157,7 @@ class Column extends Element {
     if (this.ascending){
       this.classList.remove(this.ascendingSortClass);
       this.classList.add(this.descendingSortClass);
-      this.parentElement.
+      this.parentElement.sort();
     } else {
       this.classList.remove(this.descendingSortClass);
       this.classList.add(this.ascendingSortClass);
@@ -240,13 +243,17 @@ class Row extends DraggableMixin(DroppableMixin(Element)) {
     return "text/table-rows";
   }
 
-  get template(){
+  get css(){
+    // language=CSS
     return `
-      <style>
-        root: {
+        :root {
             display: flex;
         }
-      </style>
+     `
+  }
+
+  get template(){
+    return `
       <slot></slot>
     `;
   }
@@ -322,6 +329,16 @@ class Row extends DraggableMixin(DroppableMixin(Element)) {
 //       `;
 //   }
 // }
+
+class Data extends Element {
+  constructor(){
+    super();
+
+
+  }
+
+
+}
 
 
 /**
