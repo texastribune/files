@@ -1,4 +1,3 @@
-import {Column, Table} from "./table.js";
 import History from "./history.js";
 import {Dialog, ConfirmDialog} from "./dialog.js";
 import {Element} from "./element.js";

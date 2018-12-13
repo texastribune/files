@@ -94,7 +94,6 @@ class Element extends HTMLElement {
   refresh(){
     this.removeShadowChildren();
     this.render(this.shadowRoot);
-    this.setStyles();
   }
 
   /**

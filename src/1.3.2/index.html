@@ -3,6 +3,10 @@
         <link rel="stylesheet" type="text/css" href="./css/browser.css">
         <link rel="stylesheet" type="text/css" href="./css/terminal.css">
         <link rel="stylesheet" type="text/css" href="./css/desktop.css">
+
+        <script type="module">
+            import './js/ui/table.js'
+        </script>
     </head>
 
     <body id="body" class="desktop">
@@ -12,9 +16,24 @@
         <div class="device" style="width: 20px;height:20px;background-color: black"></div>
         <div class="browser"></div>
 
-        <script type="module">
-            import {start} from "./index.js";
-            console.log("INIT" , start());
-        </script>
+        <selectable-table>
+            <table-header>
+                <table-data>Stuff</table-data>
+                <table-data>Other Stuff</table-data>
+            </table-header>
+            <table-row>
+                <table-data>1</table-data>
+                <table-data>2</table-data>
+            </table-row>
+            <table-row>
+                <table-data>3</table-data>
+                <table-data>4</table-data>
+            </table-row>
+        </selectable-table>
+
+        <!--<script type="module">-->
+            <!--import {start} from "./index.js";-->
+            <!--console.log("INIT" , start());-->
+        <!--</script>-->
     </body>
 </html>
