@@ -12,6 +12,13 @@ class Element extends HTMLElement {
       this.attachShadow({mode: 'open'});
     }
 
+    for (let attr of this.constructor.observedAttributes){
+      let value = this.getAttribute(attr);
+      if (value !== null) {
+        this[attr] = value;
+      }
+    }
+
     this.refresh();
   }
 
@@ -32,6 +39,7 @@ class Element extends HTMLElement {
   }
 
   connectedCallback(){
+
   }
 
   attributeChangedCallback(name, oldValue, newValue) {

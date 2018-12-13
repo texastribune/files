@@ -2,7 +2,21 @@ import {Dialog} from "./dialog.js";
 import {Element, DroppableMixin, DraggableMixin} from "./element.js";
 import {compareDateStrings, compareNumbers, compareStrings} from "../utils.js";
 
-class BaseRow extends Element {
+
+class TableElement extends Element {
+  get table(){
+    let element = this.parentElement;
+    while (element){
+      if (element instanceof Table) {
+        return element;
+      }
+      element = element.parentElement;
+    }
+    return null;
+  }
+}
+
+class BaseRow extends TableElement {
   constructor() {
     super();
   }
@@ -11,10 +25,10 @@ class BaseRow extends Element {
     // language=CSS
     return `
         :host {
-            display: flex;
-            height: var(--table-row-height);
+            display: table-row;
+            width: 100%;
         }
-     `
+     `;
   }
 
   get template(){
@@ -31,16 +45,7 @@ class BaseRow extends Element {
     return data;
   }
 
-  get table(){
-    let element = this.parentElement;
-    while (element){
-      if (element instanceof Table) {
-        return element;
-      }
-      element = element.parentElement;
-    }
-    return null;
-  }
+
 }
 
 export class Header extends BaseRow {
@@ -48,6 +53,8 @@ export class Header extends BaseRow {
     // language=CSS
     return super.css +  `
         :host {
+            display: table-row-group;
+            width: 100%;
             color: var(--table-header-text-color);
             background: var(--table-header-color);
             text-transform: uppercase;
@@ -59,6 +66,24 @@ export class Header extends BaseRow {
             font-weight: bold;
         }
      `;
+  }
+}
+
+export class Body extends TableElement {
+  get css(){
+    // language=CSS
+    return `
+        :host {
+            display: table-row-group;
+            width: 100%;
+        }
+     `;
+  }
+
+  get template(){
+    return `
+      <slot></slot>
+    `;
   }
 }
 
@@ -159,13 +184,6 @@ export class Row extends DraggableMixin(DroppableMixin(BaseRow)) {
     }
   }
 
-  setWidths(){
-    for (let i = 0; i < this.parent.length; i++) {
-      const selectedElement = selected[i];
-
-    }
-  }
-
   toggleSelected(){
     this.selected = !this.selected;
   }
@@ -199,7 +217,7 @@ export class Row extends DraggableMixin(DroppableMixin(BaseRow)) {
 //   }
 // }
 
-export class Data extends Element {
+export class Data extends TableElement {
   constructor(){
     super();
 
@@ -210,9 +228,9 @@ export class Data extends Element {
     // language=CSS
     return `
         :host {
-            flex: 1;
+            display: table-cell;
             padding: 0;
-            height: 100%;
+            height: var(--table-row-height);
             text-align: start;
             font-size: calc(4px + .75vw);
             overflow: hidden;
@@ -229,7 +247,7 @@ export class Data extends Element {
   }
 
   static get observedAttributes() {
-    return ['width'];
+    return ['width', 'height'];
   }
 
   get data(){
@@ -241,14 +259,24 @@ export class Data extends Element {
   }
 
   get width(){
-    return this.style.flex;
+    return this.style.width;
   }
 
   set width(value){
-    this.style.flex = value;
-    if (this.parentElement instanceof Header){
-      this.parentElement.table.updateWidths();
-    }
+    this.style.width= value;
+  }
+
+  get height(){
+    return this.style.height;
+  }
+
+  set height(value){
+    this.style.height = value;
+  }
+
+  get columnNumber(){
+    let siblings = Array.from(this.parentElement.children);
+    return siblings.indexOf(this);
   }
 
   compare(dataElement){
@@ -278,7 +306,7 @@ export class Table extends DroppableMixin(Element) {
           }
         }
       }
-    }
+    };
   }
 
   // getters
@@ -299,17 +327,27 @@ export class Table extends DroppableMixin(Element) {
     // language=CSS
     return `        
         :host {
-            flex: 1;
             padding: 0;
             width: 100%;
             height: 400px;
             background-color: var(--table-background-color);
-            display: block;
             table-layout: fixed;
             border-spacing: 0;
             box-shadow: none;
-            overflow: auto;
             color: var(--body-text-color);
+        }
+        
+        #container {
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          padding-top: var(--table-row-height);
+          padding-bottom: var(--table-row-height);
+        }
+        
+        #table {
+          display: table;
+          width: 100%;
         }
         
         a {
@@ -322,7 +360,11 @@ export class Table extends DroppableMixin(Element) {
 
   get template(){
     return `
-      <slot></slot>
+      <div id="container">
+        <div id="table">
+           <slot></slot>
+        </div>
+      </div>
     `;
   }
 
@@ -388,23 +430,6 @@ export class Table extends DroppableMixin(Element) {
     return new this.constructor(columnsCopy, this._selectMultiple);
   }
 
-  render(root){
-    super.render(root);
-
-    let slot = document.createElement('slot');
-
-    let headerRow = document.createElement('div');
-    headerRow.className = this.constructor.headerClass;
-    headerRow.style.display = 'flex';
-
-    this.body = document.createElement('div');
-    this.body.className = this.constructor.bodyClass;
-
-    headerRow.appendChild(slot);
-    root.appendChild(headerRow);
-    root.appendChild(this.body);
-  }
-
   // Internal Events
 
   _onRowDrag(row, event){
@@ -449,35 +474,10 @@ export class Table extends DroppableMixin(Element) {
       this.onSelectionChanged(newSelectedRows, addedRows, removedRows);
     }
   }
-
-
-  // Actions
-
-  updateWidths(){
-    let rows = Array.from(this.children);
-    let frag = document.createDocumentFragment();
-    let header = null;
-    while (rows.length > 0) {
-      let row = rows.shift();
-      frag.appendChild(row);
-      if (header){
-        for (let i = 0; i < header.children.length; i++) {
-          const headerDataElement = header.children.item(i);
-          const rowDataElement = row.children.item(i);
-          rowDataElement.width = headerDataElement.width;
-          console.log("SET WITH", headerDataElement.width);
-        }
-      }
-      if (row instanceof Header){
-        header = row;
-      }
-    }
-    this.appendChild(frag);
-    console.log("UPDATED")
-  }
 }
 
 customElements.define('table-header', Header);
+customElements.define('table-body', Body);
 customElements.define('table-row', Row);
 customElements.define('table-data', Data);
 customElements.define('selectable-table', Table);
