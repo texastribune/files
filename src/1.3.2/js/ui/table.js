@@ -12,6 +12,7 @@ class BaseRow extends Element {
     return `
         :host {
             display: flex;
+            height: var(--table-row-height);
         }
      `
   }
@@ -43,7 +44,22 @@ class BaseRow extends Element {
 }
 
 export class Header extends BaseRow {
-
+  get css(){
+    // language=CSS
+    return super.css +  `
+        :host {
+            color: var(--table-header-text-color);
+            background: var(--table-header-color);
+            text-transform: uppercase;
+        }
+        
+        a {
+            text-decoration: none;
+            color: var(--table-header-text-color);
+            font-weight: bold;
+        }
+     `;
+  }
 }
 
 /**
@@ -61,6 +77,10 @@ export class Row extends DraggableMixin(DroppableMixin(BaseRow)) {
 
     this.selected = false;
     this.hidden = false;
+
+    this.onclick = (event) => {
+      this.toggleSelected();
+    }
   }
 
   // getters
@@ -75,6 +95,34 @@ export class Row extends DraggableMixin(DroppableMixin(BaseRow)) {
 
   static get selectedClass(){
     return "selected";
+  }
+
+  get css () {
+    // language=CSS
+    return super.css + `
+        :host(:hover) {
+            background: var(--focus-item-color);
+            cursor: pointer;
+        }
+        
+        :host(.${this.constructor.selectedClass}){
+          background-color: var(--selected-item-color);
+          color: #fff;
+        }
+        
+        :host(.dragover) {
+            background: var(--focus-item-color);
+        }
+        
+        a.button {
+          -webkit-appearance: button;
+          -moz-appearance: button;
+          appearance: button;
+        
+          text-decoration: none;
+          color: initial;
+        }
+    `;
   }
 
   get selected(){
@@ -165,6 +213,11 @@ export class Data extends Element {
             flex: 1;
             padding: 0;
             height: 100%;
+            text-align: start;
+            font-size: calc(4px + .75vw);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
      `;
   }
@@ -192,8 +245,8 @@ export class Data extends Element {
   }
 
   set width(value){
+    this.style.flex = value;
     if (this.parentElement instanceof Header){
-      this.style.flex = value;
       this.parentElement.table.updateWidths();
     }
   }
@@ -217,7 +270,7 @@ export class Table extends DroppableMixin(Element) {
     this.contextMenu = null;
 
     // Deselected other rows if selectMultiple is false
-    this.ondblclick = (event) => {
+    this.onclick = (event) => {
       if (event.target instanceof Row && !this._selectMultiple) {
         for (let row of this.selectedRows){
           if (row !== event.target){
@@ -244,15 +297,25 @@ export class Table extends DroppableMixin(Element) {
 
   get css(){
     // language=CSS
-    return `
+    return `        
         :host {
             flex: 1;
             padding: 0;
-            height: 100%;
+            width: 100%;
+            height: 400px;
+            background-color: var(--table-background-color);
+            display: block;
+            table-layout: fixed;
+            border-spacing: 0;
+            box-shadow: none;
+            overflow: auto;
+            color: var(--body-text-color);
         }
         
-        ::slotted(*){
-            height: 20px;
+        a {
+            text-decoration: none;
+            color: var(--selected-item-color);
+            font-weight: bold;
         }
      `;
   }
@@ -402,6 +465,7 @@ export class Table extends DroppableMixin(Element) {
           const headerDataElement = header.children.item(i);
           const rowDataElement = row.children.item(i);
           rowDataElement.width = headerDataElement.width;
+          console.log("SET WITH", headerDataElement.width);
         }
       }
       if (row instanceof Header){
@@ -409,6 +473,7 @@ export class Table extends DroppableMixin(Element) {
       }
     }
     this.appendChild(frag);
+    console.log("UPDATED")
   }
 }
 
