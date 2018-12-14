@@ -97,6 +97,25 @@ class Element extends HTMLElement {
   }
 
   /**
+   * All descendents recursively. Optionally filtered by type.
+   * @param {type} [type] - Filter by element class
+   * @returns HTMLElement[]
+   */
+  flatChildren(type){
+    function allChildren(element){
+      let rows = [];
+      for (let child of element.children){
+        if (type === undefined || child instanceof type){
+          rows.push(child);
+        }
+        rows = rows.concat(allChildren(child));
+      }
+      return rows;
+    }
+    return allChildren(this);
+  }
+
+  /**
    * Re-render the shadow dom.
    */
   refresh(){

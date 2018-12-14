@@ -6,12 +6,12 @@
 :root {
   --browser-background: #ecf2f6;
   --top-inset: 20px;
-  --table-row-height: 30px;
-  --table-header-color: #5c6873;
-  --table-background-color: white;
-  --table-header-text-color: white;
-  --selected-item-color: #5d91e5;
-  --focus-item-color: #c0d5e8;
+  /*--table-row-height: 30px;*/
+  /*--table-header-color: #5c6873;*/
+  /*--table-background-color: white;*/
+  /*--table-header-text-color: white;*/
+  /*--selected-item-color: #5d91e5;*/
+  /*--focus-item-color: #c0d5e8;*/
   --body-text-color: #2e343a;
   --clickable-hover-color: #273c5f;
   --browser-shadow: 2px 2px 0 0 #444;

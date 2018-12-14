@@ -16,14 +16,20 @@
         <div class="device" style="width: 20px;height:20px;background-color: black"></div>
         <div class="browser"></div>
 
+        <style>
+            table-row:nth-child(1){
+                flex: 3;
+            }
+        </style>
+
         <selectable-table>
             <table-header>
                 <table-data>Stuff</table-data>
                 <table-data>Other Stuff</table-data>
             </table-header>
-            <table-body>
+            <table-body style="height: 40px">
                 <table-row>
-                    <table-data width="2">1</table-data>
+                    <table-data>1</table-data>
                     <table-data>2</table-data>
                 </table-row>
                 <table-row>
@@ -34,7 +40,7 @@
         </selectable-table>
 
         <script type="application/javascript">
-            let table = document.querySelector('selectable-table');
+            let table = document.querySelector('table-body');
             for (let i = 0; i < 20; i++) {
                 let row = document.createElement('table-row');
                 for (let j = 0; j < 2; j++) {

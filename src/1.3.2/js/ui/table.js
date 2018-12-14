@@ -25,8 +25,12 @@ class BaseRow extends TableElement {
     // language=CSS
     return `
         :host {
-            display: table-row;
+            --selected-item-color: #5d91e5;
+            --focus-item-color: #c0d5e8;
+
+            display: flex;
             width: 100%;
+            height: var(--table-row-height, 30px);
         }
      `;
   }
@@ -44,17 +48,19 @@ class BaseRow extends TableElement {
     }
     return data;
   }
-
-
 }
 
-export class Header extends BaseRow {
+export class Header extends TableElement {
   get css(){
     // language=CSS
-    return super.css +  `
+    return `
         :host {
-            display: table-row-group;
+            --table-header-text-color: white;
+            --table-header-color: #5c6873;
+          
+            display: flex;
             width: 100%;
+            height: var(--table-row-height, 30px);
             color: var(--table-header-text-color);
             background: var(--table-header-color);
             text-transform: uppercase;
@@ -67,6 +73,12 @@ export class Header extends BaseRow {
         }
      `;
   }
+
+  get template(){
+    return `
+      <slot></slot>
+    `;
+  }
 }
 
 export class Body extends TableElement {
@@ -74,15 +86,21 @@ export class Body extends TableElement {
     // language=CSS
     return `
         :host {
-            display: table-row-group;
             width: 100%;
+        }
+        div {
+          height: inherit;
+          overflow-y: scroll;
         }
      `;
   }
 
   get template(){
     return `
-      <slot></slot>
+        <div>
+            <slot></slot>
+        </div>
+     
     `;
   }
 }
@@ -189,48 +207,19 @@ export class Row extends DraggableMixin(DroppableMixin(BaseRow)) {
   }
 }
 
-// // language=CSS
-// const bodyCSS = `
-//     :root{
-//         display: block;
-//         overflow: auto;
-//         width: 100%;
-//         height: 400px;
-//         color: var(--body-text-color);
-//     }
-// `;
-//
-// class Body extends Element {
-//   get template() {
-//     return `
-//         <style>
-//             :root{
-//                 display: block;
-//                 overflow: auto;
-//                 width: 100%;
-//                 height: 400px;
-//                 color: var(--body-text-color);
-//             }
-//         </style>
-//         <slot></slot>
-//       `;
-//   }
-// }
-
 export class Data extends TableElement {
   constructor(){
     super();
 
-
+    this._colSpan = 1;
   }
 
   get css(){
     // language=CSS
     return `
         :host {
-            display: table-cell;
+            flex: 1;
             padding: 0;
-            height: var(--table-row-height);
             text-align: start;
             font-size: calc(4px + .75vw);
             overflow: hidden;
@@ -246,37 +235,12 @@ export class Data extends TableElement {
     `;
   }
 
-  static get observedAttributes() {
-    return ['width', 'height'];
-  }
-
   get data(){
     return this.innerText;
   }
 
   set data(value){
     this.innerText = value.toString();
-  }
-
-  get width(){
-    return this.style.width;
-  }
-
-  set width(value){
-    this.style.width= value;
-  }
-
-  get height(){
-    return this.style.height;
-  }
-
-  set height(value){
-    this.style.height = value;
-  }
-
-  get columnNumber(){
-    let siblings = Array.from(this.parentElement.children);
-    return siblings.indexOf(this);
   }
 
   compare(dataElement){
@@ -323,31 +287,24 @@ export class Table extends DroppableMixin(Element) {
     return 'show-hidden';
   }
 
+  static get observedAttributes() {
+    return ['selectMultiple'];
+  }
+
   get css(){
     // language=CSS
-    return `        
+    return `      
         :host {
+            --table-row-height: 30px;
+            --table-background-color: white;
+          
             padding: 0;
             width: 100%;
             height: 400px;
             background-color: var(--table-background-color);
-            table-layout: fixed;
             border-spacing: 0;
             box-shadow: none;
             color: var(--body-text-color);
-        }
-        
-        #container {
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          padding-top: var(--table-row-height);
-          padding-bottom: var(--table-row-height);
-        }
-        
-        #table {
-          display: table;
-          width: 100%;
         }
         
         a {
@@ -360,11 +317,7 @@ export class Table extends DroppableMixin(Element) {
 
   get template(){
     return `
-      <div id="container">
-        <div id="table">
-           <slot></slot>
-        </div>
-      </div>
+      <slot></slot>
     `;
   }
 
@@ -415,7 +368,9 @@ export class Table extends DroppableMixin(Element) {
 
   set selectMultiple(value){
     this._selectMultiple = value;
-    this.toggleRowSelection(null);
+    for (let row of this.flatChildren(Row)){
+      row.selected = false;
+    }
   }
 
   set showHidden(value){
