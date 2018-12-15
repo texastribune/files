@@ -15,6 +15,9 @@ class Element extends HTMLElement {
     for (let attr of this.constructor.observedAttributes){
       let value = this.getAttribute(attr);
       if (value !== null) {
+        if (value === ""){
+          value = true;
+        }
         this[attr] = value;
       }
     }
