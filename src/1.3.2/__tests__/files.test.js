@@ -1,13 +1,13 @@
 /* eslint-disable import/first */
 /* global jest, test, expect, describe */
 
-import {MemoryDirectory} from "../js/files/memory.js";
-import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer, compareById} from "../js/utils.js";
+import {MemoryDirectory} from "../js/files/memory.ts";
+import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer, compareById} from "../js/utils.ts";
 import IndexedDB from "../../../node_modules/fake-indexeddb/build/index.js";
 import {LocalStorageRoot, database} from "../js/files/local.js";
 import {VirtualRootDirectory} from "../js/files/virtual.js";
-import {AbstractFile} from "../js/files/base.js";
-import {NodeDirectory} from "../js/files/node";
+import {BasicFile} from "../js/files/base.js";
+import {NodeDirectory} from "../js/files/node.js";
 import * as fs from 'fs';
 
 
@@ -51,7 +51,7 @@ function testStorage(rootDirectory) {
     }
 
     test('Directories are files with json array string', async () => {
-        expect(rootDirectory).toBeInstanceOf(AbstractFile);
+        expect(rootDirectory).toBeInstanceOf(BasicFile);
 
         let arrayBuffer = await rootDirectory.read();
         let childData = parseJsonArrayBuffer(arrayBuffer);

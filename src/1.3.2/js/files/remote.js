@@ -1,5 +1,5 @@
-import {AbstractDirectory, AbstractFile, FileNotFoundError} from "./base.js";
-import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils.js";
+import {Directory, BasicFile, FileNotFoundError} from "./base.ts";
+import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils.ts";
 
 function configureAjaxRequest(request, method, url, data) {
   if (!this.isCrossDomain(url)) {
@@ -88,7 +88,7 @@ async function ajax(url, data, method) {
 
 
 
-class RemoteFile extends AbstractFile {
+class RemoteFile extends BasicFile {
   constructor(parent, fileData) {
     super();
     this._parent = parent;

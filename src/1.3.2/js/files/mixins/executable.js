@@ -4,8 +4,8 @@
  * Extends a file system so that it can mount file storages other than the root file storage
  * at arbitrary paths in the file system.
  * @mixin ExecutableMixin
- * @param {AbstractDirectory} DirectoryClass - A subclass of AbstractDirectory.
- * @returns {AbstractDirectory} The mixin class.
+ * @param {Directory} DirectoryClass - A subclass of AbstractDirectory.
+ * @returns {Directory} The mixin class.
  */
 export let ExecutableMixin = (DirectoryClass) => {
     return class extends DirectoryClass {

@@ -1,4 +1,4 @@
-import {AbstractFile} from "./base.js";
+import {BasicFile} from "./base.ts";
 import * as fs from 'fs';
 import * as path from 'path';
 import {DirectoryMixin} from "./base";
@@ -20,7 +20,7 @@ function nodeFSFuncAsyncWrapper(func) {
 }
 
 
-class AbstractNodeFileBase extends AbstractFile {
+class AbstractNodeFileBase extends BasicFile {
   constructor(path, stat) {
     super();
     this._path = path;

@@ -1,11 +1,11 @@
-import {CacheMixin} from "../virtual.js";
+import {CacheMixin} from "../virtual.ts";
 
 
 /**
  * A mixin that preserves current path of the file system via the url fragment.
  * @mixin StateMixin
- * @param {AbstractDirectory} DirectoryClass - A subclass of AbstractDirectory.
- * @returns {AbstractDirectory}
+ * @param {Directory} DirectoryClass - A subclass of AbstractDirectory.
+ * @returns {Directory}
  */
 export let StateMixin = (DirectoryClass) => {
     DirectoryClass = CacheMixin(DirectoryClass);

@@ -1,38 +1,44 @@
-import {AbstractDirectory, AbstractFile, DirectoryMixin, FileNotFoundError} from "./base.js";
+import * as files from "./base";
+import {MemoryDirectory} from "./memory";
+import {Directory} from "./base";
 
 
-function indexedDbRequestToPromise(request) {
+function indexedDbRequestToPromise(request : IDBRequest) : Promise<any> {
     return new Promise((resolve, reject) => {
-        request.onsuccess = (event) => {
-            resolve(event.target.result)
+        request.onsuccess = (event : Event) => {
+            resolve(request.result)
         };
-        request.onerror = (event) => {
-            reject(event.target.error)
+        request.onerror = (event : Event) => {
+            reject(request.error)
         };
     });
 }
 
-function indexedDbCursorRequestToPromise(cursorRequest) {
+function indexedDbCursorRequestToPromise(cursorRequest : IDBRequest<IDBCursorWithValue | null>) : Promise<any[]>{
     return new Promise((resolve, reject) => {
-        let data = [];
+        let data : any[] = [];
         cursorRequest.onerror = reject;
         cursorRequest.onsuccess = (event) => {
-            let cursor = event.target.result;
-            if (cursor) {
-                // For each row, get the file data and add a promise for the fileNode to the promises list.
-                cursor.continue();
-                data.push(cursor.value);
-            } else {
-                resolve(data);
+            if (event.target){
+                let cursor = cursorRequest.result;
+                if (cursor !== null) {
+                    // For each row, get the file data and add a promise for the fileNode to the promises list.
+                    cursor.continue();
+                    data.push(cursor.value);
+                } else {
+                    resolve(data);
+                }
             }
         };
     });
 }
 
 class Database {
-    constructor(name) {
+    name : string;
+    _readyPromise : Promise<IDBDatabase> | null = null;
+
+    constructor(name : string) {
         this.name = name;
-        this._readyPromise = null;
     }
 
     /**
@@ -42,26 +48,26 @@ class Database {
      * nothing.
      * @returns {function[]} - An array of functions the either can return nothing or a promise.
      */
-    static get migrations() {
+    static get migrations() : ((db : IDBDatabase, transaction : IDBTransaction) => Promise<void>)[] {
         return []
     }
 
-    getDB() {
+    getDB() : Promise<IDBDatabase> {
         if (this._readyPromise === null){
             this._readyPromise = new Promise((resolve, reject) => {
-                let newVersion = this.constructor.migrations.length;
+                let newVersion = (this.constructor as typeof Database).migrations.length;
                 let dbRequest = window.indexedDB.open(this.name, newVersion);
 
-                dbRequest.onsuccess = (event) => {
-                    let db = event.target.result;
+                dbRequest.onsuccess = (event : Event) => {
+                    let db = dbRequest.result;
                     resolve(db);
                 };
 
                 dbRequest.onupgradeneeded = (event) => {
                     // Run the migration functions that are needed
-                    let db = event.target.result;
-                    let transaction = event.target.transaction;
-                    let migrationsToApply = this.constructor.migrations.slice(event.oldVersion);
+                    let db = dbRequest.result;
+                    let transaction = dbRequest.transaction as IDBTransaction;
+                    let migrationsToApply = (this.constructor as typeof Database).migrations.slice(event.oldVersion);
                     let upgradeMigrationChain = Promise.resolve();
                     for (let i = 0; i < migrationsToApply.length; i++) {
                         let migration = migrationsToApply[i];
@@ -79,19 +85,32 @@ class Database {
                     dbRequest.onsuccess = (event) => {
                         upgradeMigrationChain
                             .then(() => {
-                                let db = event.target.result;
+                                let db = dbRequest.result;
                                 resolve(db);
                             });
                     };
                 };
                 dbRequest.onerror = (event) => {
-                    reject(`Error connecting to the database: ${event.target.error}`);
+                    reject(`Error connecting to the database: ${dbRequest.error}`);
                 };
 
             });
         }
         return this._readyPromise
     }
+}
+
+interface UnSavedFileData {
+    parentId : string,
+    name : string,
+    file : ArrayBuffer | null,
+    mimeType : string,
+    lastModified : string,
+    created : string
+}
+
+interface FileData extends UnSavedFileData{
+    id: string
 }
 
 class FileStore extends Database {
@@ -102,89 +121,90 @@ class FileStore extends Database {
     static get migrations() {
         let storeName = this.objectStoreName;
         return [
-            (db, transaction) => {
+            async (db : IDBDatabase, transaction : IDBTransaction) => {
                 // Create
                 let objectStore = db.createObjectStore(storeName, {keyPath: 'id', autoIncrement: true});
                 objectStore.createIndex('parentId', 'parentId', {unique: false});
                 objectStore.createIndex('uniqueNameForDirectory', ['name', 'parentId'], {unique: true});
             },
-            (db, transaction) => {
+            async (db : IDBDatabase, transaction : IDBTransaction) => {
                 // Delete and rebuild
                 db.deleteObjectStore("files");
                 let objectStore = db.createObjectStore(storeName, {keyPath: 'id', autoIncrement: true});
                 objectStore.createIndex('parentId', 'parentId', {unique: false});
                 objectStore.createIndex('uniqueNameForDirectory', ['name', 'parentId'], {unique: true});
             },
-            (db, transaction) => {
+            async (db : IDBDatabase, transaction : IDBTransaction) => {
                 // Convert files to ArrayBuffers, add mimeType and lastModified fields
                 let cursorRequest = transaction.objectStore(storeName).getAll();
-                return indexedDbRequestToPromise(cursorRequest)
-                    .then((fileDataArray) => {
-                        let promises = [];
-                        for (let fileData of fileDataArray) {
-                            if (fileData.file) {
-                                fileData.mimeType = fileData.type;
-                                fileData.lastModified = fileData.file.lastModified;
-                                fileData.file = new ArrayBuffer(2);  // TODO
-                            } else {
-                                fileData.mimeType = 'application/json';
-                                fileData.lastModified = fileData.created;
-                            }
-                            promises.push(
-                                indexedDbRequestToPromise(transaction.objectStore(storeName).put(fileData))
-                            );
-                        }
-                        return Promise.all(promises);
-                    });
+                let fileDataArray = await indexedDbRequestToPromise(cursorRequest);
+                let promises = [];
+                for (let fileData of fileDataArray) {
+                    if (fileData.file) {
+                        fileData.mimeType = fileData.type;
+                        fileData.lastModified = fileData.file.lastModified;
+                        fileData.file = new ArrayBuffer(2);  // TODO
+                    } else {
+                        fileData.mimeType = 'application/json';
+                        fileData.lastModified = fileData.created;
+                    }
+                    promises.push(
+                        indexedDbRequestToPromise(transaction.objectStore(storeName).put(fileData))
+                    );
+                }
+                await Promise.all(promises);
             }
         ]
     }
 
-    async add(parentId, name, file, type) {
+    async add(parentId : string, name : string, file? : ArrayBuffer | null, type? : string) : Promise<FileData> {
         let now = new Date().toISOString();
-        let fileData = {
+        if (file === undefined){
+            type = Directory.mimeType;
+        } else if (type === undefined) {
+            type = 'application/octet-stream';
+        }
+        let unSavedFileData = {
             parentId: parentId,
             name: name,
-            file: file,
+            file: file || null,
             mimeType: type,
             lastModified: now,
             created: now
         };
-        fileData = this.validate(fileData);
+        unSavedFileData = this.validate(unSavedFileData);
 
         let db = await this.getDB();
-        let transaction = db.transaction(this.constructor.objectStoreName, "readwrite");
+        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName, "readwrite");
         try {
-            let newId = await indexedDbRequestToPromise(transaction.objectStore(this.constructor.objectStoreName).add(fileData));
-            fileData.id = newId.toString();
+            let newId = await indexedDbRequestToPromise(transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).add(unSavedFileData));
+            return Object.assign(unSavedFileData, {id: newId.toString()});
         } catch (e) {
-            throw new Error(`Could not add file ${fileData.name}, ${parentId}`);
-        }
-
-        return fileData;
-    }
-
-    async get(id){
-        let db = await this.getDB();
-        let transaction = db.transaction(this.constructor.objectStoreName);
-
-        try {
-            return await indexedDbRequestToPromise(transaction.objectStore(this.constructor.objectStoreName).get(parseInt(id)));
-        } catch (e) {
-            throw new FileNotFoundError(`Could not find file with id ${id}.`);
+            throw new Error(`Could not add file ${name}, ${parentId}`);
         }
     }
 
-    async update(id, updateFields) {
+    async get(id : string) : Promise<FileData> {
         let db = await this.getDB();
-        let transaction = db.transaction(this.constructor.objectStoreName, "readwrite");
+        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName);
+
+        try {
+            return await indexedDbRequestToPromise(transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).get(parseInt(id)));
+        } catch (e) {
+            throw new files.FileNotFoundError(`Could not find file with id ${id}.`);
+        }
+    }
+
+    async update(id : string, updateFields : Object) : Promise<FileData> {
+        let db = await this.getDB();
+        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName, "readwrite");
 
         // Get file data from database
         let fileData;
         try {
-            fileData = await indexedDbRequestToPromise(transaction.objectStore(this.constructor.objectStoreName).get(parseInt(id)));
+            fileData = await indexedDbRequestToPromise(transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).get(parseInt(id)));
         } catch (e) {
-            throw new FileNotFoundError(`Could not find file with id ${id}.`);
+            throw new files.FileNotFoundError(`Could not find file with id ${id}.`);
         }
 
         Object.assign(fileData, updateFields);
@@ -192,18 +212,16 @@ class FileStore extends Database {
         fileData = this.validate(fileData);
 
         try {
-            await indexedDbRequestToPromise(transaction.objectStore(this.constructor.objectStoreName).put(fileData));
+            return await indexedDbRequestToPromise(transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).put(fileData));
         } catch (e) {
             throw new Error(`Could not update file id ${id}.`);
         }
-
-        return fileData;
     }
 
-    async delete(id) {
+    async delete(id : string) : Promise<void> {
         let db = await this.getDB();
-        let transaction = db.transaction(this.constructor.objectStoreName, "readwrite");
-        let objectStore = transaction.objectStore(this.constructor.objectStoreName);
+        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName, "readwrite");
+        let objectStore = transaction.objectStore((this.constructor as typeof FileStore).objectStoreName);
 
         try {
             await indexedDbRequestToPromise(objectStore.delete(parseInt(id)));
@@ -222,27 +240,27 @@ class FileStore extends Database {
         }
     }
 
-    async copy(sourceId, targetParentId) {
-        let fileData = this.get(sourceId);
-        await this.add(targetParentId, fileData.name, fileData.file, fileData.type);
+    async copy(sourceId : string, targetParentId : string) {
+        let fileData = await this.get(sourceId);
+        await this.add(targetParentId, fileData.name, fileData.file, fileData.mimeType);
     }
 
-    async move(sourceId, targetParentId) {
+    async move(sourceId : string, targetParentId : string) {
         await this.update(sourceId, {parentId: targetParentId});
     }
 
-    async search(id, query) {
+    async search(id : string, query : string) {
         throw new Error("Not implemented")
     }
 
-    async getChildren(id){
+    async getChildren(id : string){
         let db = await this.getDB();
-        let transaction = db.transaction(this.constructor.objectStoreName);
-        let childCursorRequest = transaction.objectStore(this.constructor.objectStoreName).index('parentId').openCursor(id);
+        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName);
+        let childCursorRequest = transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).index('parentId').openCursor(id);
         return await indexedDbCursorRequestToPromise(childCursorRequest);
     }
 
-    validate(fileData) {
+    validate(fileData : UnSavedFileData | FileData) {
         fileData.name = fileData.name.toString();
         if (fileData.file !== null && !(fileData.file instanceof ArrayBuffer)) {
             throw new Error(`Invalid file data. Must be ArrayBuffer, not ${typeof fileData.file}`);
@@ -281,23 +299,22 @@ class FileStore extends Database {
 export const database = new FileStore('db');
 
 
-function fileDataToInstance(fileData) {
-    let lastModified = new Date(fileData.lastModified);
-    let created = new Date(fileData.created);
-    if (fileData.file){
-        return new LocalStorageFile(fileData.id.toString(), fileData.name, created, lastModified,
-            fileData.mimeType, fileData.file.byteLength);
-    } else {
-        return new LocalStorageDirectory(fileData.id.toString(), fileData.name, created, lastModified);
-    }
-}
-
-
 /**
  * A storage class uses IndexedDB to store files locally in the browser.
  */
-export class LocalStorageFile extends AbstractFile {
-    constructor(databaseData) {
+export class LocalStorageFile extends files.BasicFile {
+    private _id : string;
+    private _name : string;
+    private _created : Date;
+    private _lastModified : Date;
+    private _mimeType : string;
+    private _size : number;
+
+    public readonly url = null;
+    public readonly icon = null;
+    public extra = {};
+
+    constructor(databaseData : FileData) {
         super();
         this._id = databaseData.id.toString();
         this._name = databaseData.name;
@@ -305,9 +322,9 @@ export class LocalStorageFile extends AbstractFile {
         this._lastModified = new Date(databaseData.created);
         this._mimeType = databaseData.mimeType;
         if (databaseData.file){
-            this._size = databaseData.file.size;
+            this._size = databaseData.file.byteLength;
         } else {
-            this._size = null;
+            this._size = 0;
         }
     }
 
@@ -317,14 +334,6 @@ export class LocalStorageFile extends AbstractFile {
 
     get name() {
         return this._name;
-    }
-
-    get url() {
-        return null;
-    }
-
-    get icon() {
-        return null;
     }
 
     get lastModified() {
@@ -342,24 +351,18 @@ export class LocalStorageFile extends AbstractFile {
     get size(){
         return this._size;
     }
-    //
-    // async getParent() {
-    //     let data = await database.get(this.id);
-    //     let parentData = await database.get(data.parentId);
-    //     return fileDataToInstance(parentData);
-    // }
 
-    async read(params) {
+    async read(params? : Object) {
         let fileData = await database.get(this.id);
-        return fileData.file;
+        return fileData.file || new ArrayBuffer(0);
     }
 
-    async write(data) {
-        this.update(this.id, {file: data});
+    async write(data : ArrayBuffer) {
+        await database.update(this.id, {file: data});
         return data;
     }
 
-    async rename(newName) {
+    async rename(newName : string) {
         await database.update(this.id, {name: newName});
         this._name = newName;
     }
@@ -368,24 +371,62 @@ export class LocalStorageFile extends AbstractFile {
         await database.delete(this.id);
     }
 
-    async copy(targetParentId) {
-        await database.copy(this.id, targetParentId);
+    async copy(targetDirectory : Directory) {
+        await database.copy(this.id, targetDirectory.id);
     }
 
-    async move(targetParentId) {
-        await database.move(this.id, targetParentId);
+    async move(targetDirectory : Directory) {
+        await database.move(this.id, targetDirectory.id);
     }
 }
 
 /**
  * A directory class uses IndexedDB to store files locally in the browser.
  */
-export class LocalStorageDirectory extends DirectoryMixin(LocalStorageFile) {
-    constructor(databaseData) {
-        super(databaseData);
+export class LocalStorageDirectory extends files.Directory {
+    private _id : string;
+    private _name : string;
+    private _created : Date;
+    private _lastModified : Date;
+
+    public readonly icon = null;
+    public extra = {};
+
+    constructor(databaseData : FileData) {
+        super();
+
+        this._id = databaseData.id.toString();
+        this._name = databaseData.name;
+        this._created = new Date(databaseData.lastModified);
+        this._lastModified = new Date(databaseData.created);
     }
 
-    async getChildren() {
+    get id() {
+        return this._id;
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    get created() {
+        return this._created;
+    }
+
+    get lastModified() {
+        return this._lastModified;
+    }
+
+    async rename(newName : string) {
+        await database.update(this.id, {name: newName});
+        this._name = newName;
+    }
+
+    async delete() {
+        await database.delete(this.id);
+    }
+
+    async getChildren() : Promise<files.File[]> {
         let children = [];
         let childDataArray = await database.getChildren(this.id);
         for (let childData of childDataArray){
@@ -398,7 +439,7 @@ export class LocalStorageDirectory extends DirectoryMixin(LocalStorageFile) {
         return children;
     }
 
-    async addFile(file, name, mimeType) {
+    async addFile(file : ArrayBuffer, name : string, mimeType : string) {
         if (!(file instanceof ArrayBuffer)) {
             throw new Error(`Invalid file data. Must be ArrayBuffer, not ${typeof file}`);
         }
@@ -410,13 +451,13 @@ export class LocalStorageDirectory extends DirectoryMixin(LocalStorageFile) {
         return new LocalStorageFile(fileData);
     }
 
-    async addDirectory(name) {
-        let fileData = await database.add(this.id, name, null, AbstractDirectory.mimeType);
+    async addDirectory(name : string) {
+        let fileData = await database.add(this.id, name, null, files.Directory.mimeType);
         return new LocalStorageDirectory(fileData);
     }
 
-    async search(id, query) {
-        throw new Error("Not implemented")
+    async search(query : string) : Promise<files.File[]> {
+        return [];
     }
 }
 
@@ -425,10 +466,12 @@ export class LocalStorageRoot extends LocalStorageDirectory {
         let now = new Date().toISOString();
         super({
             id: 'fsRoot',
+            parentId: '',
             file: null,
             name: 'root',
-            create: now,
-            lastModified: now
+            created: now,
+            lastModified: now,
+            mimeType: files.Directory.mimeType
         });
     }
 }

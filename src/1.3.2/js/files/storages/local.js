@@ -1,6 +1,6 @@
 import {AbstractFileStorage} from "./base.js";
 import {FileNotFoundError} from "./base.js";
-import {arrayBufferToDataUrl, stringToArrayBuffer} from "../../utils.js";
+import {arrayBufferToDataUrl, stringToArrayBuffer} from "../../utils.ts";
 
 
 function indexedDbRequestToPromise(request) {

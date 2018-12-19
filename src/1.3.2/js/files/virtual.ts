@@ -1,8 +1,9 @@
-import {ProxyDirectory} from "./proxy.js";
+import {ProxyDirectory} from "./proxy";
+import {Directory} from "./base";
 
 class AbstractVirtualDirectory extends ProxyDirectory {
-  constructor(concreteFile){
-    super(concreteFile);
+  constructor(concreteDirectory : Directory){
+    super(concreteDirectory);
   }
 
   get virtualRoot(){
@@ -10,7 +11,7 @@ class AbstractVirtualDirectory extends ProxyDirectory {
   }
 
   async getChildren(){
-    let children = await this._concreteDirectory.getChildren();
+    let children = await super.getChildren();
     let virtualChildren = [];
     for (let child of children){
       if (child.directory){

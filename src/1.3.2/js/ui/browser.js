@@ -2,9 +2,9 @@ import History from "./history.js";
 import {Dialog, ConfirmDialog} from "./dialog.js";
 import {Element} from "./element.js";
 import {Message} from "./messages.js";
-import {FileNotFoundError} from "../files/base.js";
+import {FileNotFoundError} from "../files/base.ts";
 import {convertBytesToReadable, compareDateStrings,
-        compareNumbers, compareStrings} from "../utils.js";
+        compareNumbers, compareStrings} from "../utils.ts";
 import * as icons from './icons.js';
 import {parseConfigFile} from "./config.js";
 import {updateConfigFile} from "./config.js";
@@ -12,7 +12,7 @@ import {updateConfigFile} from "./config.js";
 
 /**
  * An element for browsing a file system.
- * @param {AbstractDirectory} currentDirectory - The root directory of the browser.
+ * @param {Directory} currentDirectory - The root directory of the browser.
  * @param {Table} table - The table to use for displaying the files.
  */
 export class FileBrowser extends Element {
@@ -521,7 +521,7 @@ export class FileBrowser extends Element {
 
   /**
    * Translate the data for a AbstractFile to the data that will be in each table row for that file.
-   * @param {AbstractFile} fileObject - The file for a given row.
+   * @param {BasicFile} fileObject - The file for a given row.
    * @returns {Object} - The data for that row in the table.
    */
   fileObjectToTableData(fileObject){

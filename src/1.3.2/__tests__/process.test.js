@@ -2,8 +2,8 @@
 /* global jest, test, expect, describe */
 
 
-import {MemoryDirectory} from "../js/files/memory.js";
-import {stringToArrayBuffer} from "../js/utils.js";
+import {MemoryDirectory} from "../js/files/memory.ts";
+import {stringToArrayBuffer} from "../js/utils.ts";
 import {Process} from "../js/processes/base.js";
 import {DeviceDirectory} from "../js/files/devices/base.js";
 import {ProcessDirectory} from "../js/processes/files.js";

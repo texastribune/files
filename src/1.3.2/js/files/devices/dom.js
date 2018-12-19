@@ -1,8 +1,8 @@
-import {AbstractDirectory, AbstractFile} from "../base.js";
-import {parseTextArrayBuffer, stringToArrayBuffer} from "../../utils.js";
+import {Directory, BasicFile} from "../base.ts";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../../utils.ts";
 
 
-export class AbstractElementFile extends AbstractFile {
+export class AbstractElementFile extends BasicFile {
     constructor(element) {
         super();
 
@@ -210,7 +210,7 @@ class ClassFile extends AbstractElementFile {
 }
 
 
-export class DomElementDevice extends AbstractDirectory {
+export class DomElementDevice extends Directory {
     constructor(element){
         super();
         this._created = new Date();

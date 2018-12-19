@@ -1,4 +1,4 @@
-import {AbstractDirectory} from "../base.js";
+import {Directory} from "../base.ts";
 
 function wrapChangeFunc(func, callback) {
   return async (...args) => {
@@ -19,7 +19,7 @@ function overrideGetChildren(directory, onChange){
       child.rename = wrapChangeFunc(child.rename, callback);
       child.delete = wrapChangeFunc(child.delete, callback);
       child.move = wrapChangeFunc(child.move, callback);
-      if (child instanceof AbstractDirectory){
+      if (child instanceof Directory){
         overrideGetChildren(child, onChange);
       }
     }
@@ -32,8 +32,8 @@ function overrideGetChildren(directory, onChange){
  * Extends a file system with StateMixin so that it can cache fileObjects that
  * have already been retrieved by their path.
  * @mixin OnChangeMixin
- * @param {AbstractDirectory} DirectoryClass - A subclass of BaseFileSystem.
- * @returns {AbstractDirectory}
+ * @param {Directory} DirectoryClass - A subclass of BaseFileSystem.
+ * @returns {Directory}
  */
 export let OnChangeMixin = (DirectoryClass) => {
   return class extends DirectoryClass {
@@ -69,7 +69,7 @@ export let OnChangeMixin = (DirectoryClass) => {
     }
 
     async getChildren(){
-      if (child instanceof AbstractDirectory){
+      if (child instanceof Directory){
         let method = child.getChildren;
         child.getChildren = async () => {
           let children = await child.getChildren();

@@ -8,7 +8,7 @@ import {LocalStorageFileStorage} from "./js/files/storages/local.js";
 // import * as dialogModule from './js/ui/dialog.js';
 // import * as messageModule from './js/ui/messages.js';
 // import * as tableModule from './js/ui/table.js';
-// import * as utilsModule from './js/utils.js';
+// import * as utilsModule from './js/utils.ts';
 //
 // import alert from './js/bin/alert.js';
 // import archive from './js/bin/archive.js';
@@ -20,10 +20,10 @@ import {LocalStorageFileStorage} from "./js/files/storages/local.js";
 // import mount from './js/bin/mount.js';
 // import mountFileAPI from './js/bin/mount.fileapi.js';
 // import mountPhotoshelter from './js/bin/mount.photoshelter.js';
-// import {LocalStorageRoot} from "./js/files/local.js";
+// import {LocalStorageRoot} from "./js/files/local.ts";
 // import {VirtualRootDirectory} from "./js/files/virtual";
 // import {stringToArrayBuffer} from "./js/utils";
-// import {Process} from "./js/processes/base.js";
+// import {Process} from "./js/processes/base.ts";
 //
 // let files = {
 //   bin: {
@@ -114,10 +114,10 @@ import {LocalStorageFileStorage} from "./js/files/storages/local.js";
 // //
 
 
-import {MemoryDirectory} from "./js/files/memory.js";
+import {MemoryDirectory} from "./js/files/memory.ts";
 import {DeviceDirectory} from "./js/files/devices/base.js";
 import {Process} from "./js/processes/base.js";
-import {stringToArrayBuffer} from "./js/utils.js";
+import {stringToArrayBuffer} from "./js/utils.ts";
 import {ProcessDirectory} from "./js/processes/files.js";
 import {FileBrowserDevice} from "./js/files/devices/browser.js";
 

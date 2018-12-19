@@ -1,5 +1,5 @@
 import {ProcessFile} from "./files.js";
-import {stringToArrayBuffer} from "../utils.js";
+import {stringToArrayBuffer} from "../utils.ts";
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 

@@ -1,6 +1,6 @@
 import {Dialog} from "./dialog.js";
 import {Element, DroppableMixin, DraggableMixin} from "./element.js";
-import {compareDateStrings, compareNumbers, compareStrings} from "../utils.js";
+import {compareDateStrings, compareNumbers, compareStrings} from "../utils.ts";
 
 
 class TableElement extends Element {

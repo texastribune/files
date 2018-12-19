@@ -1,5 +1,5 @@
 import {AbstractFileStorage} from "./base.js";
-import {stringToArrayBuffer} from "../../utils.js";
+import {stringToArrayBuffer} from "../../utils.ts";
 import * as fs from 'fs';
 import * as path from 'path';
 

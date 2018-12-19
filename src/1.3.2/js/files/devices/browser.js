@@ -1,11 +1,11 @@
-import {AbstractFile} from "../base.js";
+import {BasicFile} from "../base.ts";
 import {FileBrowser} from "../../ui/browser.js";
-import {parseJsonArrayBuffer} from "../../utils.js";
+import {parseJsonArrayBuffer} from "../../utils.ts";
 
 
 let browserCount = 0;
 
-export class FileBrowserDevice extends AbstractFile {
+export class FileBrowserDevice extends BasicFile {
     constructor(directory, element, name) {
         super();
 

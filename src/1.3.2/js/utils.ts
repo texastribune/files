@@ -2,7 +2,7 @@
 
 let units = ['KB', 'MB', 'GB', 'TB'];
 
-export function convertBytesToReadable(numBytes){
+export function convertBytesToReadable(numBytes : number) : string {
   let repr = null;
   let i = units.length;
   while (!repr && i > 0) {
@@ -18,16 +18,16 @@ export function convertBytesToReadable(numBytes){
   return repr || `${numBytes} bytes`;
 }
 
-export function compareStrings(string1, string2){
+export function compareStrings(string1 : string, string2 : string) : number {
   return string1.localeCompare(string2);
 }
 
-export function compareNumbers(number1, number2){
+export function compareNumbers(number1 : number, number2 : number) : number {
   return number1 - number2;
 }
 
-export function compareDateStrings(dateString1, dateString2){
-  return new Date(dateString1) - new Date(dateString2);
+export function compareDateStrings(dateString1 : string, dateString2 : string) : number {
+  return new Date(dateString1).getTime() - new Date(dateString2).getTime();
 }
 
 
@@ -36,13 +36,14 @@ export function compareDateStrings(dateString1, dateString2){
  * @param {ArrayBuffer} arrayBuffer - The ArrayBuffer to decode.
  * @returns {string} - The text contained in the file.
  */
-export function parseTextArrayBuffer(arrayBuffer){
+export function parseTextArrayBuffer(arrayBuffer : ArrayBuffer) : string {
   if (typeof Buffer !== 'undefined'){
     return Buffer.from(arrayBuffer).toString();
   } else if (typeof TextDecoder !== 'undefined') {
     return new TextDecoder().decode(new Uint8Array(arrayBuffer));
   } else {
-    return String.fromCharCode.apply(null, new Uint8Array(arrayBuffer));
+    let numArray = new Uint8Array(arrayBuffer) as unknown as number[];
+    return String.fromCharCode.apply(null, numArray);
   }
 }
 
@@ -51,7 +52,7 @@ export function parseTextArrayBuffer(arrayBuffer){
  * @param {ArrayBuffer} arrayBuffer - The ArrayBuffer to decode.
  * @returns {Object|Array} - A Javascript Object or Array.
  */
-export function parseJsonArrayBuffer(arrayBuffer){
+export function parseJsonArrayBuffer(arrayBuffer : ArrayBuffer) : string {
   let text = parseTextArrayBuffer(arrayBuffer);
   return JSON.parse(text);
 
@@ -63,7 +64,7 @@ export function parseJsonArrayBuffer(arrayBuffer){
  * @param {string} mimeType - The mime type of the data in the array buffer.
  * @returns {string} - Data url for file.
  */
-export function arrayBufferToDataUrl(arrayBuffer, mimeType){
+export function arrayBufferToDataUrl(arrayBuffer : ArrayBuffer, mimeType : string) : string {
   let binary = '';
   let bytes = new Uint8Array(arrayBuffer);
   for (let byte of bytes) {
@@ -78,11 +79,16 @@ export function arrayBufferToDataUrl(arrayBuffer, mimeType){
  * @param {File|Blob} file - File object containing text.
  * @returns {ArrayBuffer} - ArrayBuffer with data from file.
  */
-export async function fileToArrayBuffer(file){
-  return await new Promise((resolve, reject) => {
+export function fileToArrayBuffer(file : File) : Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
     let fileReader = new FileReader();
     fileReader.onload = () => {
-      resolve(fileReader.result);
+      let result = fileReader.result;
+      if (result instanceof ArrayBuffer){
+        resolve(result);
+      } else {
+        reject("Could not read file " + file);
+      }
     };
     fileReader.onerror = () => {
       reject(fileReader.error)
@@ -96,7 +102,7 @@ export async function fileToArrayBuffer(file){
  * @param {string} string - string to encode.
  * @returns {ArrayBuffer} - Data as an ArrayBuffer.
  */
-export function stringToArrayBuffer(string){
+export function stringToArrayBuffer(string : string) : ArrayBuffer{
   return Uint8Array.from([...string].map(ch => ch.charCodeAt(0))).buffer;
 }
 
@@ -105,39 +111,24 @@ export function stringToArrayBuffer(string){
  * @param {ArrayBuffer} arrayBuffer - ArrayBuffer to copy.
  * @returns {ArrayBuffer} - new ArrayBuffer.
  */
-export function copyArrayBuffer(arrayBuffer){
+export function copyArrayBuffer(arrayBuffer : ArrayBuffer) : ArrayBuffer {
     let dst = new ArrayBuffer(arrayBuffer.byteLength);
     new Uint8Array(dst).set(new Uint8Array(arrayBuffer));
     return dst;
 }
 
 
-export function getOpt(...args){
+export function getOpt(...args : string[]){
   let index = 0;
-  let kwargs = {};
+  let kwargs : {[key:string]: string} = {};
   while (index < args.length){
     if (args[index].startsWith('-')){
       let kwPair = args.splice(index, 2);
       let name = kwPair[0].substr(1);
-      kwargs[name] = kwPair[1] || {};
+      kwargs[name] = kwPair[1] || '';
     }
     index ++;
   }
   return [args, kwargs];
 }
 
-/**
- * Compare two FileNodes or FileObjects by id.
- * @param {FileNode|AbstractFile} a - First object to compare.
- * @param {FileNode|AbstractFile} b - Second object to compare.
- * @returns {int} - comparison result.
- */
-export function compareById(a, b) {
-    if (a.id > b.id){
-        return 1;
-    }
-    if (a.id < b.id){
-        return -1;
-    }
-    return 0;
-}

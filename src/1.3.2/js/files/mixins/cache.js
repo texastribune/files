@@ -4,8 +4,8 @@
  * Extends a file system with StateMixin so that it can cache fileObjects that
  * have already been retrieved by their path.
  * @mixin CacheMixin
- * @param {AbstractDirectory} DirectoryClass - A subclass of BaseFileSystem.
- * @returns {AbstractDirectory}
+ * @param {Directory} DirectoryClass - A subclass of BaseFileSystem.
+ * @returns {Directory}
  */
 export let CacheMixin = (DirectoryClass) => {
     return class extends DirectoryClass {

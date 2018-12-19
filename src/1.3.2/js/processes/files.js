@@ -1,10 +1,10 @@
-import {AbstractDirectory, AbstractFile} from "../files/base.js";
+import {Directory, BasicFile} from "../files/base.ts";
 
 let idCounter = 0;
 
 let processes = [];
 
-export class ProcessFile extends AbstractFile {
+export class ProcessFile extends BasicFile {
     constructor(){
         super();
 
@@ -51,7 +51,7 @@ export class ProcessFile extends AbstractFile {
     }
 }
 
-export class ProcessDirectory extends AbstractDirectory {
+export class ProcessDirectory extends Directory {
     constructor(){
         super();
 

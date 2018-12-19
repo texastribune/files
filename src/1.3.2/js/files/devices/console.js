@@ -1,8 +1,8 @@
-import {AbstractFile} from "../base.js";
-import {parseTextArrayBuffer} from "../../utils.js";
+import {BasicFile} from "../base.ts";
+import {parseTextArrayBuffer} from "../../utils.ts";
 
 
-export class ConsoleFile extends AbstractFile {
+export class ConsoleFile extends BasicFile {
     constructor() {
         super();
         this._created = new Date();

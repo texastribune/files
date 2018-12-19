@@ -1,7 +1,7 @@
 import {ConsoleFile} from "./console.js";
 import {NullFile} from "./null.js";
 import {DomElementDevice} from "./dom.js";
-import {AbstractDirectory} from "../base.js";
+import {Directory} from "../base.ts";
 
 
 const deviceFiles = [
@@ -9,7 +9,7 @@ const deviceFiles = [
   new NullFile()
 ];
 
-export class DeviceDirectory extends AbstractDirectory {
+export class DeviceDirectory extends Directory {
     constructor(){
         super();
         this._created = new Date();

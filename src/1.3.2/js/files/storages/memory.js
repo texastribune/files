@@ -1,5 +1,5 @@
 import {FileNotFoundError, AbstractFileStorage} from "./base.js";
-import {stringToArrayBuffer, copyArrayBuffer} from "../../utils.js";
+import {stringToArrayBuffer, copyArrayBuffer} from "../../utils.ts";
 
 if (Object.values === undefined){
   // Polyfill for testing with Node versions < 7.0.

@@ -1,4 +1,4 @@
-import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../../utils.js";
+import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../../utils.ts";
 import {FileNotFoundError, AbstractFileStorage} from "./base.js";
 
 

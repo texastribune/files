@@ -1,4 +1,4 @@
-import {getOpt} from "../utils.js";
+import {getOpt} from "../utils.ts";
 
 
 export default async function main(...args) {

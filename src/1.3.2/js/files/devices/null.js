@@ -1,7 +1,7 @@
-import {AbstractFile} from "../base.js";
+import {BasicFile} from "../base.ts";
 
 
-export class NullFile extends AbstractFile {
+export class NullFile extends BasicFile {
   constructor() {
     super();
     this._created = new Date();
