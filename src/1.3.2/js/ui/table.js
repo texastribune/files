@@ -1,6 +1,6 @@
 import {Dialog} from "./dialog.js";
-import {Element, DroppableMixin, DraggableMixin} from "./element.js";
-import {compareDateStrings, compareNumbers, compareStrings} from "../utils.ts";
+import {Element, DroppableMixin, DraggableMixin, ScrollWindowElement} from "./element.js";
+import {compareDateStrings, compareNumbers, compareStrings} from "../utils.js";
 
 
 class TableElement extends Element {
@@ -31,6 +31,7 @@ class BaseRow extends TableElement {
             display: flex;
             width: 100%;
             height: var(--table-row-height, 30px);
+            line-height: var(--table-row-height, 30px);
         }
      `;
   }
@@ -50,17 +51,19 @@ class BaseRow extends TableElement {
   }
 }
 
-export class Header extends TableElement {
+export class Header extends BaseRow {
+  constructor(){
+    super();
+    this.setAttribute('slot', Table.headerSlotName);
+  }
+
   get css(){
     // language=CSS
-    return `
+    return super.css + `
         :host {
             --table-header-text-color: white;
             --table-header-color: #5c6873;
-          
-            display: flex;
-            width: 100%;
-            height: var(--table-row-height, 30px);
+            
             color: var(--table-header-text-color);
             background: var(--table-header-color);
             text-transform: uppercase;
@@ -73,36 +76,10 @@ export class Header extends TableElement {
         }
      `;
   }
-
-  get template(){
-    return `
-      <slot></slot>
-    `;
-  }
 }
 
-export class Body extends TableElement {
-  get css(){
-    // language=CSS
-    return `
-        :host {
-            width: 100%;
-        }
-        div {
-          height: inherit;
-          overflow-y: scroll;
-        }
-     `;
-  }
+export class Body extends ScrollWindowElement {
 
-  get template(){
-    return `
-        <div>
-            <slot></slot>
-        </div>
-     
-    `;
-  }
 }
 
 /**
@@ -122,7 +99,19 @@ export class Row extends DraggableMixin(DroppableMixin(BaseRow)) {
     this.hidden = false;
 
     this.onclick = (event) => {
-      this.toggleSelected();
+      let includeBetween, selectMultiple;
+      if (event.shiftKey){
+        includeBetween = true;
+        selectMultiple = true;
+      }else if (event.ctrlKey || event.metaKey){
+        includeBetween = false;
+        selectMultiple = true;
+      }else{
+        includeBetween = false;
+        selectMultiple = false;
+      }
+
+      this.table.toggleRowSelection(this, selectMultiple, includeBetween);
     }
   }
 
@@ -189,8 +178,10 @@ export class Row extends DraggableMixin(DroppableMixin(BaseRow)) {
   set selected(value){
     if (value){
       this.classList.add(this.constructor.selectedClass);
+      this.dispatchEvent(new Event('selected'));
     } else {
       this.classList.remove(this.constructor.selectedClass);
+      this.dispatchEvent(new Event('deselected'));
     }
   }
 
@@ -211,7 +202,23 @@ export class Data extends TableElement {
   constructor(){
     super();
 
-    this._colSpan = 1;
+    this.onclick = () => {
+      if (this.parentElement instanceof Header){
+        this.table.sortColumn(this.column);
+      }
+    }
+  }
+
+  static get observedAttributes() {
+    return ['width'];
+  }
+
+  static get ascendingSortClass(){
+    return "asc";
+  }
+
+  static get descendingSortClass(){
+    return "des";
   }
 
   get css(){
@@ -226,7 +233,21 @@ export class Data extends TableElement {
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-     `;
+        
+        :host::after {
+            float: right;
+            margin-right: 10px;
+        }
+
+        :host(.${this.constructor.ascendingSortClass})::after {
+           content: "\\25BC";
+        }
+
+        :host(.${this.constructor.descendingSortClass})::after {
+            content: "\\25B2";
+        }
+
+    `;
   }
 
   get template(){
@@ -243,8 +264,43 @@ export class Data extends TableElement {
     this.innerText = value.toString();
   }
 
+  get width(){
+    return Number.parseInt(this.style.flex);
+  }
+
+  get column(){
+    return Array.from(this.parentElement.children).indexOf(this);
+  }
+
+  get sortOrder(){
+    if (this.classList.contains(this.constructor.ascendingSortClass)){
+      return 1;
+    } else if (this.classList.contains(this.constructor.descendingSortClass)){
+      return -1;
+    }
+    return 0;
+  }
+
   compare(dataElement){
     return this.data.localeCompare(dataElement.data);
+  }
+
+  toggleSortOrder(){
+    let next = this.constructor.ascendingSortClass;
+    if (this.classList.contains(this.constructor.ascendingSortClass)){
+      next = this.constructor.descendingSortClass;
+    } else if (this.classList.contains(this.constructor.descendingSortClass)){
+      next = null;
+    }
+
+    this.classList.remove(
+      this.constructor.ascendingSortClass,
+      this.constructor.descendingSortClass
+    );
+
+    if (next !== null) {
+      this.classList.add(next);
+    }
   }
 }
 
@@ -254,33 +310,35 @@ export class Data extends TableElement {
  * @extends Element
  * @mixes DroppableMixin
  */
-export class Table extends DroppableMixin(Element) {
-  constructor(selectMultiple){
+export class Table extends DroppableMixin(ScrollWindowElement) {
+  constructor(){
     super();
 
-    this._selectMultiple = selectMultiple || false;
     this.contextMenu = null;
 
     // Deselected other rows if selectMultiple is false
     this.onclick = (event) => {
-      if (event.target instanceof Row && !this._selectMultiple) {
+      let element = event.target;
+      if (element instanceof Row && !this.selectMultiple) {
         for (let row of this.selectedRows){
-          if (row !== event.target){
+          if (row !== element){
             row.selected = false;
           }
         }
       }
     };
+
+    this._sortStack = [];
   }
 
   // getters
 
-  static get headerClass(){
+  static get headerSlotName(){
     return 'header';
   }
 
-  static get bodyClass(){
-    return 'body';
+  static get headerContainerClass(){
+    return 'header';
   }
 
   static get showHiddenClass(){
@@ -298,6 +356,7 @@ export class Table extends DroppableMixin(Element) {
             --table-row-height: 30px;
             --table-background-color: white;
           
+            position: relative;
             padding: 0;
             width: 100%;
             height: 400px;
@@ -312,13 +371,11 @@ export class Table extends DroppableMixin(Element) {
             color: var(--selected-item-color);
             font-weight: bold;
         }
+        
+        .${this.constructor.headerContainerClass} {
+            width: 100%;
+        }
      `;
-  }
-
-  get template(){
-    return `
-      <slot></slot>
-    `;
   }
 
   get selectedData(){
@@ -332,6 +389,20 @@ export class Table extends DroppableMixin(Element) {
 
   get selectedRows(){
     return Array.from(this.querySelectorAll(`.${Row.selectedClass}`));
+  }
+
+  set selectedRows(rows){
+    let oldRows = new Set(this.selectedRows);
+    let newRows = new Set(rows);
+    let addedRows = [...newRows].filter(x => !oldRows.has(x));
+    let removedRows = [...oldRows].filter(x => !newRows.has(x));
+
+    for (let row of removedRows){
+      row.selected = false;
+    }
+    for (let row of addedRows){
+      row.selected = true;
+    }
   }
 
   get showHidden(){
@@ -366,6 +437,10 @@ export class Table extends DroppableMixin(Element) {
 
   // setters
 
+  get selectMultiple(){
+    return this._selectMultiple || false;
+  }
+
   set selectMultiple(value){
     this._selectMultiple = value;
     for (let row of this.flatChildren(Row)){
@@ -381,8 +456,18 @@ export class Table extends DroppableMixin(Element) {
     }
   }
 
-  clone(){
-    return new this.constructor(columnsCopy, this._selectMultiple);
+  get mainHeader(){
+    return this.querySelector('table-header');
+  }
+
+  render(shadowRoot){
+    let headerContainer = document.createElement('div');
+    headerContainer.className = this.constructor.headerContainerClass;
+    let headerSlot = document.createElement('slot');
+    headerSlot.name = this.constructor.headerSlotName;
+    headerContainer.appendChild(headerSlot);
+    shadowRoot.appendChild(headerContainer);
+    super.render(shadowRoot);
   }
 
   // Internal Events
@@ -428,6 +513,109 @@ export class Table extends DroppableMixin(Element) {
     if (change && this.onSelectionChanged){
       this.onSelectionChanged(newSelectedRows, addedRows, removedRows);
     }
+  }
+
+  sortColumn(index){
+    let header = this.mainHeader;
+    if (header){
+      let dataElement = header.children.item(index);
+      if (dataElement) {
+        dataElement.toggleSortOrder();
+        if (dataElement.sortOrder === 0){
+          let index = this._sortStack.indexOf(dataElement);
+          if (index){
+            this._sortStack.splice(index, 1);
+          }
+        } else {
+          this._sortStack.push(dataElement);
+        }
+        this._sort();
+      }
+    }
+  }
+
+  _sort(){
+    let frag = document.createDocumentFragment();
+    let rows = this.flatChildren(Row);
+
+    // Create array of arrays that have form [column index, sort order] for each column in sort stack.
+    let sortData = [];
+    for (let dataElement of this._sortStack) {
+      let order = dataElement.sortOrder;
+      if (order !== 0) {
+        sortData.unshift([dataElement.column, dataElement.sortOrder]);
+      }
+    }
+    rows = rows.sort((row1, row2) => {
+      for (let items of sortData){
+        let index = items[0];
+        let order = items[1];
+        let dataElement1 = row1.children.item(index);
+        let dataElement2 = row2.children.item(index);
+        dataElement1.compare(dataElement2);
+        let result = order * dataElement1.compare(dataElement2);
+        if (result !== 0) {
+          return result;
+        }
+      }
+      return 0;
+    });
+    for (let row of rows){
+      frag.appendChild(row);
+    }
+    this.appendChild(frag);
+  }
+
+  toggleRowSelection(rowElement, selectMultiple, includeBetween) {
+    /* Toggles the selection of a row. The argument can either be a row element in
+     * the browser or null. If null it will deselect all rows. A selected event is
+     * fired on the row element when a row is first selected and deselect events
+     * are similarly fired when its deselected. */
+    if (!this.selectMultiple){
+      selectMultiple = false;
+      includeBetween = false;
+    }
+
+    let oldRows = new Set(this.selectedRows);  // Make copy
+
+    // Initialize new rows. If selectMultiple is true, we include the old selection.
+    let newRows;
+    if (selectMultiple){
+      newRows = new Set(oldRows);
+    } else {
+      newRows = new Set();
+    }
+
+    // If only the toggled rowElement was selected before we remove it. Otherwise we add it.
+    if (!includeBetween && oldRows.has(rowElement)){
+      newRows.delete(rowElement);
+    }else if (rowElement !== null){
+      newRows.add(rowElement);
+    }
+
+    // Selects the rows between the previously selected rows and the toggled row if
+    // includeBetween and selectMultiple are true.
+    if (selectMultiple && includeBetween && oldRows.size > 0){
+      let sliceIndex;
+      let children = Array.from(this.children);
+      let sectionIndex = children.indexOf(rowElement);
+      for (let row of oldRows){
+        let index = children.indexOf(row);
+        if (!sliceIndex || Math.abs(index - sectionIndex) < Math.abs(sliceIndex - sectionIndex)){
+          sliceIndex = index;
+        }
+      }
+      let start = Math.min(sliceIndex, sectionIndex) + 1;
+      let end = Math.max(sliceIndex, sectionIndex);
+      let rowsBetween = children.slice(start, end);
+      for (let row of rowsBetween){
+        if (this.showHidden || !row.hidden) {
+          newRows.add(row);
+        }
+      }
+    }
+
+    this.selectedRows = newRows;
   }
 }
 

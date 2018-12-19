@@ -22,30 +22,28 @@
             }
         </style>
 
-        <selectable-table>
+        <selectable-table selectMultiple>
             <table-header>
                 <table-data>Stuff</table-data>
                 <table-data>Other Stuff</table-data>
             </table-header>
-            <table-body style="height: 40px">
-                <table-row>
-                    <table-data>1</table-data>
-                    <table-data>2</table-data>
-                </table-row>
-                <table-row>
-                    <table-data>3</table-data>
-                    <table-data>4</table-data>
-                </table-row>
-            </table-body>
+            <table-row>
+                <table-data>1</table-data>
+                <table-data>2</table-data>
+            </table-row>
+            <table-row>
+                <table-data>3</table-data>
+                <table-data>4</table-data>
+            </table-row>
         </selectable-table>
 
         <script type="application/javascript">
-            let table = document.querySelector('table-body');
+            let table = document.querySelector('selectable-table');
             for (let i = 0; i < 20; i++) {
                 let row = document.createElement('table-row');
                 for (let j = 0; j < 2; j++) {
                     let data = document.createElement('table-data');
-                    data.innerText = `${i}${j}`;
+                    data.innerText = `${j === 0 ? Math.floor(i / 2) : i}${j}`;
                     row.appendChild(data);
                 }
                 table.appendChild(row);

@@ -15,6 +15,9 @@ class Element extends HTMLElement {
     for (let attr of this.constructor.observedAttributes){
       let value = this.getAttribute(attr);
       if (value !== null) {
+        if (value === ""){
+          value = true;
+        }
         this[attr] = value;
       }
     }
@@ -44,6 +47,7 @@ class Element extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
       this[name] = newValue;
+      this.refresh();
   }
 
   /**
@@ -310,6 +314,63 @@ let DraggableMixin = (elementClass) => {
     }
   };
 };
+
+export class ScrollWindowElement extends Element {
+  constructor(){
+    super();
+
+    this._speed = 1;
+
+    this.onwheel = (event) => {
+      this.scrollPosition -= event.deltaY * this.speed;
+    };
+  }
+
+  static get observedAttributes() {
+    return ['speed'];
+  }
+
+  get scrollPosition(){
+    return Number.parseInt(this.pane.style.top);
+  }
+
+  set scrollPosition(value){
+    let paneMaxOffset = this.view.getBoundingClientRect().height - this.pane.getBoundingClientRect().height;
+    this.pane.style.top = Math.min(
+        0,
+        Math.max(paneMaxOffset, Number.parseInt(value))
+    ).toString();
+  }
+
+  get speed(){
+    return this._speed;
+  }
+
+  set speed(value){
+    this._speed = Number.parseInt(value);
+  }
+
+  render(shadowRoot) {
+    super.render(shadowRoot);
+
+    this.view = document.createElement('div');
+    this.view.style.position = 'relative';
+    this.view.style.overflowY = 'hidden';
+    this.view.style.height = 'inherit';
+    this.view.style.width = '100%';
+
+    this.pane = document.createElement('div');
+    this.pane.style.position = 'absolute';
+    this.pane.style.top = '0';
+    this.pane.style.width = '100%';
+
+    let slot = document.createElement('slot');
+
+    this.pane.appendChild(slot);
+    this.view.appendChild(this.pane);
+    shadowRoot.appendChild(this.view);
+  }
+}
 
 
 export {Element, DroppableMixin, DraggableMixin}
