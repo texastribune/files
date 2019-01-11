@@ -1,6 +1,4 @@
 import History from "./history.js";
-import {Dialog, ConfirmDialog} from "./dialog.js";
-import {Element} from "./element.js";
 import {Message} from "./messages.js";
 import {FileNotFoundError} from "../files/base.ts";
 import {convertBytesToReadable, compareDateStrings,
@@ -8,6 +6,8 @@ import {convertBytesToReadable, compareDateStrings,
 import * as icons from './icons.js';
 import {parseConfigFile} from "./config.js";
 import {updateConfigFile} from "./config.js";
+import {Dialog} from "elements/lib/dialog";
+import {Table} from "elements/lib/table";
 
 
 /**

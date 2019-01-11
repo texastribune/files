@@ -1,15 +1,16 @@
-import {Directory, BasicFile} from "../files/base.ts";
+import {Directory, BasicFile} from "../files/base.js";
 
 let idCounter = 0;
 
-let processes = [];
+let processes : ProcessFile[] = [];
 
-export class ProcessFile extends BasicFile {
+export abstract class ProcessFile extends BasicFile {
+    private readonly _id : number;
+    private readonly _created = new Date();
+    private _lastModified = new Date();
+
     constructor(){
         super();
-
-        this._created = new Date();
-        this._lastModified = new Date();
 
         idCounter ++;
         this._id = idCounter;
@@ -51,14 +52,9 @@ export class ProcessFile extends BasicFile {
     }
 }
 
-export class ProcessDirectory extends Directory {
-    constructor(){
-        super();
-
-        this._created = new Date();
-        this._lastModified = new Date();
-    }
-
+export abstract class ProcessDirectory extends Directory {
+    private readonly _created = new Date();
+    private _lastModified = new Date();
 
     get id(){
         return 'proc';
