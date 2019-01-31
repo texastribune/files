@@ -1,72 +1,87 @@
-import {Element} from "./element.js";
 
-export class Message extends Element {
-  constructor(message, error, delay){
-    super();
+import {CustomElement} from "elements/lib/element";
+import {FileBrowser} from "./browser";
 
-    this._delay = delay || null;
-    this._errorClass = 'error';
-    this.className = 'message';
-    this.buttonClass = 'dialog-button delete';
-    this.message = message;
-    this.error = error || false;
+export class Message extends CustomElement {
+  private delay : number | null = null;
 
-    if (this._delay){
-      window.setTimeout(() => {
-        this.remove();
-      }, this._delay)
-    }
+
+  static className = 'error';
+
+  static get observedAttributes() {
+    return ['delay'];
   }
 
-  static get type(){
-    return 'div';
+  get css() {
+    // language=CSS
+    return `
+      :host {
+        --message-height: 24px;
+        --success-color: #90ee90;
+        --error-color: lightcoral;
+
+        display: inline-block;
+        box-sizing: border-box;
+        position: relative;
+        width: 75%;
+        height: var(--message-height);
+        line-height: var(--message-height);
+        padding-left: 5px;
+        border-bottom: 2px solid var(--success-color);
+        overflow: hidden;
+      }
+      
+      :host([error]){
+        border-bottom: 2px solid var(--error-color);
+      }
+
+      div {
+        width: var(--message-height);
+        height: var(--message-height);
+      }
+    `
   }
 
   get message(){
-    return this._message;
-  }
-
-  get error(){
-    return this._error;
+    return this.innerText;
   }
 
   set message(value){
-    this._message = value;
-    this._text.innerText = this._message;
+    this.innerText = value;
   }
 
-  set error(value){
-    this._error = Boolean(value);
-    if (this._error){
-      this.element.classList.add(this._errorClass);
-    } else {
-      this.element.classList.remove(this._errorClass);
-    }
-  }
+  render(shadowRoot: ShadowRoot): void {
+    let slot = document.createElement('slot');
+    shadowRoot.appendChild(slot);
 
-  set buttonClass(value){
-    this._deleteButton.className = value;
-  }
-
-  render() {
-    super.render();
-
-    this._text = document.createElement('span');
-
-    this._deleteButton = document.createElement('div');
-    this._deleteButton.onclick = () => {
-      this.element.parentElement.removeChild(this.element);
-    };
-    this._deleteButton.onclick = (event) => {
+    let deleteButton = document.createElement('div');
+    deleteButton.onclick = (event) => {
       event.preventDefault();
       this.remove();
     };
 
-    this.element.appendChild(this._text);
-    this.element.appendChild(this._deleteButton);
+    shadowRoot.appendChild(deleteButton);
   }
 
-  remove(){
-    this.element.parentElement.removeChild(this.element);
+
+  updateAttributes(attributes: { [p: string]: string | null }): void {
+    if (attributes.delay !== null) {
+      this.delay = Number.parseInt(attributes.delay);
+    } else {
+      this.delay = null;
+    }
+  }
+
+
+  connectedCallback(): void {
+    super.connectedCallback();
+
+    if (this.delay !== null){
+      window.setTimeout(() => {
+        this.remove();
+      }, this.delay);
+    }
   }
 }
+
+customElements.define('user-message', Message);

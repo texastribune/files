@@ -1,13 +1,49 @@
 import History from "./history.js";
-import {Message} from "./messages.js";
-import {FileNotFoundError} from "../files/base.ts";
+import {Message} from "./messages";
+import {File, Directory, FileNotFoundError} from "../files/base";
 import {convertBytesToReadable, compareDateStrings,
-        compareNumbers, compareStrings} from "../utils.ts";
+        compareNumbers, compareStrings} from "../utils";
 import * as icons from './icons.js';
-import {parseConfigFile} from "./config.js";
-import {updateConfigFile} from "./config.js";
+import {parseConfigFile} from "./config";
+import {updateConfigFile} from "./config";
 import {Dialog} from "elements/lib/dialog";
-import {Table} from "elements/lib/table";
+import {Table, Header, Row, Data} from "elements/lib/table.js";
+
+class FileTableRow extends Row {
+  private file : File | null = null;
+
+  getFile() : File | null {
+    return this.file
+  }
+
+  setFile(value : File) {
+    this.file = value;
+
+    let idColumn = document.createElement('table-data') as Data;
+    let nameColumn = document.createElement('table-data') as Data;
+    let sizeColumn = document.createElement('table-data') as Data;
+    let lastModifiedColumn = document.createElement('table-data') as Data;
+    let createdColumn = document.createElement('table-data') as Data;
+    let typeColumn = document.createElement('table-data') as Data;
+
+    idColumn.innerText = value.id;
+    nameColumn.innerText = value.name;
+    sizeColumn.innerText = convertBytesToReadable(value.size);
+    lastModifiedColumn.innerText = new Date(value.lastModified).toLocaleString();
+    createdColumn.innerText = new Date(value.created).toLocaleString();
+    typeColumn.innerText = value.mimeType;
+
+    this.removeChildren();
+    this.appendChildren([
+        idColumn,
+        nameColumn,
+        sizeColumn,
+        lastModifiedColumn,
+        createdColumn,
+        typeColumn,
+    ]);
+  }
+}
 
 
 /**
@@ -16,316 +52,164 @@ import {Table} from "elements/lib/table";
  * @param {Table} table - The table to use for displaying the files.
  */
 export class FileBrowser extends Element {
-  constructor(rootDirectory) {
+  // Class names
+  static actionsContainerClass = 'file-actions-container';
+  static tableContainerClass = 'file-browser-table-container';
+  static tableIconClass = 'icon';
+  static activeAjaxClass = 'ajax-active';
+  static searchInputClass = 'file-search-input';
+  static messageContainerClass = 'file-message-container';
+  static menuContainerClass =  'file-menu-container';
+  static searchContainerClass =  'file-search-container';
+  static stateManagerContainerClass = 'file-breadcrumbs-container';
+  static contextMenuClass = 'file-browser-context-menu';
+  static dropdownMenuButtonClass = 'dropdown-menu button';
+  static fileBrowserDialogClass = 'file-browser-dialog';
+
+  private searchPending : boolean = false;  // For search debounce
+  private messageRemovalDelay : number | null = null;
+  private maxNumMove = 30;  // Maximum number of files that can be moved at once
+  private busy : Promise<void>;
+
+  private readonly actionsContainer : HTMLDivElement;
+  private readonly messagesContainer : HTMLDivElement;
+  private readonly menusContainer : HTMLDivElement;
+  private readonly searchContainer : HTMLDivElement;
+  private readonly tableContainer : HTMLDivElement;
+  private readonly history : History;
+
+  private readonly table : Table;
+  private readonly contextMenu : Dialog;
+  private rootDirectory : Directory | null = null;
+  private dirPath : Directory[] = [];
+
+  private readonly dropdownMenuIcon : SVGSVGElement;
+  private readonly carrotIcon : SVGSVGElement;
+  private readonly searchIcon : SVGSVGElement;
+  private readonly folderIcon : SVGSVGElement;
+  private readonly documentIcon : SVGSVGElement;
+
+
+  constructor() {
     super();
 
     // Sub elements
-    this._table = new Table();
-    this._history = new History();
+    this.table = document.createElement('selectable-table') as Table;
+    this.history = document.createElement('bread-crumbs') as History;
 
-    // Initialize variables
-    this.searchPending = false;  // For search debounce
-    this.messageRemovalDelay = null;
-    this.maxNumMove = 30;  // Maximum number of files that can be moved at once
+    this.dropdownMenuIcon = FileBrowser.createIconTemplate(icons.dropdownMenuIcon);
+    this.dropdownMenuIcon.classList.add(FileBrowser.tableIconClass);
 
-    // Class names
-    this.className = 'file-browser-container';
-    this.actionsContainerClass = 'file-actions-container';
-    this.tableContainerClass = 'file-browser-table-container';
-    this.tableIconClass = 'icon';
-    this.activeAjaxClass = 'ajax-active';
-    this.searchInputClass = 'file-search-input';
-    this.messageContainerClass = 'file-message-container';
-    this.menuContainerClass =  'file-menu-container';
-    this.searchContainerClass =  'file-search-container';
-    this.stateManagerContainerClass = 'file-breadcrumbs-container';
-    this.contextMenuClass = 'file-browser-context-menu';
-    this.drowdownMenuButtonClass = 'dropdown-menu button';
-    this.fileBrowserDialogClass = 'file-browser-dialog';
+    this.carrotIcon = FileBrowser.createIconTemplate(icons.carrotIcon);
+    this.carrotIcon.classList.add(FileBrowser.tableIconClass);
+    this.carrotIcon.classList.add('small');
 
-    this._dropdownMenuIcon = document.createElement('template');
-    this._dropdownMenuIcon.innerHTML = icons.dropdownMenuIcon;
-    this._dropdownMenuIcon.content.firstChild.classList.add(this.tableIconClass);
+    this.searchIcon = FileBrowser.createIconTemplate(icons.searchIcon);
+    this.searchIcon.classList.add(FileBrowser.tableIconClass);
 
-    this._carrotIcon = document.createElement('template');
-    this._carrotIcon.innerHTML = icons.carrotIcon;
-    this._carrotIcon.content.firstChild.classList.add(this.tableIconClass);
-    this._carrotIcon.content.firstChild.classList.add('small');
+    this.folderIcon = FileBrowser.createIconTemplate(icons.folderIcon);
+    this.folderIcon.classList.add(FileBrowser.tableIconClass);
 
-    this._searchIcon = document.createElement('template');
-    this._searchIcon.innerHTML = icons.searchIcon;
-    this._searchIcon.content.firstChild.classList.add(this.tableIconClass);
-
-    this._folderIcon = document.createElement('template');
-    this._folderIcon.innerHTML = icons.folderIcon;
-    this._folderIcon.content.firstChild.classList.add(this.tableIconClass);
-
-    this._documentIcon = document.createElement('template');
-    this._documentIcon.innerHTML = icons.documentIcon;
-    this._documentIcon.content.firstChild.classList.add(this.tableIconClass);
+    this.documentIcon = FileBrowser.createIconTemplate(icons.documentIcon);
+    this.documentIcon.classList.add(FileBrowser.tableIconClass);
 
     // Context menu
-    this.contextMenu = this.createContextMenu();
+    this.contextMenu = document.createElement('base-dialog') as Dialog;
+    this.contextMenu.className = FileBrowser.contextMenuClass;
+    this.contextMenu.name = "Settings";
 
     // Actions container
     this.actionsContainer = document.createElement('div');
-    this.actionsContainer.className = this.actionsContainerClass;
-    this.breadcrumbsContainer = this.createBreadcrumbs();
-    this.messagesContainer = this.createMessages();
+    this.actionsContainer.className = FileBrowser.actionsContainerClass;
+
+    this.messagesContainer = document.createElement('div');
+    this.messagesContainer.className = FileBrowser.messageContainerClass;
+
     this.menusContainer = this.createMenus();
-    this.breadcrumbsContainer = this.createBreadcrumbs();
     this.searchContainer = this.createSearchElements();
-    this.tableContainer = this.createTableContainer();
-    this.tableContainer.appendChild(this._table.element);
+
+    this.tableContainer = document.createElement('div');
+    this.tableContainer.appendChild(this.table);
+    this.tableContainer.className = FileBrowser.tableContainerClass;
 
     // Add action elements
-    this.actionsContainer.appendChild(this.breadcrumbsContainer);
+    this.actionsContainer.appendChild(this.history);
     this.actionsContainer.appendChild(this.messagesContainer);
     this.actionsContainer.appendChild(this.menusContainer);
     this.actionsContainer.appendChild(this.searchContainer);
 
-    this._element.appendChild(this.actionsContainer);
-    this._element.appendChild(this.tableContainer);
-
-    this._table.columns = this.columns;
-    this._table.onRowDblClick = (row, event) => {
-        if (row.data.directory){
-            this.setPath(this.path.concat([row.data.name]));
-        } else {
-            if (row.data.url.startsWith('data')){
-                // Download if its a data url.
-                let link = document.createElement('a');
-                link.href = row.data.url;
-                link.setAttribute('download', row.data.name);
-                link.click();
-            } else {
-                window.open(row.data.url);
-            }
-        }
-    };
-    this._table.onContextMenu = (event) => {
+    this.table.oncontextmenu = (event : MouseEvent) => {
         this.showContextMenu(event.pageX, event.pageY);
     };
-    this._table.onRowsChanged = (rows) => {
-        for (let row of rows) {
-            this.initializeNewRow(row);
-        }
-    };
 
-    this._table.onDrop = (event) => {
+    this.table.ondrop = (event : DragEvent) => {
         this.handleDataTransfer(event.dataTransfer);
     };
 
-    this._history.onClick = (path) => {
+    this.history.onclick = (path : MouseEvent) => {
         this.setPath(path);
     };
-    this._history.onDragOver = (path) => {
+    this.history.addDr = (path : string[]) => {
         this.setPath(path);
     };
 
-    this._rootDirectory = rootDirectory;
-    this._currentDirectory = rootDirectory;
-
-    this._busy = Promise.resolve();
+    this.busy = Promise.resolve();
     this.setPath([]);
   }
 
-  // getters
-
-  static get type(){
-    return 'div';
-  }
-
-  /**
-   * An array of Column objects for the table.
-   */
-  get columns(){
-    return [
-      new Column(
-        "",
-        (element, rowData) => {
-          // td = element
-          let box = document.createElement('div');
-          box.className = 'selected-box';
-
-          element.appendChild(box);
-        },
-        null,
-        1
-      ),
-      new Column(
-        'Id',
-        (element, rowData) => {
-          element.innerText = rowData.id;
-        },
-        null,
-        2,
-        false
-      ),
-      new Column(
-        'Name',
-        (element, rowData) => {
-          // Create icon
-          let icon;
-          let expandedImg;
-          if (rowData.icon){
-            icon = document.createElement('img');
-            icon.width = 22;
-            icon.height = 22;
-            icon.className = this.tableIconClass;
-
-            if (rowData.directory) {
-              icon.src = rowData.icon;
-
-            } else {
-              icon.src = rowData.icon;
-
-              // Create expanded image
-              expandedImg = document.createElement('img');
-              expandedImg.className = 'hover-image';
-              expandedImg.style.display = 'none';
-
-              icon.onmouseover = (event) => {
-                if (expandedImg) {
-                  expandedImg.src = rowData.url;
-                }
-                expandedImg.style.display = 'inline-block';
-              };
-              icon.onmouseout = () => {
-                expandedImg.style.display = 'none';
-              };
-            }
-          } else {
-            if (rowData.directory){
-              icon = this._folderIcon.content.cloneNode(true);
-            } else {
-              icon = this._documentIcon.content.cloneNode(true);
-            }
-            // icon.setAttribute('class', this.tableIconClass);
-          }
-          icon.ondragstart = () => {return false};
-          element.appendChild(icon);
-          if (expandedImg){
-            element.appendChild(expandedImg);
-          }
-
-          // Create name
-          let text = document.createTextNode(rowData.name || 'undefined');
-          element.appendChild(text);
-        },
-        (rowData1, rowData2) => {
-          return compareStrings(rowData1.name, rowData2.name)
-        },
-        8
-      ),
-      new Column(
-        'Size',
-        (element, rowData) => {
-          if (rowData.directory) {
-            element.innerText = '---';
-          } else {
-            let size = rowData.size;
-            let readableSize;
-            if (size){
-              readableSize = convertBytesToReadable(size);
-            }
-            element.innerText = readableSize || '---';
-          }
-        },
-        (rowData1, rowData2) => {
-          return compareNumbers(rowData1.size, rowData2.size)
-        },
-        2
-      ),
-      new Column(
-        'Last Modified',
-        (element, rowData) => {
-          element.innerText = new Date(rowData.lastModified).toLocaleString();
-        },
-        (rowData1, rowData2) => {
-          return compareDateStrings(rowData1.lastModified, rowData2.lastModified)
-        },
-        4
-      ),
-      new Column(
-        'Created',
-        (element, rowData) => {
-          element.innerText = new Date(rowData.created).toLocaleString();
-        },
-        (rowData1, rowData2) => {
-          return compareDateStrings(rowData1.created, rowData2.created)
-        },
-        4
-      ),
-      new Column(
-        'Type',
-        (element, rowData) => {
-          element.innerText = rowData.mimeType;
-        },
-        (rowData1, rowData2) => {
-          return compareDateStrings(rowData1.mimeType, rowData2.mimeType)
-        },
-        4,
-        false
-      )
-    ];
-  }
-
-  /**
-   * The Table object for displaying the files.
-   */
-  get table(){
-    return this._table;
+  private static createIconTemplate(icon : string){
+    let template = document.createElement('template');
+    template.innerHTML = icons.dropdownMenuIcon;
+    return template.content.firstChild as SVGSVGElement;
   }
 
   /**
    * An instance of AbstractDirectory to browse.
    */
-  get currentDirectory(){
-    return this._currentDirectory;
+  get currentDirectory() : Directory | null {
+    return this.dirPath[-1];
   }
 
   get path(){
-    return this._path;
+    let path = [];
+    for (let directory of this.dirPath){
+      path.push(directory.name);
+    }
+    return path;
   }
 
-  async setPath(path){
-      await this._busy;
-      this._busy = this.logAndLoadWrapper(
-          this._rootDirectory.getFile(path)
+  async setPath(path : string[]){
+      await this.busy;
+      this.busy = this.logAndLoadWrapper(
+          this.directory.getFile(path)
               .then((newDirectory) => {
                   this._path = path;
-                  this._history.path = path;
-                  this._currentDirectory = newDirectory;
+                  this.history.path = path;
+                  this.currentDirectory = newDirectory;
                   return this._currentDirectory.getChildren();
               })
               .then((files) => {
                   this.setTableData(files);
               })
       );
-      return await this._busy;
-  }
-
-  clone(){
-    return new this.constructor(this.currentDirectory.clone(),
-                                this.table.clone());
+      return await this.busy;
   }
 
 
   // Wrapper utilities
 
 
-  async loadingWrapper(promise){
+  async loadingWrapper(promise : Promise<void>) : Promise<void>{
     // Add loading class to element while waiting on the async call.
-    this.element.classList.add(this.activeAjaxClass);
+    this.classList.add(FileBrowser.activeAjaxClass);
     try {
       return await promise;
     } finally {
-      this.element.classList.remove(this.activeAjaxClass);
+      this.classList.remove(FileBrowser.activeAjaxClass);
     }
   }
 
-  async errorLoggingWrapper(promise){
+  async errorLoggingWrapper(promise : Promise<void>) : Promise<void>{
     // Catch and log any errors that happen during the execution of the call.
     // WARNING this will prevent and return value and error propagation.
     try{
@@ -335,7 +219,7 @@ export class FileBrowser extends Element {
     }
   }
 
-  logAndLoadWrapper(promise){
+  logAndLoadWrapper(promise : Promise<void>) : Promise<void>{
     // Combine the actions in loadingWrapper and errorLoggingWrapper.
     // WARNING this will prevent and return value and error propagation.
     return this.loadingWrapper(this.errorLoggingWrapper(promise));
@@ -344,17 +228,9 @@ export class FileBrowser extends Element {
 
   // Element Builders
 
-
-  createContextMenu(){
-    let contextMenu = new Dialog();
-    contextMenu.name = "Settings";
-    contextMenu.element.classList.add(this.contextMenuClass);
-    return contextMenu;
-  }
-
   createSearchElements(){
     let searchInput = document.createElement('input');
-    searchInput.className = this.searchInputClass;
+    searchInput.className = FileBrowser.searchInputClass;
     searchInput.placeholder = "Search";
     searchInput.oninput = () => {
       // Wait 300 milliseconds to debounce and then search. Toggle searchPending.
@@ -372,19 +248,19 @@ export class FileBrowser extends Element {
       }
     };
     let searchContainer = document.createElement('div');
-    searchContainer.className = this.searchContainerClass;
-    searchContainer.appendChild(this._searchIcon.content.cloneNode(true));
+    searchContainer.className = FileBrowser.searchContainerClass;
+    searchContainer.appendChild(this.searchIcon);
     searchContainer.appendChild(searchInput);
     return searchContainer;
   }
 
   createMenus(){
     let menusContainer = document.createElement('div');
-    menusContainer.className = this.menuContainerClass;
+    menusContainer.className = FileBrowser.menuContainerClass;
     let contextMenuButton = document.createElement('div');
-    contextMenuButton.className = this.drowdownMenuButtonClass;
-    contextMenuButton.appendChild(this._dropdownMenuIcon.content.cloneNode(true));
-    contextMenuButton.appendChild(this._carrotIcon.content.cloneNode(true));
+    contextMenuButton.className = FileBrowser.dropdownMenuButtonClass;
+    contextMenuButton.appendChild(this.dropdownMenuIcon.content.cloneNode(true));
+    contextMenuButton.appendChild(this.carrotIcon.content.cloneNode(true));
     contextMenuButton.onclick = (event) => {
       event.stopPropagation();
       let rect = contextMenuButton.getBoundingClientRect();
@@ -394,25 +270,6 @@ export class FileBrowser extends Element {
     };
     menusContainer.appendChild(contextMenuButton);
     return menusContainer;
-  }
-
-  createMessages(){
-    let messageContainer = document.createElement('div');
-    messageContainer.className = this.messageContainerClass;
-    return messageContainer;
-  }
-
-  createTableContainer(){
-    let tableContainer = document.createElement('div');
-    tableContainer.className = this.tableContainerClass;
-    return tableContainer;
-  }
-
-  createBreadcrumbs(){
-    let breadcrumbsContainer = document.createElement('div');
-    breadcrumbsContainer.className = this.stateManagerContainerClass;
-    breadcrumbsContainer.appendChild(this._history.element);
-    return breadcrumbsContainer;
   }
 
   initializeNewRow(row){
@@ -501,13 +358,13 @@ export class FileBrowser extends Element {
     }
   }
 
-  async search(searchTerm) {
+  async search(searchTerm : string) {
     this.clearMessages();
     if (searchTerm){
       try{
         let data = await this.loadingWrapper(this.currentDirectory.search(searchTerm));
         this.setTableData(data);
-        let readablePath = [this._history.baseName].concat(this.path).join('/');
+        let readablePath = [this.history.baseName].concat(this.path).join('/');
         this.addMessage(
           `${data.length} search results for "${searchTerm}" in ${readablePath}.`
         );
@@ -521,48 +378,65 @@ export class FileBrowser extends Element {
 
   /**
    * Translate the data for a AbstractFile to the data that will be in each table row for that file.
-   * @param {BasicFile} fileObject - The file for a given row.
-   * @returns {Object} - The data for that row in the table.
    */
-  fileObjectToTableData(fileObject){
-    if (fileObject.name === undefined){
-      console.log("F", fileObject);
-    }
-    return {
-      id: fileObject.id,
-      path: this._path.concat([fileObject.name]),
-      name: fileObject.name,
-      directory: fileObject.directory,
-      url: fileObject.url,
-      icon: fileObject.icon,
-      mimeType: fileObject.mimeType,
-      lastModified: fileObject.lastModified,
-      created: fileObject.created,
-      size: fileObject.size
-    }
+  private fileObjectToTableRow(fileObject : File) : Row {
+    let tableRow = document.createElement('file-row') as FileTableRow;
+    tableRow.setFile(fileObject);
+    return tableRow;
   }
 
-  setTableData(files){
-    let tableData = [];
+  setTableData(files : File[]){
+    let tableRows : Row[] = [];
     for (let fileObject of files){
-      tableData.push(this.fileObjectToTableData(fileObject));
+      let newRow = this.fileObjectToTableRow(fileObject);
+      newRow.hidden = fileObject.name.startsWith('.');
+
+      // When a directory is dragged over for a period of time, go to the directory.
+      if (fileObject.directory){
+        newRow.addDragoverAction(() => {
+          this.setPath(this.path.concat([fileObject.name]));
+        });
+      }
+
+      // Goto directory or if file go to url (if dataurl download)
+      newRow.ondblclick = (event : MouseEvent) => {
+        if (fileObject.directory){
+          this.setPath(this.path.concat([fileObject.name]));
+        } else {
+          if (fileObject.url !== null) {
+            if (fileObject.url.startsWith('data')){
+              // Download if its a data url.
+              let link = document.createElement('a');
+              link.href = fileObject.url || "";
+              link.setAttribute('download', fileObject.name);
+              link.click();
+            } else {
+              window.open(fileObject.url);
+            }
+          }
+        }
+      };
+      tableRows.push(newRow);
     }
-    this.table.data = tableData;
+    this.table.removeChildren();
+    this.table.appendChildren(tableRows);
   }
 
-  showContextMenu(positionX, positionY){
-    let selectedData = this._table.selectedData;
+  showContextMenu(positionX : number, positionY : number){
+    let selectedData = this.table.selectedData;
 
     // Add the items to the context menu
-    this.contextMenu.items = this.getMenuItems(selectedData);
+    this.contextMenu.removeChildren();
+    this.contextMenu.appendChildren(this.getMenuItems(selectedData));
 
     // Move the context menu to the click position
-    this.contextMenu.move(positionX, positionY);
+    this.contextMenu.position = {x: positionX, y: positionY};
+    this.contextMenu.velocity = {x: 0, y: 0};
 
-    this.contextMenu.show();
+    this.contextMenu.visible = true;
   }
 
-  getMenuItems(selectedData) {
+  getMenuItems(selectedData : Set<string>) {
     let menuItems = [];
 
     // Add items that should exist only when there is selected data.
@@ -580,7 +454,7 @@ export class FileBrowser extends Element {
           } else {
             window.open(selectedRowData.url);
           }
-          this.contextMenu.close();
+          this.contextMenu.visible = false;
         };
         menuItems.push(openButton);
 
@@ -788,15 +662,14 @@ export class FileBrowser extends Element {
     return menuItems;
   }
 
-  addMessage(message, isError) {
+  addMessage(message : Error | string, isError? : boolean) {
     console.log(message);
-    let errorMessage;
-    if (message instanceof Error){
-      errorMessage = new Message(message.message, true, this.messageRemovalDelay);
-    } else {
-      errorMessage = new Message(message.toString(), isError, this.messageRemovalDelay);
+    let errorMessage = document.createElement('user-message') as Message;
+    if (message instanceof Error || isError){
+      errorMessage.setAttribute('error', "");
     }
-    this.messagesContainer.appendChild(errorMessage.element);
+    errorMessage.innerText = message.toString();
+    this.messagesContainer.appendChild(errorMessage);
   }
 
   clearMessages() {
@@ -982,3 +855,5 @@ export let ConfigFileMixin = (currentDirectoryClass) => {
   };
 };
 
+customElements.define('file-browser', FileBrowser);
+customElements.define('file-row', FileTableRow);

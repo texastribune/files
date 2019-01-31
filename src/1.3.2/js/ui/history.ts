@@ -1,11 +1,10 @@
-import {Element, DroppableMixin} from "./element.js";
+import {CustomElement} from "elements/lib/element";
+import {DroppableMixin} from "elements/lib/draggable"
 
 /**
  * An element that represents the current location in a hierarchy.
- * @extends Element
- * @mixes DroppableMixin
  */
-class BreadCrumb extends DroppableMixin(Element) {
+class BreadCrumb extends CustomElement {
   constructor(name, path) {
     super();
     this.name = name;
@@ -54,7 +53,9 @@ class BreadCrumb extends DroppableMixin(Element) {
   }
 }
 
-export default class History extends Element {
+const DroppableBreadCrumb = DroppableMixin(BreadCrumb);
+
+export default class History extends CustomElement {
   constructor(){
     super();
 
@@ -143,3 +144,6 @@ export default class History extends Element {
     return segment;  // url;
   }
 }
+
+customElements.define('bread-crumb', DroppableBreadCrumb);
+customElements.define('bread-crumbs', History);
