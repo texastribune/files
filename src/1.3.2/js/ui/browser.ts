@@ -6,8 +6,10 @@ import {convertBytesToReadable, compareDateStrings,
 import * as icons from './icons.js';
 import {parseConfigFile} from "./config";
 import {updateConfigFile} from "./config";
-import {Dialog} from "elements/lib/dialog";
+import {ConfirmDialog, Dialog} from "elements/lib/dialog";
 import {Table, Header, Row, Data} from "elements/lib/table.js";
+import {MemoryDirectory} from "../files/memory";
+import {CachedProxyDirectory} from "../files/proxy";
 
 class FileTableRow extends Row {
   private file : File | null = null;
@@ -25,6 +27,8 @@ class FileTableRow extends Row {
     let lastModifiedColumn = document.createElement('table-data') as Data;
     let createdColumn = document.createElement('table-data') as Data;
     let typeColumn = document.createElement('table-data') as Data;
+
+    this.hidden = this.file.name.startsWith('.');
 
     idColumn.innerText = value.id;
     nameColumn.innerText = value.name;
@@ -80,8 +84,8 @@ export class FileBrowser extends Element {
 
   private readonly table : Table;
   private readonly contextMenu : Dialog;
-  private rootDirectory : Directory | null = null;
-  private dirPath : Directory[] = [];
+  private cachedRootDirectory : CachedProxyDirectory;
+  private cachedCurrentDirectory : CachedProxyDirectory;
 
   private readonly dropdownMenuIcon : SVGSVGElement;
   private readonly carrotIcon : SVGSVGElement;
@@ -143,17 +147,18 @@ export class FileBrowser extends Element {
     };
 
     this.table.ondrop = (event : DragEvent) => {
+      if (event.dataTransfer !== null){
         this.handleDataTransfer(event.dataTransfer);
+      }
     };
 
     this.history.onclick = (path : MouseEvent) => {
         this.setPath(path);
     };
-    this.history.addDr = (path : string[]) => {
-        this.setPath(path);
-    };
 
     this.busy = Promise.resolve();
+    this.cachedRootDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
+    this.cachedCurrentDirectory = this.cachedRootDirectory;
     this.setPath([]);
   }
 
@@ -163,14 +168,22 @@ export class FileBrowser extends Element {
     return template.content.firstChild as SVGSVGElement;
   }
 
-  /**
-   * An instance of AbstractDirectory to browse.
-   */
-  get currentDirectory() : Directory | null {
-    return this.dirPath[-1];
+  get rootDirectory() : Directory {
+    return this.cachedRootDirectory;
   }
 
-  get path(){
+  set rootDirectory(value : Directory){
+    this.cachedRootDirectory = new CachedProxyDirectory(value);
+  }
+
+  /**
+   * An instance of Directory to browse.
+   */
+  get currentDirectory() : Directory {
+    return this.cachedCurrentDirectory;
+  }
+
+  get path() : string[] {
     let path = [];
     for (let directory of this.dirPath){
       path.push(directory.name);
@@ -178,21 +191,25 @@ export class FileBrowser extends Element {
     return path;
   }
 
-  async setPath(path : string[]){
-      await this.busy;
-      this.busy = this.logAndLoadWrapper(
-          this.directory.getFile(path)
-              .then((newDirectory) => {
-                  this._path = path;
-                  this.history.path = path;
-                  this.currentDirectory = newDirectory;
-                  return this._currentDirectory.getChildren();
-              })
-              .then((files) => {
-                  this.setTableData(files);
-              })
-      );
-      return await this.busy;
+  set path(path : string[]){
+    this.busy = this.busy
+        .then(() => {
+          return this.logAndLoadWrapper(
+              this.rootDirectory.getFile(path)
+                  .then((newDirectory) => {
+                    if (newDirectory instanceof CachedProxyDirectory){
+                      this.cachedCurrentDirectory = newDirectory;
+                    } else {
+                      throw new FileNotFoundError("file must be a directory");
+                    }
+                    this.history.path = path;
+                    return this.currentDirectory.getChildren();
+                  })
+                  .then((files) => {
+                    this.setTableData(files);
+                  })
+          )}
+        );
   }
 
 
@@ -259,8 +276,8 @@ export class FileBrowser extends Element {
     menusContainer.className = FileBrowser.menuContainerClass;
     let contextMenuButton = document.createElement('div');
     contextMenuButton.className = FileBrowser.dropdownMenuButtonClass;
-    contextMenuButton.appendChild(this.dropdownMenuIcon.content.cloneNode(true));
-    contextMenuButton.appendChild(this.carrotIcon.content.cloneNode(true));
+    contextMenuButton.appendChild(this.dropdownMenuIcon.cloneNode(true));
+    contextMenuButton.appendChild(this.carrotIcon.cloneNode(true));
     contextMenuButton.onclick = (event) => {
       event.stopPropagation();
       let rect = contextMenuButton.getBoundingClientRect();
@@ -272,20 +289,9 @@ export class FileBrowser extends Element {
     return menusContainer;
   }
 
-  initializeNewRow(row){
-    row.hidden = row.data.name.startsWith('.');
-
-    // When a directory is dragged over for a period of time, go to the directory.
-    if (row.data.directory){
-      row.addDragoverAction(() => {
-        this.setPath(this.path.concat([row.data.name]));
-      });
-    }
-  }
-
   // Actions
 
-  async handleDataTransfer(dataTransfer){
+  async handleDataTransfer(dataTransfer : DataTransfer){
     // Called when item/items are dragged and dropped on the table
     this.clearMessages();
 
@@ -315,24 +321,20 @@ export class FileBrowser extends Element {
       }
     }
 
-    this.logAndLoadWrapper(Promise.all(promises));
+    this.logAndLoadWrapper(Promise.all(promises).then(() => {}));
 
-    let rowsText = dataTransfer.getData(this._table.dataTransferType);
+    let rowsText = dataTransfer.getData(Table.dataTransferType);
     if (rowsText) {
       let rows = JSON.parse(rowsText);
       let names = [];
       let rowsToMove = [];
       for (let rowData of rows){
-        if (!this.currentDirectory.data[rowData.name]) {
-          // Only move files that aren't already here.
-          rowsToMove.push(rowData);
-          names.push(rowData.name);
-        }
+        names.push(rowData.name);
       }
       if (rowsToMove.length > this.maxNumMove) {
         alert(`Cannot move more than ${this.maxNumMove} items.`);
       } else if (rowsToMove.length > 0){
-        let moveConfirmDialog = new ConfirmDialog();
+        let moveConfirmDialog = document.createElement('confirm-dialog') as ConfirmDialog;
         moveConfirmDialog.name = "Confirm Move";
         moveConfirmDialog.onClose = () => {
           moveConfirmDialog.remove();
@@ -349,11 +351,11 @@ export class FileBrowser extends Element {
             };
             promises.push(moveFile(rowData));
           }
-          this.logAndLoadWrapper(Promise.all(promises));
-          this.contextMenu.close();
+          this.logAndLoadWrapper(Promise.all(promises).then(() => {}));
+          this.contextMenu.visible = false;
         };
-        moveConfirmDialog.items = [confirmText];
-        moveConfirmDialog.show();
+        moveConfirmDialog.appendChild(confirmText);
+        moveConfirmDialog.visible = true;
       }
     }
   }
@@ -361,27 +363,31 @@ export class FileBrowser extends Element {
   async search(searchTerm : string) {
     this.clearMessages();
     if (searchTerm){
-      try{
-        let data = await this.loadingWrapper(this.currentDirectory.search(searchTerm));
-        this.setTableData(data);
+      await this.loadingWrapper(this.currentDirectory.search(searchTerm).then((foundFiles) => {
+        this.setTableData(foundFiles);
         let readablePath = [this.history.baseName].concat(this.path).join('/');
         this.addMessage(
-          `${data.length} search results for "${searchTerm}" in ${readablePath}.`
+            `${foundFiles.length} search results for "${searchTerm}" in ${readablePath}.`
         );
-      } catch (error) {
-        this.addMessage(error, true);
-      }
+      }));
     } else {
-      this.setTableData(this.currentDirectory.data);
+      await this.loadingWrapper(this.currentDirectory.getChildren().then((children) => {
+        this.setTableData(children);
+      }));
     }
   }
 
   /**
    * Translate the data for a AbstractFile to the data that will be in each table row for that file.
    */
-  private fileObjectToTableRow(fileObject : File) : Row {
+  private fileObjectToTableRow(fileObject : File) : FileTableRow {
     let tableRow = document.createElement('file-row') as FileTableRow;
     tableRow.setFile(fileObject);
+    if (fileObject.directory){
+      tableRow.addDragoverAction(() => {
+        this.setPath(this.path.concat([fileObject.name]));
+      });
+    }
     return tableRow;
   }
 
@@ -394,14 +400,14 @@ export class FileBrowser extends Element {
       // When a directory is dragged over for a period of time, go to the directory.
       if (fileObject.directory){
         newRow.addDragoverAction(() => {
-          this.setPath(this.path.concat([fileObject.name]));
+          this.path = this.path.concat([fileObject.name]);
         });
       }
 
       // Goto directory or if file go to url (if dataurl download)
       newRow.ondblclick = (event : MouseEvent) => {
         if (fileObject.directory){
-          this.setPath(this.path.concat([fileObject.name]));
+          this.path = this.path.concat([fileObject.name]);
         } else {
           if (fileObject.url !== null) {
             if (fileObject.url.startsWith('data')){
@@ -423,11 +429,15 @@ export class FileBrowser extends Element {
   }
 
   showContextMenu(positionX : number, positionY : number){
-    let selectedData = this.table.selectedData;
-
     // Add the items to the context menu
     this.contextMenu.removeChildren();
-    this.contextMenu.appendChildren(this.getMenuItems(selectedData));
+    let selectedFileRows : FileTableRow[] = [];
+    for (let row of this.table.selectedRows){
+      if (row instanceof FileTableRow){
+        selectedFileRows.push(row);
+      }
+    }
+    this.contextMenu.appendChildren(this.getMenuItems(selectedFileRows));
 
     // Move the context menu to the click position
     this.contextMenu.position = {x: positionX, y: positionY};
@@ -436,71 +446,74 @@ export class FileBrowser extends Element {
     this.contextMenu.visible = true;
   }
 
-  getMenuItems(selectedData : Set<string>) {
+  getMenuItems(selectedFileRows : FileTableRow[]) {
     let menuItems = [];
 
     // Add items that should exist only when there is selected data.
-    if (selectedData.size > 0){
+    if (selectedFileRows.length > 0){
       // Add items that should exist only when there is one selected item.
-      if (selectedData.size === 1) {
-        let selectedRowData = selectedData.values().next().value;
+      if (selectedFileRows.length === 1) {
+        let selectedRowData = selectedFileRows[0];
+        let selectedFile = selectedRowData.getFile();
 
-        // Add an open button to navigate to the selected item.
-        let openButton = document.createElement('div');
-        openButton.innerText = 'Open';
-        openButton.onclick = () => {
-          if (selectedRowData.directory) {
-            this.setPath(this.path.concat([selectedRowData.name]));
-          } else {
-            window.open(selectedRowData.url);
-          }
-          this.contextMenu.visible = false;
-        };
-        menuItems.push(openButton);
-
-        if (selectedRowData.url){
-          let urlButton = document.createElement('div');
-          urlButton.innerText = 'Copy Url';
-          urlButton.onclick = () => {
-            let urlText = document.createElement('textarea');
-            // urlText.style.display = 'none';
-            urlButton.appendChild(urlText);
-            urlText.innerText = selectedRowData.url;
-            urlText.select();
-            document.execCommand('copy');
-            urlButton.removeChild(urlText);
+        if (selectedFile !== null){
+          // Add an open button to navigate to the selected item.
+          let openButton = document.createElement('div');
+          openButton.innerText = 'Open';
+          openButton.onclick = () => {
+            if (selectedFile.directory) {
+              this.setPath(this.path.concat([selectedRowData.name]));
+            } else {
+              window.open(selectedRowData.url);
+            }
+            this.contextMenu.visible = false;
           };
-          menuItems.push(urlButton);
-        }
+          menuItems.push(openButton);
 
-        let renameButton = document.createElement('div');
-        renameButton.innerText = 'Rename';
-        renameButton.onclick = () => {
-          this.logAndLoadWrapper(
-            (async () => {
-              let newName = prompt("New Name");
-              if (newName !== null){
-                this.contextMenu.close();
-                let fileObject = await this.currentDirectory.getFile(selectedRowData.path);
-                await fileObject.rename(newName);
-                await this.currentDirectory.refresh();
-              }
-            })()
-          );
-        };
-        menuItems.push(renameButton);
+          if (selectedFile.url){
+            let urlButton = document.createElement('div');
+            urlButton.innerText = 'Copy Url';
+            urlButton.onclick = () => {
+              let urlText = document.createElement('textarea');
+              // urlText.style.display = 'none';
+              urlButton.appendChild(urlText);
+              urlText.innerText = selectedFile.url;
+              urlText.select();
+              document.execCommand('copy');
+              urlButton.removeChild(urlText);
+            };
+            menuItems.push(urlButton);
+          }
 
-        if (selectedRowData.mimeType === 'application/javascript'){
-          let runButton = document.createElement('div');
-          runButton.innerText = 'Run';
-          runButton.onclick = () => {
-            this.errorLoggingWrapper(
-              (async () => {
-                await this.currentDirectory.execPath(selectedRowData.path);
-              })()
+          let renameButton = document.createElement('div');
+          renameButton.innerText = 'Rename';
+          renameButton.onclick = () => {
+            this.logAndLoadWrapper(
+                (async () => {
+                  let newName = prompt("New Name");
+                  if (newName !== null){
+                    this.contextMenu.visible = false;
+                    let fileObject = await this.currentDirectory.getFile(selectedRowData.path);
+                    await fileObject.rename(newName);
+                    await this.currentDirectory.refresh();
+                  }
+                })()
             );
           };
-          menuItems.push(runButton);
+          menuItems.push(renameButton);
+
+          if (selectedFile.mimeType === 'application/javascript'){
+            let runButton = document.createElement('div');
+            runButton.innerText = 'Run';
+            runButton.onclick = () => {
+              this.errorLoggingWrapper(
+                  (async () => {
+                    await this.currentDirectory.execPath(selectedRowData.path);
+                  })()
+              );
+            };
+            menuItems.push(runButton);
+          }
         }
       }
 
@@ -508,43 +521,49 @@ export class FileBrowser extends Element {
       // to confirm deletion which from there will delete all selected items.
       let deleteButton = document.createElement('div');
       deleteButton.innerText = 'Delete';
-      deleteButton.onclick = () => {
+      deleteButton.onclick = (event : MouseEvent) => {
         event.preventDefault();
         event.stopPropagation(); // Prevent from closing new dialog immediately
 
-        let deleteDialog = new ConfirmDialog(this.contextMenu);
+        let deleteDialog = document.createElement('confirm-dialog') as ConfirmDialog;
+        this.contextMenu.appendChild(deleteDialog);
         deleteDialog.onClose = () => {
           deleteDialog.remove();
         };
         let removeText = document.createElement('div');
         let names = [];
-        for (let dataItem of selectedData){
-          names.push(dataItem.name);
+        for (let fileRow of selectedFileRows){
+          let file = fileRow.getFile();
+          if (file !== null){
+            names.push(file.name);
+          }
         }
         removeText.innerText = `Are you sure you want to remove ${names.join(', ')}?`;
-        let promises = [];
+        let promises : Promise<void>[] = [];
         deleteDialog.onConfirmed = () => {
           this.logAndLoadWrapper(
             (async () => {
-              for (let rowData of selectedData) {
-                let fileObject = await this._rootDirectory.getFile(rowData.path);
-                promises.push(fileObject.delete());
+              for (let row of selectedFileRows) {
+                let file = row.getFile();
+                if (file !== null){
+                  promises.push(file.delete());
+                }
               }
-              this.contextMenu.close();
+              this.contextMenu.visible = false;
               await Promise.all(promises);
               await this.currentDirectory.refresh();
             })()
           );
         };
-        deleteDialog.items = [removeText];
-        deleteDialog.show();
+        deleteDialog.appendChild(removeText);
+        deleteDialog.visible = true;
       };
       menuItems.push(deleteButton);
 
       // Add a move button that when clicked which opens a new menu with a nested file browser
       // copied from this file browser to get the target path. The selected files will get moved
       // to the target when selected.
-      if (selectedData.size <= 30){
+      if (selectedFileRows.length <= 30){
         let moveButton = document.createElement('div');
         moveButton.innerText = 'Move';
         moveButton.onclick = (event) => {
@@ -552,25 +571,28 @@ export class FileBrowser extends Element {
           event.preventDefault();
           event.stopPropagation();
 
-          let moveBrowser = new DialogBrowser(this.currentDirectory.clone(), this.table.clone());
+
+          let moveBrowser = document.createElement('file-browser') as FileBrowser;
+          moveBrowser.rootDirectory = this.rootDirectory;
+          let moveDialog = document.createElement('confirm-dialog') as ConfirmDialog;
+
           moveBrowser.table.selectMultiple = false;
-          moveBrowser.dialog.parent = this.contextMenu;
-          moveBrowser.dialog.name = "Move Files";
-          moveBrowser.dialog.element.classList.add(this.fileBrowserDialogClass);
-          moveBrowser.dialog.confirmationText = "Select";
-          moveBrowser.dialog.onConfirmed = () => {
+          moveDialog.name = "Move Files";
+          moveDialog.classList.add(this.fileBrowserDialogClass);
+          moveDialog.confirmationText = "Select";
+          moveDialog.onConfirmed = () => {
             this.logAndLoadWrapper(
               (async () => {
                 let path = moveBrowser.currentDirectory.path;
-                if (moveBrowser.table.selectedData.size === 1){
+                if (moveBrowser.table.selectedRows.length === 1){
                   let selectedName = moveBrowser.table.selectedData.values().next().value.name;
                   path.push(selectedName);
                 }
 
                 let movePromises = [];
-                for (let rowData of selectedData) {
+                for (let rowData of selectedFileRows) {
                   let fileObject = await moveBrowser.currentDirectory.getFile(rowData.path);
-                  movePromises.push(moveBrowser.currentDirectory.move(path, fileObject));
+                  movePromises.push(moveBrowser.currentDirectory.move(path, fileObject).then(() => {}));
                 }
                 await Promise.all(movePromises);
                 await this.refresh();
@@ -578,13 +600,11 @@ export class FileBrowser extends Element {
             );
           };
 
-          moveBrowser.dialog.onClose = (dialog) => {
-            moveBrowser.dialog.remove();
-          };
-          moveBrowser.dialog.onRemove = () => {
-            moveBrowser.contextMenu.remove(); // Make sure associated context menu gets removed.
-          };
-          moveBrowser.dialog.show();
+          this.contextMenu.appendChild(moveDialog);
+          moveDialog.addEventListener(Dialog.EVENT_CLOSED, () => {
+            this.contextMenu.removeChild(moveDialog);
+          });
+          moveDialog.visible = true;
         };
         menuItems.push(moveButton);
       }
@@ -596,7 +616,7 @@ export class FileBrowser extends Element {
       event.preventDefault();
       event.stopPropagation(); // Prevent from closing new dialog immediately
 
-      let fileDialog = new ConfirmDialog(this.contextMenu);
+      let fileDialog = document.createElement('confirm-dialog') as ConfirmDialog;
       fileDialog.name = 'Add File';
       fileDialog.confirmationText = 'Add';
       let fileInputDiv = document.createElement('div');
@@ -607,21 +627,27 @@ export class FileBrowser extends Element {
       fileInputDiv.appendChild(fileInputLabel);
       fileInputDiv.appendChild(fileInput);
       fileDialog.onConfirmed = () => {
+        let promises = [];
+        if (fileInput.files !== null){
+          for (let file of fileInput.files) {
+            promises.push(this.currentDirectory.addFile(file, file.name, file.type));
+          }
+        }
+
+        this.contextMenu.visible = false;
+
         this.logAndLoadWrapper(
           (async () => {
-            let promises = [];
-            for (let file of fileInput.files) {
-              promises.push(this.currentDirectory.addFile(this.currentDirectory.path, file));
-            }
-            this.contextMenu.close();
+
 
             await Promise.all(promises);
           })()
         );
       };
 
-      fileDialog.items = [fileInputDiv];
-      fileDialog.show();
+      fileDialog.appendChild(fileInputDiv);
+      this.contextMenu.appendChild(fileDialog);
+      fileDialog.visible = true;
     };
     menuItems.push(addFileButton);
 
@@ -630,9 +656,9 @@ export class FileBrowser extends Element {
     addDirectoryButton.onclick = () => {
       let name = prompt("Directory Name");
       if (name !== null){
-        this.logAndLoadWrapper(this._currentDirectory.addDirectory(name));
+        this.logAndLoadWrapper(this.currentDirectory.addDirectory(name).then(() => {}));
       }
-      this.contextMenu.close();
+      this.contextMenu.visible = false;
     };
     menuItems.push(addDirectoryButton);
 
@@ -655,7 +681,7 @@ export class FileBrowser extends Element {
       event.preventDefault();
       event.stopPropagation(); // Prevent from closing new dialog immediately
 
-      this.table.visibleColumnsDialog.show();
+      this.table.visibleColumnsDialog.visible = true;
     };
     menuItems.push(visibleColumnsButton);
 

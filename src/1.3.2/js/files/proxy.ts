@@ -1,4 +1,5 @@
 import * as files from "./base";
+import {Directory} from "./base";
 
 
 /**
@@ -6,67 +7,67 @@ import * as files from "./base";
  * @property {BasicFile} concreteFile - The file to proxy
  */
 export class ProxyFile extends files.BasicFile {
-  private _concreteFile : files.File;
+  private readonly concreteFile : files.File;
 
   constructor(concreteFile : files.File){
     super();
-    this._concreteFile = concreteFile;
+    this.concreteFile = concreteFile;
   }
 
   get id() {
-    return this._concreteFile.id;
+    return this.concreteFile.id;
   }
 
   get name() {
-    return this._concreteFile.name;
+    return this.concreteFile.name;
   }
 
   get directory() {
-    return this._concreteFile.directory;
+    return this.concreteFile.directory;
   }
 
   get url() {
-    return this._concreteFile.url;
+    return this.concreteFile.url;
   }
 
   get icon() {
-    return this._concreteFile.icon;
+    return this.concreteFile.icon;
   }
 
   get size() {
-    return this._concreteFile.size;
+    return this.concreteFile.size;
   }
 
   get mimeType(){
-    return this._concreteFile.mimeType;
+    return this.concreteFile.mimeType;
   }
 
   get lastModified() {
-    return this._concreteFile.lastModified;
+    return this.concreteFile.lastModified;
   }
 
   get created() {
-    return this._concreteFile.created;
+    return this.concreteFile.created;
   }
 
   get extra(){
-    return this._concreteFile.extra;
+    return this.concreteFile.extra;
   }
 
   read(params? : Object) {
-    return this._concreteFile.read(params);
+    return this.concreteFile.read(params);
   }
 
   write(data : ArrayBuffer) {
-    return this._concreteFile.write(data);
+    return this.concreteFile.write(data);
   }
 
   rename(newName : string) {
-    return this._concreteFile.rename(newName);
+    return this.concreteFile.rename(newName);
   }
 
   delete() {
-    return this._concreteFile.delete();
+    return this.concreteFile.delete();
   }
 }
 
@@ -76,70 +77,91 @@ export class ProxyFile extends files.BasicFile {
  * @property {Directory} concreteDirectory - The directory to proxy
  */
 export class ProxyDirectory extends files.Directory {
-  private _concreteDirectory : files.Directory;
+  private readonly concreteDirectory : files.Directory;
 
   constructor(concreteDirectory : files.Directory){
     super();
-    this._concreteDirectory = concreteDirectory;
+    this.concreteDirectory = concreteDirectory;
   }
 
   get id() {
-    return this._concreteDirectory.id;
+    return this.concreteDirectory.id;
   }
 
   get name() {
-    return this._concreteDirectory.name;
+    return this.concreteDirectory.name;
   }
 
   get directory() {
-    return this._concreteDirectory.directory;
+    return this.concreteDirectory.directory;
   }
 
   get url() {
-    return this._concreteDirectory.url;
+    return this.concreteDirectory.url;
   }
 
   get icon() {
-    return this._concreteDirectory.icon;
+    return this.concreteDirectory.icon;
   }
 
   get lastModified() {
-    return this._concreteDirectory.lastModified;
+    return this.concreteDirectory.lastModified;
   }
 
   get created() {
-    return this._concreteDirectory.created;
+    return this.concreteDirectory.created;
   }
 
   get extra(){
-    return this._concreteDirectory.extra;
+    return this.concreteDirectory.extra;
   }
 
   rename(newName : string) {
-    return this._concreteDirectory.rename(newName);
+    return this.concreteDirectory.rename(newName);
   }
 
   delete() {
-    return this._concreteDirectory.delete();
+    return this.concreteDirectory.delete();
   }
 
   search(query : string) {
-    return this._concreteDirectory.search(query);
+    return this.concreteDirectory.search(query);
   }
 
   addFile(fileData : ArrayBuffer, filename : string, mimeType : string) {
-    return this._concreteDirectory.addFile(fileData, filename, mimeType);
+    return this.concreteDirectory.addFile(fileData, filename, mimeType);
   }
 
   addDirectory(name : string) {
-    return this._concreteDirectory.addDirectory(name);
+    return this.concreteDirectory.addDirectory(name);
   }
 
   getFile(pathArray : string[]) {
-    return this._concreteDirectory.getFile(pathArray);
+    return this.concreteDirectory.getFile(pathArray);
   }
 
   getChildren() {
-    return this._concreteDirectory.getChildren();
+    return this.concreteDirectory.getChildren();
+  }
+}
+
+export class CachedProxyDirectory extends ProxyDirectory {
+  private cachedChildren : files.File[] | null = null;
+
+  async getChildren() {
+    if (this.cachedChildren === null){
+      this.cachedChildren = [];
+      for (let child of await super.getChildren()){
+        if (child instanceof Directory){
+          child = new CachedProxyDirectory(child);
+        }
+        this.cachedChildren.push(child);
+      }
+    }
+    return this.cachedChildren.slice();
+  }
+
+  clearCache(){
+    this.cachedChildren = null;
   }
 }

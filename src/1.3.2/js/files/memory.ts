@@ -1,5 +1,4 @@
 import * as files from "./base";
-import {Directory, isDirectory} from "./base";
 
 
 let idCounter = 0;
@@ -13,80 +12,66 @@ export class MemoryFile extends files.BasicFile {
     public readonly url = null;
     public readonly extra = {};
 
-    private _parent : MemoryDirectory;
-    private _name : string;
-    private _fileData : ArrayBuffer;
-    private _lastModified : Date;
+    private parent : MemoryDirectory;
+    private fileData : ArrayBuffer;
+    public name : string;
+    public lastModified : Date;
 
     constructor(parent : MemoryDirectory, name : string, mimeType? : string, data? : ArrayBuffer) {
         super();
-        this._parent = parent;
-        this._name = name;
+        this.parent = parent;
+        this.name = name;
         this.mimeType = mimeType || 'application/octet-stream';
-        this._fileData = data || new ArrayBuffer(0);
-        this._lastModified = new Date();
+        this.fileData = data || new ArrayBuffer(0);
+        this.lastModified = new Date();
 
         idCounter ++;
         this.id = idCounter.toString();
     }
 
-    get name(){
-        return this._name;
-    }
-
     get size(){
-        return this._fileData.byteLength;
-    }
-
-    get lastModified(){
-        return this._lastModified;
+        return this.fileData.byteLength;
     }
 
     async read(params : Object){
-        return this._fileData;
+        return this.fileData;
     }
 
     async write(data : ArrayBuffer){
-        this._fileData = data;
-        this._lastModified = new Date();
+        this.fileData = data;
+        this.lastModified = new Date();
         return data;
     }
 
     async delete() {
-        this._parent.removeChild(this);
+        this.parent.removeChild(this);
     }
 
     async rename(newName : string){
-        this._name = newName;
-        this._lastModified = new Date();
+        this.name = newName;
+        this.lastModified = new Date();
     }
 }
 
-export class MemoryDirectory extends Directory {
+export class MemoryDirectory extends files.Directory {
     public readonly id : string;
     public readonly created = new Date();
     public readonly icon = null;
     public readonly url = null;
     public readonly extra = {};
 
-    private _parent : MemoryDirectory;
-    private _name : string;
-    private _lastModified : Date;
+    private parent : MemoryDirectory | null;
+    public name : string;
     private _children : (MemoryFile | MemoryDirectory)[] = [];
 
-    constructor(parent : MemoryDirectory, name : string) {
+    constructor(parent : MemoryDirectory | null, name : string) {
         super();
 
-        this._parent = parent;
-        this._name = name;
-        this._lastModified = new Date();
+        this.parent = parent;
+        this.name = name;
 
         idCounter ++;
         this.id = idCounter.toString();
-    }
-
-    get name(){
-        return this._name;
     }
 
     get lastModified() : Date {
@@ -100,11 +85,13 @@ export class MemoryDirectory extends Directory {
     }
 
     async delete() {
-        this._parent.removeChild(this);
+        if (this.parent !== null) {
+            this.parent.removeChild(this);
+        }
     }
 
     async rename(newName : string){
-        this._name = newName;
+        this.name = newName;
     }
 
     async getChildren(){
@@ -117,7 +104,7 @@ export class MemoryDirectory extends Directory {
             if (name === query){
                 results.push(child);
             }
-            if (child instanceof Directory){
+            if (child instanceof files.Directory){
                 let subResults = await child.search(query);
                 results = results.concat(subResults);
             }
