@@ -1,4 +1,4 @@
-import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils.ts";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 
 /**
  * Create an object with configuration data from a configuration file.

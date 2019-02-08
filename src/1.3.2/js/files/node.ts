@@ -1,7 +1,7 @@
-import {BasicFile} from "./base.ts";
+import {BasicFile, DirectoryMixin} from "./base";
 import * as fs from 'fs';
 import * as path from 'path';
-import {DirectoryMixin} from "./base";
+
 
 function nodeFSFuncAsyncWrapper(func) {
   return async (...args) => {

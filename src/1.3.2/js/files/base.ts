@@ -1,5 +1,4 @@
-import {parseJsonArrayBuffer, parseTextArrayBuffer} from "../utils";
-import {stringToArrayBuffer} from "../utils";
+import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 
 export class FileNotFoundError extends Error {
   constructor(message : string) {

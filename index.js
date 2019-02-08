@@ -1,6 +1,6 @@
-import {FileAPIFileStorage} from "./js/files/storages/remote.js";
-import {MemoryFileStorage} from "./js/files/storages/memory.js";
-import {LocalStorageFileStorage} from "./js/files/storages/local.js";
+// import {FileAPIFileStorage} from "./src/1.3.2/js/files/storages/remote.js";
+// import {MemoryFileStorage} from "./src/1.3.2/js/files/storages/memory.js";
+// import {LocalStorageFileStorage} from "./src/1.3.2/js/files/storages/local.js";
 // import {FileSystem, BaseFileSystem} from "./js/files/systems.js";
 //
 // import * as browserModule from './js/ui/browser.js';
@@ -114,12 +114,11 @@ import {LocalStorageFileStorage} from "./js/files/storages/local.js";
 // //
 
 
-import {MemoryDirectory} from "./js/files/memory.ts";
-import {DeviceDirectory} from "./js/files/devices/base.js";
-import {Process} from "./js/processes/base.js";
-import {stringToArrayBuffer} from "./js/utils.ts";
-import {ProcessDirectory} from "./js/processes/files.js";
-import {FileBrowserDevice} from "./js/files/devices/browser.js";
+import {MemoryDirectory} from "./lib/1.3.2/js/files/memory";
+import {Process} from "./lib/1.3.2/js/processes/base";
+import {stringToArrayBuffer} from "./lib/1.3.2/js/utils";
+import {ProcessDirectory} from "./lib/1.3.2/js/processes/files";
+import {DeviceDirectory} from "./lib/1.3.2/js/devices/base";
 
 class InitFS extends MemoryDirectory {
   constructor(){
@@ -129,10 +128,6 @@ class InitFS extends MemoryDirectory {
         new DeviceDirectory(),
         new ProcessDirectory()
     ];
-
-    for (let element of document.querySelectorAll('.browser')){
-      this._extraChildren.push(new FileBrowserDevice(this, element, 'browser'));
-    }
   }
 
   async getChildren(){
@@ -141,7 +136,7 @@ class InitFS extends MemoryDirectory {
   }
 }
 
-let fs = new InitFS();
+export const fs = new InitFS();
 
 export async function start(){
     await fs.addFile(stringToArrayBuffer('let fd = await system.open(["proc"]); let file = await system.readText(fd);await system.exec(["alert.js"]);console.log("FILE", file);await system.exit("DONE");'), 'init.js');

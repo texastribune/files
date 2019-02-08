@@ -4,12 +4,11 @@ const version = require("./package.json").version;
 console.log("VERSION", version);
 
 module.exports = {
-    mode: "production",
-    entry: `./src/${version}`,
+    entry: `./index.js`,
     output: {
-        filename: `[name].${version}.js`,
-        libraryTarget: "global",
-        libraryExport: "default"
+        filename: `bundle.${version}.js`,
+        libraryTarget: "var",
+        library: "systemx"
     },
-    externals: ['fs', 'path']
+    devtool: 'source-map',
 };

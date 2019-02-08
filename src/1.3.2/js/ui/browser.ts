@@ -1,15 +1,18 @@
-import History from "./history.js";
+import History from "./history";
 import {Message} from "./messages";
 import {File, Directory, FileNotFoundError} from "../files/base";
-import {convertBytesToReadable, compareDateStrings,
-        compareNumbers, compareStrings} from "../utils";
+import {
+  convertBytesToReadable, compareDateStrings,
+  compareNumbers, compareStrings, fileToArrayBuffer
+} from "../utils";
 import * as icons from './icons.js';
 import {parseConfigFile} from "./config";
 import {updateConfigFile} from "./config";
 import {ConfirmDialog, Dialog} from "elements/lib/dialog";
-import {Table, Header, Row, Data} from "elements/lib/table.js";
+import {Table, Header, Row, Data} from "elements/lib/table";
 import {MemoryDirectory} from "../files/memory";
 import {CachedProxyDirectory} from "../files/proxy";
+import {CustomElement} from "elements/lib/element";
 
 class FileTableRow extends Row {
   private file : File | null = null;
@@ -55,7 +58,7 @@ class FileTableRow extends Row {
  * @param {Directory} currentDirectory - The root directory of the browser.
  * @param {Table} table - The table to use for displaying the files.
  */
-export class FileBrowser extends Element {
+export class FileBrowser extends CustomElement {
   // Class names
   static actionsContainerClass = 'file-actions-container';
   static tableContainerClass = 'file-browser-table-container';
@@ -153,13 +156,19 @@ export class FileBrowser extends Element {
     };
 
     this.history.onclick = (path : MouseEvent) => {
-        this.setPath(path);
+        this.path = this.history.path;
     };
 
     this.busy = Promise.resolve();
     this.cachedRootDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
     this.cachedCurrentDirectory = this.cachedRootDirectory;
-    this.setPath([]);
+  }
+
+  static get observedAttributes() {
+    return [];
+  }
+
+  updateAttributes(attributes: { [p: string]: string | null }): void {
   }
 
   private static createIconTemplate(icon : string){
@@ -179,16 +188,12 @@ export class FileBrowser extends Element {
   /**
    * An instance of Directory to browse.
    */
-  get currentDirectory() : Directory {
+  get currentDirectory() : CachedProxyDirectory {
     return this.cachedCurrentDirectory;
   }
 
   get path() : string[] {
-    let path = [];
-    for (let directory of this.dirPath){
-      path.push(directory.name);
-    }
-    return path;
+    return this.history.path;
   }
 
   set path(path : string[]){
@@ -298,13 +303,16 @@ export class FileBrowser extends Element {
     let promises = [];
 
     for (let file of dataTransfer.files) {
-      promises.push(this.currentDirectory.addFile(file, file.name));
+      promises.push(fileToArrayBuffer(file).then((buffer) => {
+          return this.currentDirectory.addFile(buffer, file.name, file.type);
+        })
+      );
     }
 
     let uris = dataTransfer.getData("text/uri-list");
     if (uris) {
       let uriList = uris.split("\n");
-      if (uriList.length.length > this.maxNumMove) {
+      if (uriList.length > this.maxNumMove) {
         alert(`Cannot move more than ${this.maxNumMove} items.`);
       } else {
         for (let i = 0; i < uriList.length; i++) {
@@ -345,9 +353,9 @@ export class FileBrowser extends Element {
           let promises = [];
           for (let rowData of rows){
             // Make sure object isn't already in this directory, and if not move it here.
-            let moveFile = async (rowData) => {
+            let moveFile = async (rowData : Directory) => {
               let fileObject = await this.currentDirectory.getFile(rowData.path);
-              return await this.currentDirectory.move(this.currentDirectory.path, fileObject);
+              return await this.currentDirectory.move(fileObject);
             };
             promises.push(moveFile(rowData));
           }
@@ -385,7 +393,7 @@ export class FileBrowser extends Element {
     tableRow.setFile(fileObject);
     if (fileObject.directory){
       tableRow.addDragoverAction(() => {
-        this.setPath(this.path.concat([fileObject.name]));
+        this.path = this.path.concat([fileObject.name]);
       });
     }
     return tableRow;
@@ -453,8 +461,8 @@ export class FileBrowser extends Element {
     if (selectedFileRows.length > 0){
       // Add items that should exist only when there is one selected item.
       if (selectedFileRows.length === 1) {
-        let selectedRowData = selectedFileRows[0];
-        let selectedFile = selectedRowData.getFile();
+        const selectedRowData = selectedFileRows[0];
+        const selectedFile = selectedRowData.getFile();
 
         if (selectedFile !== null){
           // Add an open button to navigate to the selected item.
@@ -462,9 +470,9 @@ export class FileBrowser extends Element {
           openButton.innerText = 'Open';
           openButton.onclick = () => {
             if (selectedFile.directory) {
-              this.setPath(this.path.concat([selectedRowData.name]));
+              this.path = this.path.concat([selectedFile.name]);
             } else {
-              window.open(selectedRowData.url);
+              window.open(selectedFile.url || "");
             }
             this.contextMenu.visible = false;
           };
@@ -477,7 +485,7 @@ export class FileBrowser extends Element {
               let urlText = document.createElement('textarea');
               // urlText.style.display = 'none';
               urlButton.appendChild(urlText);
-              urlText.innerText = selectedFile.url;
+              urlText.innerText = selectedFile.url || "";
               urlText.select();
               document.execCommand('copy');
               urlButton.removeChild(urlText);
@@ -493,9 +501,8 @@ export class FileBrowser extends Element {
                   let newName = prompt("New Name");
                   if (newName !== null){
                     this.contextMenu.visible = false;
-                    let fileObject = await this.currentDirectory.getFile(selectedRowData.path);
-                    await fileObject.rename(newName);
-                    await this.currentDirectory.refresh();
+                    await selectedFile.rename(newName);
+                    await this.refresh();
                   }
                 })()
             );
@@ -551,7 +558,7 @@ export class FileBrowser extends Element {
               }
               this.contextMenu.visible = false;
               await Promise.all(promises);
-              await this.currentDirectory.refresh();
+              await this.currentDirectory.clearCache();
             })()
           );
         };
@@ -630,19 +637,16 @@ export class FileBrowser extends Element {
         let promises = [];
         if (fileInput.files !== null){
           for (let file of fileInput.files) {
-            promises.push(this.currentDirectory.addFile(file, file.name, file.type));
+            promises.push(fileToArrayBuffer(file).then((buffer) => {
+                return this.currentDirectory.addFile(buffer, file.name, file.type);
+              })
+            )
           }
         }
 
         this.contextMenu.visible = false;
 
-        this.logAndLoadWrapper(
-          (async () => {
-
-
-            await Promise.all(promises);
-          })()
-        );
+        this.logAndLoadWrapper(Promise.all(promises).then(() => {}));
       };
 
       fileDialog.appendChild(fileInputDiv);
@@ -705,7 +709,9 @@ export class FileBrowser extends Element {
   }
 
   async refresh(){
-    await this.setPath(this.path);
+    this.currentDirectory.clearCache();
+    let children = await this.currentDirectory.getChildren();
+    await this.setTableData(children);
   }
 }
 

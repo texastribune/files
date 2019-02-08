@@ -2,9 +2,9 @@
 /* global jest, test, expect, describe */
 
 
-import {stringToArrayBuffer, parseTextArrayBuffer} from "../js/utils.ts";
-import {DeviceDirectory} from "../js/files/devices/base.js";
-import {DomElementDevice} from "../js/files/devices/dom.js";
+import {stringToArrayBuffer, parseTextArrayBuffer} from "../js/utils";
+import {DeviceDirectory} from "../js/devices/base";
+import {DomElementDevice} from "../js/devices/dom";
 import {parseJsonArrayBuffer} from "../js/utils";
 
 

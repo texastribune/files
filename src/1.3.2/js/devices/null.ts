@@ -1,11 +1,13 @@
-import {BasicFile} from "../base.ts";
+import {BasicFile} from "../files/base";
 
 
 export class NullFile extends BasicFile {
+  readonly created = new Date();
+  readonly lastModified = new Date();
+  readonly extra = {};
+
   constructor() {
     super();
-    this._created = new Date();
-    this._lastModified = new Date();
   }
 
   get id(){
@@ -32,27 +34,19 @@ export class NullFile extends BasicFile {
     return 0;
   }
 
-  get lastModified(){
-    return this._lastModified;
-  }
-
-  get created(){
-    return this._created;
-  }
-
-  async read(params){
+  async read(params?: Object) : Promise<ArrayBuffer> {
     return new ArrayBuffer(0);
   }
 
-  async write(data){
+  async write(data : ArrayBuffer){
     return data;
   }
 
   async delete() {
-    this._parent.removeChild(this);
+
   }
 
-  async rename(newName){
-    this._name = newName;
+  async rename(newName : string){
+    throw new Error("can't rename null file");
   }
 }
