@@ -6,8 +6,7 @@ import {
   compareNumbers, compareStrings, fileToArrayBuffer
 } from "../utils";
 import * as icons from './icons.js';
-import {parseConfigFile} from "./config";
-import {updateConfigFile} from "./config";
+import {parseConfigFile, updateConfigFile} from "./config";
 import {ConfirmDialog, Dialog} from "elements/lib/dialog";
 import {Table, Header, Row, Data} from "elements/lib/table";
 import {MemoryDirectory} from "../files/memory";
@@ -49,6 +48,37 @@ class FileTableRow extends Row {
         createdColumn,
         typeColumn,
     ]);
+  }
+}
+
+class FileTableHeader extends Header {
+  constructor(){
+    super();
+  }
+
+
+  refresh(): void {
+    super.refresh();
+    let idColumn = document.createElement('table-data') as Data;
+    let nameColumn = document.createElement('table-data') as Data;
+    let sizeColumn = document.createElement('table-data') as Data;
+    let lastModifiedColumn = document.createElement('table-data') as Data;
+    let createdColumn = document.createElement('table-data') as Data;
+    let typeColumn = document.createElement('table-data') as Data;
+
+    idColumn.innerText = 'ID';
+    nameColumn.innerText = "Name";
+    sizeColumn.innerText = "Size";
+    lastModifiedColumn.innerText = "Last Modified";
+    createdColumn.innerText = "Created";
+    typeColumn.innerText = "Type";
+
+    this.appendChild(idColumn);
+    this.appendChild(nameColumn);
+    this.appendChild(sizeColumn);
+    this.appendChild(lastModifiedColumn);
+    this.appendChild(createdColumn);
+    this.appendChild(typeColumn);
   }
 }
 
@@ -155,6 +185,10 @@ export class FileBrowser extends CustomElement {
       }
     };
 
+    let tableHeader = document.createElement('file-header') as FileTableHeader;
+    this.table.appendChild(tableHeader);
+
+
     this.history.onclick = (path : MouseEvent) => {
         this.path = this.history.path;
     };
@@ -162,6 +196,7 @@ export class FileBrowser extends CustomElement {
     this.busy = Promise.resolve();
     this.cachedRootDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
     this.cachedCurrentDirectory = this.cachedRootDirectory;
+    console.log("FILE BOR", this);
   }
 
   static get observedAttributes() {
@@ -173,7 +208,7 @@ export class FileBrowser extends CustomElement {
 
   private static createIconTemplate(icon : string){
     let template = document.createElement('template');
-    template.innerHTML = icons.dropdownMenuIcon;
+    template.innerHTML = icon;
     return template.content.firstChild as SVGSVGElement;
   }
 
@@ -182,7 +217,10 @@ export class FileBrowser extends CustomElement {
   }
 
   set rootDirectory(value : Directory){
+    console.log("SET ROOT", value, value.getChildren().then((val) => console.log(val)));
     this.cachedRootDirectory = new CachedProxyDirectory(value);
+    this.cachedCurrentDirectory = this.cachedRootDirectory;
+    this.refreshFiles();
   }
 
   /**
@@ -217,8 +255,46 @@ export class FileBrowser extends CustomElement {
         );
   }
 
+  get css(): string | null{
+    // language=CSS
+    return super.css + `
+        :host {
+          --icon-color: #5c6873;
+          --action-icon-color: #5c6873;
+          --icon-size: 22px;
+          --icon-size-small: 12px;
+          --icon-size-large: 32px;
+        }
 
-  // Wrapper utilities
+        .icon {
+          display: inline-block;
+          width: var(--icon-size);
+          height: var(--icon-size);
+          vertical-align: middle;
+          margin: 5px;
+          fill: var(--icon-color);
+        }
+
+        .icon.small {
+          width: var(--icon-size-small);
+          height: var(--icon-size-small);
+        }
+
+        .icon.large {
+          width: var(--icon-size-large);
+          height: var(--icon-size-large);
+        }
+    `;
+  }
+
+  render(shadowRoot: ShadowRoot): void {
+    super.render(shadowRoot);
+    shadowRoot.appendChild(this.history);
+    shadowRoot.appendChild(this.actionsContainer);
+    shadowRoot.appendChild(this.tableContainer);
+  }
+
+// Wrapper utilities
 
 
   async loadingWrapper(promise : Promise<void>) : Promise<void>{
@@ -432,8 +508,7 @@ export class FileBrowser extends CustomElement {
       };
       tableRows.push(newRow);
     }
-    this.table.removeChildren();
-    this.table.appendChildren(tableRows);
+    this.table.rows = tableRows;
   }
 
   showContextMenu(positionX : number, positionY : number){
@@ -502,7 +577,7 @@ export class FileBrowser extends CustomElement {
                   if (newName !== null){
                     this.contextMenu.visible = false;
                     await selectedFile.rename(newName);
-                    await this.refresh();
+                    await this.refreshFiles();
                   }
                 })()
             );
@@ -602,7 +677,7 @@ export class FileBrowser extends CustomElement {
                   movePromises.push(moveBrowser.currentDirectory.move(path, fileObject).then(() => {}));
                 }
                 await Promise.all(movePromises);
-                await this.refresh();
+                await this.refreshFiles();
               })()
             );
           };
@@ -708,9 +783,10 @@ export class FileBrowser extends CustomElement {
     }
   }
 
-  async refresh(){
+  async refreshFiles(){
     this.currentDirectory.clearCache();
     let children = await this.currentDirectory.getChildren();
+    console.log("CHILDREN", children, this.currentDirectory);
     await this.setTableData(children);
   }
 }
@@ -889,3 +965,4 @@ export let ConfigFileMixin = (currentDirectoryClass) => {
 
 customElements.define('file-browser', FileBrowser);
 customElements.define('file-row', FileTableRow);
+customElements.define('file-header', FileTableHeader);

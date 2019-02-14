@@ -149,8 +149,10 @@ export class CachedProxyDirectory extends ProxyDirectory {
   private cachedChildren : files.File[] | null = null;
 
   async getChildren() {
+    console.log("PRECAC");
     if (this.cachedChildren === null){
       this.cachedChildren = [];
+      console.log("CH", await super.getChildren());
       for (let child of await super.getChildren()){
         if (child instanceof Directory){
           child = new CachedProxyDirectory(child);

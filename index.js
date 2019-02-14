@@ -119,6 +119,7 @@ import {Process} from "./lib/1.3.2/js/processes/base";
 import {stringToArrayBuffer} from "./lib/1.3.2/js/utils";
 import {ProcessDirectory} from "./lib/1.3.2/js/processes/files";
 import {DeviceDirectory} from "./lib/1.3.2/js/devices/base";
+import {FileBrowser} from "./lib/1.3.2/js/ui/browser";
 
 class InitFS extends MemoryDirectory {
   constructor(){
@@ -131,6 +132,7 @@ class InitFS extends MemoryDirectory {
   }
 
   async getChildren(){
+      console.log("WE HERE");
     let children = await super.getChildren();
     return children.concat(this._extraChildren);
   }

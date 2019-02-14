@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "build": "webpack",
+    "run": "webpack --watch",
     "test": "jest --coverage -i --verbose --bail --ci",
     "test:basic": "jest -i",
     "docs": "./node_modules/.bin/jsdoc -c ./docs-conf.json"

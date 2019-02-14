@@ -56,6 +56,8 @@ export declare class FileBrowser extends CustomElement {
      */
     readonly currentDirectory: CachedProxyDirectory;
     path: string[];
+    readonly css: string | null;
+    render(shadowRoot: ShadowRoot): void;
     loadingWrapper(promise: Promise<void>): Promise<void>;
     errorLoggingWrapper(promise: Promise<void>): Promise<void>;
     logAndLoadWrapper(promise: Promise<void>): Promise<void>;
@@ -72,7 +74,7 @@ export declare class FileBrowser extends CustomElement {
     getMenuItems(selectedFileRows: FileTableRow[]): HTMLDivElement[];
     addMessage(message: Error | string, isError?: boolean): void;
     clearMessages(): void;
-    refresh(): Promise<void>;
+    refreshFiles(): Promise<void>;
 }
 export declare class DialogBrowser extends FileBrowser {
     /**

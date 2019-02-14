@@ -4,6 +4,7 @@ import {File, Directory} from "../files/base.js";
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
+type sysCalls = "open" | "close" | "read" | "import" | "write" | "fork" | "exec" | "exit" | "error"
 
 type syscallTable = {
     open: (pathArray : string[]) => Promise<number>,
@@ -15,6 +16,10 @@ type syscallTable = {
     exec: (pathArray : string[], ...args : string[]) => Promise<number>,
     exit: (message : string) => void,
     error: (message : string) => void
+}
+
+interface WorkerEvent extends Event {
+    data: [number, "open" | "close" | "read" | "import" | "write" | "fork" | "exec" | "exit" | "error"];
 }
 
 // language=JavaScript
@@ -39,31 +44,33 @@ const script = `
                 }
             }
         });
-    
-    
-        return function(e) {
-            // The onmessage callback
-            if (Array.isArray(e.data)){
-                // Must be the return of a system call with format ["call id", data] 
-                let id = e.data[0];
-                let data = e.data[1];
-                let sysCall = calls[id];
-                if (sysCall){
-                    delete calls[id];
-                    sysCall(data);
-                }
-            } else {
-                // Must be a script to run.
-                let func = new AsyncFunction('system', e.data);
-                func.bind(this)(system)
-                    .then(() => {
-                        return system.exit("");
-                    }).catch((error) => {
-                        system.error(error.toString());
-                        console.log(error);
-                    });
+        
+        function initialize(e) {
+            let func = new AsyncFunction('system', e.data);
+            func.bind(this)(system)
+                .then(() => {
+                    return system.exit("");
+                }).catch((error) => {
+                system.error(error.toString());
+                console.log(error);
+            });
+            messageHandler = handleCallReturn;
+        }
+        
+        function handleCallReturn(e) {
+            let id = e.data[0];
+            let data = e.data[1];
+            let sysCall = calls[id];
+            if (sysCall){
+                delete calls[id];
+                sysCall(data);
             }
-        };
+        }
+        
+        let messageHandler = initialize;
+    
+    
+        return messageHandler;
     }();
 `;
 
@@ -94,18 +101,19 @@ export class Process extends ProcessFile {
 
         this.worker = new Worker('data:application/javascript,' + encodeURIComponent(script));
 
-        this.worker.onmessage = (event) => {
+        this.worker.onmessage = (event : WorkerEvent) => {
             // sys call. Should be an array.
             let id = event.data[0];
             let name = event.data[1];
             let args = event.data.slice(2);
-            let func = this.systemCalls[name].bind(this);
+            console.log("WORKER CALL", name);
+            let func = this.systemCalls[name];
             if (func){
                 func(...args)
-                    .then((returnValue) => {
+                    .then((returnValue : ArrayBuffer) => {
                         this.worker.postMessage([id, returnValue]);
                     })
-                    .catch((error) => {
+                    .catch((error : string) => {
                         let buffer = stringToArrayBuffer(`System error: ${error}`);
                         this.onExit();
                         return this.stderr.write(buffer);
