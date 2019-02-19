@@ -117,8 +117,7 @@ export class FileBrowser extends CustomElement {
 
   private readonly table : Table;
   private readonly contextMenu : Dialog;
-  private cachedRootDirectory : CachedProxyDirectory;
-  private cachedCurrentDirectory : CachedProxyDirectory;
+  private currentDirectory : CachedProxyDirectory;
 
   private readonly dropdownMenuIcon : SVGSVGElement;
   private readonly carrotIcon : SVGSVGElement;
@@ -194,9 +193,7 @@ export class FileBrowser extends CustomElement {
     };
 
     this.busy = Promise.resolve();
-    this.cachedRootDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
-    this.cachedCurrentDirectory = this.cachedRootDirectory;
-    console.log("FILE BOR", this);
+    this.currentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
   }
 
   static get observedAttributes() {
@@ -213,35 +210,32 @@ export class FileBrowser extends CustomElement {
   }
 
   get rootDirectory() : Directory {
-    return this.cachedRootDirectory;
+    return this.currentDirectory.root;
   }
 
   set rootDirectory(value : Directory){
     console.log("SET ROOT", value, value.getChildren().then((val) => console.log(val)));
-    this.cachedRootDirectory = new CachedProxyDirectory(value);
-    this.cachedCurrentDirectory = this.cachedRootDirectory;
+    this.currentDirectory = new CachedProxyDirectory(value);
     this.refreshFiles();
   }
 
-  /**
-   * An instance of Directory to browse.
-   */
-  get currentDirectory() : CachedProxyDirectory {
-    return this.cachedCurrentDirectory;
-  }
-
   get path() : string[] {
-    return this.history.path;
+    return this.currentDirectory.path.slice(1).reduce((pathArray : string[], directory : Directory) => {
+      pathArray.push(directory.name);
+      return pathArray;
+    }, []);
   }
 
   set path(path : string[]){
+    console.log("SET PATH", path);
     this.busy = this.busy
         .then(() => {
           return this.logAndLoadWrapper(
-              this.rootDirectory.getFile(path)
+              this.currentDirectory.root.getFile(path)
                   .then((newDirectory) => {
+                    console.log("NEW DIR", newDirectory);
                     if (newDirectory instanceof CachedProxyDirectory){
-                      this.cachedCurrentDirectory = newDirectory;
+                      this.currentDirectory = newDirectory;
                     } else {
                       throw new FileNotFoundError("file must be a directory");
                     }
@@ -266,7 +260,7 @@ export class FileBrowser extends CustomElement {
           --icon-size-large: 32px;
         }
 
-        .icon {
+        .${FileBrowser.tableIconClass} {
           display: inline-block;
           width: var(--icon-size);
           height: var(--icon-size);
@@ -275,14 +269,35 @@ export class FileBrowser extends CustomElement {
           fill: var(--icon-color);
         }
 
-        .icon.small {
+        .${FileBrowser.tableIconClass}.small {
           width: var(--icon-size-small);
           height: var(--icon-size-small);
         }
 
-        .icon.large {
+        .${FileBrowser.tableIconClass}.large {
           width: var(--icon-size-large);
           height: var(--icon-size-large);
+        }
+
+        .${FileBrowser.tableContainerClass} {
+          position: relative;
+          width: 100%;
+          background: var(--table-background-color);
+        }
+
+        .${FileBrowser.tableContainerClass}.dialog-item {
+          /*If inside dialog, make smaller*/
+          height: 300px;
+        }
+
+        .${FileBrowser.tableContainerClass} .hover-image {
+          position: absolute;
+          top: calc(2 * var(--table-row-height));
+          max-height: calc(100% - 3 * var(--table-row-height));
+          z-index: 99999;
+          background-color: white;
+          border: 1px solid black;
+          box-shadow: var(--browser-shadow);
         }
     `;
   }
@@ -482,17 +497,17 @@ export class FileBrowser extends CustomElement {
       newRow.hidden = fileObject.name.startsWith('.');
 
       // When a directory is dragged over for a period of time, go to the directory.
-      if (fileObject.directory){
+      if (fileObject instanceof Directory){
         newRow.addDragoverAction(() => {
           this.path = this.path.concat([fileObject.name]);
         });
-      }
-
-      // Goto directory or if file go to url (if dataurl download)
-      newRow.ondblclick = (event : MouseEvent) => {
-        if (fileObject.directory){
+        newRow.ondblclick = (event : MouseEvent) => {
+          // Goto directory
           this.path = this.path.concat([fileObject.name]);
-        } else {
+        }
+      } else {
+        newRow.ondblclick = (event : MouseEvent) => {
+          // go to url (if dataurl download)
           if (fileObject.url !== null) {
             if (fileObject.url.startsWith('data')){
               // Download if its a data url.
@@ -505,7 +520,7 @@ export class FileBrowser extends CustomElement {
             }
           }
         }
-      };
+      }
       tableRows.push(newRow);
     }
     this.table.rows = tableRows;

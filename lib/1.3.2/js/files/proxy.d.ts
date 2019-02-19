@@ -41,11 +41,14 @@ export declare class ProxyDirectory extends files.Directory {
     search(query: string): Promise<files.File[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
-    getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
 }
 export declare class CachedProxyDirectory extends ProxyDirectory {
     private cachedChildren;
+    private readonly parent;
+    constructor(concreteDirectory: files.Directory, parentDirectory?: CachedProxyDirectory);
+    readonly root: files.Directory;
+    readonly path: files.Directory[];
     getChildren(): Promise<files.File[]>;
     clearCache(): void;
 }

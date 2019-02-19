@@ -1,6 +1,5 @@
 import { File, Directory } from "../files/base";
 import { Row } from "elements/lib/table";
-import { CachedProxyDirectory } from "../files/proxy";
 import { CustomElement } from "elements/lib/element";
 declare class FileTableRow extends Row {
     private file;
@@ -37,8 +36,7 @@ export declare class FileBrowser extends CustomElement {
     private readonly history;
     private readonly table;
     private readonly contextMenu;
-    private cachedRootDirectory;
-    private cachedCurrentDirectory;
+    private currentDirectory;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
     private readonly searchIcon;
@@ -51,10 +49,6 @@ export declare class FileBrowser extends CustomElement {
     }): void;
     private static createIconTemplate;
     rootDirectory: Directory;
-    /**
-     * An instance of Directory to browse.
-     */
-    readonly currentDirectory: CachedProxyDirectory;
     path: string[];
     readonly css: string | null;
     render(shadowRoot: ShadowRoot): void;

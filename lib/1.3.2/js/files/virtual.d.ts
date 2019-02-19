@@ -1,13 +1,11 @@
 import { ProxyDirectory } from "./proxy";
-import { Directory } from "./base";
-declare class AbstractVirtualDirectory extends ProxyDirectory {
-    constructor(concreteDirectory: Directory);
-    readonly virtualRoot: void;
-    getChildren(): Promise<import("./base").File[]>;
+import * as files from "./base";
+export declare class VirtualDirectory extends ProxyDirectory {
+    private readonly mounts;
+    constructor(concreteDirectory: files.Directory, mounts?: {
+        [id: string]: files.Directory;
+    });
+    getChildren(): Promise<files.File[]>;
+    addDirectory(name: string): Promise<VirtualDirectory>;
+    mount(file: files.Directory): void;
 }
-export declare class VirtualRootDirectory extends AbstractVirtualDirectory {
-    constructor(concreteFile: any);
-    readonly virtualRoot: this;
-    mount(mountPoint: any, directory: any): Promise<void>;
-}
-export {};

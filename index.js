@@ -120,6 +120,7 @@ import {stringToArrayBuffer} from "./lib/1.3.2/js/utils";
 import {ProcessDirectory} from "./lib/1.3.2/js/processes/files";
 import {DeviceDirectory} from "./lib/1.3.2/js/devices/base";
 import {FileBrowser} from "./lib/1.3.2/js/ui/browser";
+import {VirtualDirectory} from "./lib/1.3.2/js/files/virtual";
 
 class InitFS extends MemoryDirectory {
   constructor(){
@@ -132,13 +133,22 @@ class InitFS extends MemoryDirectory {
   }
 
   async getChildren(){
-      console.log("WE HERE");
     let children = await super.getChildren();
     return children.concat(this._extraChildren);
   }
 }
 
-export const fs = new InitFS();
+export const fs = new VirtualDirectory(new MemoryDirectory(null , 'root'));
+
+export async function createFS(){
+    let fs = new VirtualDirectory(new MemoryDirectory(null , 'root'));
+    let dev = await fs.addDirectory('dev');
+    dev.mount(new DeviceDirectory());
+    let proc = await fs.addDirectory('proc');
+    proc.mount(new ProcessDirectory());
+    return fs;
+}
+
 
 export async function start(){
     await fs.addFile(stringToArrayBuffer('let fd = await system.open(["proc"]); let file = await system.readText(fd);await system.exec(["alert.js"]);console.log("FILE", file);await system.exit("DONE");'), 'init.js');

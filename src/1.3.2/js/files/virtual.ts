@@ -1,52 +1,40 @@
 import {ProxyDirectory} from "./proxy";
-import {Directory} from "./base";
+import * as files from "./base";
 
-class AbstractVirtualDirectory extends ProxyDirectory {
-  constructor(concreteDirectory : Directory){
+export class VirtualDirectory extends ProxyDirectory {
+  private readonly mounts : {[id : string] : files.Directory};
+
+  constructor(concreteDirectory : files.Directory, mounts? : {[id : string] : files.Directory}){
     super(concreteDirectory);
-  }
 
-  get virtualRoot(){
-    throw new Error("Not implemented");
+    this.mounts = mounts || {};
   }
 
   async getChildren(){
     let children = await super.getChildren();
     let virtualChildren = [];
     for (let child of children){
-      if (child.directory){
-        virtualChildren.push(new VirtualDirectory(this.virtualRoot, child));
+      let mounted = this.mounts[child.id];
+      if (mounted !== undefined){
+        virtualChildren.push(new VirtualDirectory(mounted));
       } else {
-        virtualChildren.push(child);
+        if (child instanceof files.Directory){
+          virtualChildren.push(new VirtualDirectory(child, this.mounts));
+        } else {
+          virtualChildren.push(child);
+        }
       }
     }
     return virtualChildren;
   }
-}
 
-class VirtualDirectory extends AbstractVirtualDirectory {
-  constructor(virtualRoot, concreteFile){
-    super(concreteFile);
-    this._virtualRoot = virtualRoot;
+
+  async addDirectory(name: string): Promise<VirtualDirectory> {
+    let dir = await super.addDirectory(name);
+    return new VirtualDirectory(dir, this.mounts);
   }
 
-  get virtualRoot(){
-    return this._virtualRoot;
-  }
-}
-
-export class VirtualRootDirectory extends AbstractVirtualDirectory {
-  constructor(concreteFile){
-    super(concreteFile);
-
-    this._mounts = {};
-  }
-
-  get virtualRoot(){
-    return this;
-  }
-
-  async mount(mountPoint, directory) {
-    this._mounts[mountPoint.id] = directory;
+  mount(file : files.Directory){
+    this.mounts[this.id] = file;
   }
 }

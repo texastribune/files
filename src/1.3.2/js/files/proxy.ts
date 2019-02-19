@@ -136,10 +136,6 @@ export class ProxyDirectory extends files.Directory {
     return this.concreteDirectory.addDirectory(name);
   }
 
-  getFile(pathArray : string[]) {
-    return this.concreteDirectory.getFile(pathArray);
-  }
-
   getChildren() {
     return this.concreteDirectory.getChildren();
   }
@@ -147,15 +143,33 @@ export class ProxyDirectory extends files.Directory {
 
 export class CachedProxyDirectory extends ProxyDirectory {
   private cachedChildren : files.File[] | null = null;
+  private readonly parent : CachedProxyDirectory | null;
+
+  constructor(concreteDirectory : files.Directory, parentDirectory? : CachedProxyDirectory){
+    super(concreteDirectory);
+    this.parent = parentDirectory || null;
+  }
+
+  get root() : files.Directory {
+    if (this.parent === null){
+      return this;
+    }
+    return this.parent.root;
+  }
+
+  get path() : files.Directory[] {
+    if (this.parent === null){
+      return [this];
+    }
+    return this.parent.path.concat([this]);
+  }
 
   async getChildren() {
-    console.log("PRECAC");
     if (this.cachedChildren === null){
       this.cachedChildren = [];
-      console.log("CH", await super.getChildren());
       for (let child of await super.getChildren()){
-        if (child instanceof Directory){
-          child = new CachedProxyDirectory(child);
+        if (child instanceof files.Directory){
+          child = new CachedProxyDirectory(child, this);
         }
         this.cachedChildren.push(child);
       }
