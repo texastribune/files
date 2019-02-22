@@ -138,6 +138,12 @@ class InitFS extends MemoryDirectory {
   }
 }
 
+
+//language=Javascript
+const init = `
+  console.log("YAS");
+`;
+
 export const fs = new VirtualDirectory(new MemoryDirectory(null , 'root'));
 
 export async function createFS(){
@@ -146,15 +152,8 @@ export async function createFS(){
     dev.mount(new DeviceDirectory());
     let proc = await fs.addDirectory('proc');
     proc.mount(new ProcessDirectory());
-    return fs;
-}
-
-
-export async function start(){
-    await fs.addFile(stringToArrayBuffer('let fd = await system.open(["proc"]); let file = await system.readText(fd);await system.exec(["alert.js"]);console.log("FILE", file);await system.exit("DONE");'), 'init.js');
-    await fs.addFile(stringToArrayBuffer('console.log("ALERT");let fd = await system.open(["dev"]); let file = await system.readText(fd);console.log("FILE", file);'), 'alert.js');
-
+    await fs.addFile(stringToArrayBuffer(init), 'init.js', 'application/javascript');
     let devConsole = await fs.getFile(['dev', 'console']);
-
     new Process(null, fs, ['init.js'], devConsole, devConsole);
+    return fs;
 }

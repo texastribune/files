@@ -1,9 +1,8 @@
-import History from "./history";
+import {BreadCrumbs} from "./breadCrumbs";
 import {Message} from "./messages";
 import {File, Directory, FileNotFoundError} from "../files/base";
 import {
-  convertBytesToReadable, compareDateStrings,
-  compareNumbers, compareStrings, fileToArrayBuffer
+  convertBytesToReadable, fileToArrayBuffer
 } from "../utils";
 import * as icons from './icons.js';
 import {parseConfigFile, updateConfigFile} from "./config";
@@ -99,7 +98,6 @@ export class FileBrowser extends CustomElement {
   static menuContainerClass =  'file-menu-container';
   static searchContainerClass =  'file-search-container';
   static stateManagerContainerClass = 'file-breadcrumbs-container';
-  static contextMenuClass = 'file-browser-context-menu';
   static dropdownMenuButtonClass = 'dropdown-menu button';
   static fileBrowserDialogClass = 'file-browser-dialog';
 
@@ -113,10 +111,10 @@ export class FileBrowser extends CustomElement {
   private readonly menusContainer : HTMLDivElement;
   private readonly searchContainer : HTMLDivElement;
   private readonly tableContainer : HTMLDivElement;
-  private readonly history : History;
+  private readonly breadCrumbs : BreadCrumbs;
 
   private readonly table : Table;
-  private readonly contextMenu : Dialog;
+  private readonly fileContextMenu : Dialog;
   private currentDirectory : CachedProxyDirectory;
 
   private readonly dropdownMenuIcon : SVGSVGElement;
@@ -131,7 +129,7 @@ export class FileBrowser extends CustomElement {
 
     // Sub elements
     this.table = document.createElement('selectable-table') as Table;
-    this.history = document.createElement('bread-crumbs') as History;
+    this.breadCrumbs = document.createElement('bread-crumbs') as BreadCrumbs;
 
     this.dropdownMenuIcon = FileBrowser.createIconTemplate(icons.dropdownMenuIcon);
     this.dropdownMenuIcon.classList.add(FileBrowser.tableIconClass);
@@ -150,9 +148,8 @@ export class FileBrowser extends CustomElement {
     this.documentIcon.classList.add(FileBrowser.tableIconClass);
 
     // Context menu
-    this.contextMenu = document.createElement('base-dialog') as Dialog;
-    this.contextMenu.className = FileBrowser.contextMenuClass;
-    this.contextMenu.name = "Settings";
+    this.fileContextMenu = document.createElement('base-dialog') as Dialog;
+    this.fileContextMenu.name = "Settings";
 
     // Actions container
     this.actionsContainer = document.createElement('div');
@@ -169,12 +166,13 @@ export class FileBrowser extends CustomElement {
     this.tableContainer.className = FileBrowser.tableContainerClass;
 
     // Add action elements
-    this.actionsContainer.appendChild(this.history);
+    this.actionsContainer.appendChild(this.breadCrumbs);
     this.actionsContainer.appendChild(this.messagesContainer);
     this.actionsContainer.appendChild(this.menusContainer);
     this.actionsContainer.appendChild(this.searchContainer);
 
     this.table.oncontextmenu = (event : MouseEvent) => {
+        event.preventDefault();
         this.showContextMenu(event.pageX, event.pageY);
     };
 
@@ -188,9 +186,9 @@ export class FileBrowser extends CustomElement {
     this.table.appendChild(tableHeader);
 
 
-    this.history.onclick = (path : MouseEvent) => {
-        this.path = this.history.path;
-    };
+    this.breadCrumbs.addEventListener(BreadCrumbs.EVENT_PATH_CHANGE, (event : Event) => {
+        this.path = this.breadCrumbs.path;
+    });
 
     this.busy = Promise.resolve();
     this.currentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
@@ -239,7 +237,7 @@ export class FileBrowser extends CustomElement {
                     } else {
                       throw new FileNotFoundError("file must be a directory");
                     }
-                    this.history.path = path;
+                    this.breadCrumbs.path = path;
                     return this.currentDirectory.getChildren();
                   })
                   .then((files) => {
@@ -281,6 +279,7 @@ export class FileBrowser extends CustomElement {
 
         .${FileBrowser.tableContainerClass} {
           position: relative;
+          float: left;
           width: 100%;
           background: var(--table-background-color);
         }
@@ -299,14 +298,28 @@ export class FileBrowser extends CustomElement {
           border: 1px solid black;
           box-shadow: var(--browser-shadow);
         }
+        
+        .${FileBrowser.searchContainerClass} {
+            float: right;
+        }
+        
+        .${FileBrowser.menuContainerClass} {
+            float: left;
+        }
+        
+        base-dialog > * {
+            margin: 5px;
+            cursor: pointer;
+        }
     `;
   }
 
   render(shadowRoot: ShadowRoot): void {
     super.render(shadowRoot);
-    shadowRoot.appendChild(this.history);
+    shadowRoot.appendChild(this.breadCrumbs);
     shadowRoot.appendChild(this.actionsContainer);
     shadowRoot.appendChild(this.tableContainer);
+    shadowRoot.appendChild(this.fileContextMenu);
   }
 
 // Wrapper utilities
@@ -374,8 +387,10 @@ export class FileBrowser extends CustomElement {
     contextMenuButton.className = FileBrowser.dropdownMenuButtonClass;
     contextMenuButton.appendChild(this.dropdownMenuIcon.cloneNode(true));
     contextMenuButton.appendChild(this.carrotIcon.cloneNode(true));
+    console.log("BUTOTN", contextMenuButton);
     contextMenuButton.onclick = (event) => {
       event.stopPropagation();
+      console.log("CLICK");
       let rect = contextMenuButton.getBoundingClientRect();
       let scrollLeft = document.documentElement.scrollLeft;
       let scrollTop = document.documentElement.scrollTop;
@@ -451,7 +466,7 @@ export class FileBrowser extends CustomElement {
             promises.push(moveFile(rowData));
           }
           this.logAndLoadWrapper(Promise.all(promises).then(() => {}));
-          this.contextMenu.visible = false;
+          this.fileContextMenu.visible = false;
         };
         moveConfirmDialog.appendChild(confirmText);
         moveConfirmDialog.visible = true;
@@ -464,7 +479,7 @@ export class FileBrowser extends CustomElement {
     if (searchTerm){
       await this.loadingWrapper(this.currentDirectory.search(searchTerm).then((foundFiles) => {
         this.setTableData(foundFiles);
-        let readablePath = [this.history.baseName].concat(this.path).join('/');
+        let readablePath = [this.breadCrumbs.baseName].concat(this.path).join('/');
         this.addMessage(
             `${foundFiles.length} search results for "${searchTerm}" in ${readablePath}.`
         );
@@ -527,21 +542,23 @@ export class FileBrowser extends CustomElement {
   }
 
   showContextMenu(positionX : number, positionY : number){
+    console.log("SHOW");
     // Add the items to the context menu
-    this.contextMenu.removeChildren();
+    this.fileContextMenu.removeChildren();
     let selectedFileRows : FileTableRow[] = [];
     for (let row of this.table.selectedRows){
       if (row instanceof FileTableRow){
         selectedFileRows.push(row);
       }
     }
-    this.contextMenu.appendChildren(this.getMenuItems(selectedFileRows));
+    this.fileContextMenu.appendChildren(this.getMenuItems(selectedFileRows));
 
     // Move the context menu to the click position
-    this.contextMenu.position = {x: positionX, y: positionY};
-    this.contextMenu.velocity = {x: 0, y: 0};
+    this.fileContextMenu.position = {x: positionX, y: positionY};
+    this.fileContextMenu.velocity = {x: 0, y: 0};
 
-    this.contextMenu.visible = true;
+    this.fileContextMenu.visible = true;
+    console.log("POS", positionY, positionX);
   }
 
   getMenuItems(selectedFileRows : FileTableRow[]) {
@@ -564,7 +581,7 @@ export class FileBrowser extends CustomElement {
             } else {
               window.open(selectedFile.url || "");
             }
-            this.contextMenu.visible = false;
+            this.fileContextMenu.visible = false;
           };
           menuItems.push(openButton);
 
@@ -590,7 +607,7 @@ export class FileBrowser extends CustomElement {
                 (async () => {
                   let newName = prompt("New Name");
                   if (newName !== null){
-                    this.contextMenu.visible = false;
+                    this.fileContextMenu.visible = false;
                     await selectedFile.rename(newName);
                     await this.refreshFiles();
                   }
@@ -623,7 +640,7 @@ export class FileBrowser extends CustomElement {
         event.stopPropagation(); // Prevent from closing new dialog immediately
 
         let deleteDialog = document.createElement('confirm-dialog') as ConfirmDialog;
-        this.contextMenu.appendChild(deleteDialog);
+        this.fileContextMenu.appendChild(deleteDialog);
         deleteDialog.onClose = () => {
           deleteDialog.remove();
         };
@@ -646,7 +663,7 @@ export class FileBrowser extends CustomElement {
                   promises.push(file.delete());
                 }
               }
-              this.contextMenu.visible = false;
+              this.fileContextMenu.visible = false;
               await Promise.all(promises);
               await this.currentDirectory.clearCache();
             })()
@@ -697,9 +714,9 @@ export class FileBrowser extends CustomElement {
             );
           };
 
-          this.contextMenu.appendChild(moveDialog);
+          this.fileContextMenu.appendChild(moveDialog);
           moveDialog.addEventListener(Dialog.EVENT_CLOSED, () => {
-            this.contextMenu.removeChild(moveDialog);
+            this.fileContextMenu.removeChild(moveDialog);
           });
           moveDialog.visible = true;
         };
@@ -734,13 +751,13 @@ export class FileBrowser extends CustomElement {
           }
         }
 
-        this.contextMenu.visible = false;
+        this.fileContextMenu.visible = false;
 
         this.logAndLoadWrapper(Promise.all(promises).then(() => {}));
       };
 
       fileDialog.appendChild(fileInputDiv);
-      this.contextMenu.appendChild(fileDialog);
+      this.fileContextMenu.appendChild(fileDialog);
       fileDialog.visible = true;
     };
     menuItems.push(addFileButton);
@@ -752,7 +769,7 @@ export class FileBrowser extends CustomElement {
       if (name !== null){
         this.logAndLoadWrapper(this.currentDirectory.addDirectory(name).then(() => {}));
       }
-      this.contextMenu.visible = false;
+      this.fileContextMenu.visible = false;
     };
     menuItems.push(addDirectoryButton);
 
@@ -818,7 +835,7 @@ export class DialogBrowser extends FileBrowser {
     super(currentDirectory, table);
 
     this._dialog = dialog;
-    this.contextMenu.parent = this._dialog;
+    this.fileContextMenu.parent = this._dialog;
     this.table.visibleColumnsDialog.parent = this._dialog;
     this._dialog.items = [this.element];
   }

@@ -3,7 +3,8 @@ export declare abstract class ProcessFile extends BasicFile {
     private readonly _id;
     private readonly _created;
     private _lastModified;
-    constructor();
+    readonly extra: {};
+    protected constructor();
     readonly id: string;
     readonly url: null;
     readonly icon: null;

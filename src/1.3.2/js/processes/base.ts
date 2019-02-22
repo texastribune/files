@@ -1,6 +1,6 @@
-import {ProcessFile} from "./files.js";
-import {stringToArrayBuffer} from "../utils.js";
-import {File, Directory} from "../files/base.js";
+import {ProcessFile} from "./files";
+import {stringToArrayBuffer} from "../utils";
+import {File, Directory} from "../files/base";
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
@@ -89,6 +89,7 @@ export class Process extends ProcessFile {
 
     constructor(parentProcess : Process, workingDirectory : Directory, executablePathArray : string[], stdout : File, stderr : File){
         super();
+        console.log("START");
 
         this.parentProcess = parentProcess;
         this.workingDirectory = workingDirectory;

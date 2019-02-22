@@ -21,7 +21,6 @@ export declare class FileBrowser extends CustomElement {
     static menuContainerClass: string;
     static searchContainerClass: string;
     static stateManagerContainerClass: string;
-    static contextMenuClass: string;
     static dropdownMenuButtonClass: string;
     static fileBrowserDialogClass: string;
     private searchPending;
@@ -33,9 +32,9 @@ export declare class FileBrowser extends CustomElement {
     private readonly menusContainer;
     private readonly searchContainer;
     private readonly tableContainer;
-    private readonly history;
+    private readonly breadCrumbs;
     private readonly table;
-    private readonly contextMenu;
+    private readonly fileContextMenu;
     private currentDirectory;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;

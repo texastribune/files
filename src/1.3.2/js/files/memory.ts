@@ -9,7 +9,6 @@ export class MemoryFile extends files.BasicFile {
     public readonly created = new Date();
     public readonly icon = null;
     public readonly mimeType : string;
-    public readonly url = null;
     public readonly extra = {};
 
     private parent : MemoryDirectory;
@@ -27,6 +26,12 @@ export class MemoryFile extends files.BasicFile {
 
         idCounter ++;
         this.id = idCounter.toString();
+    }
+
+    get url(){
+        let numArray = new Uint8Array(this.fileData) as unknown as number[];
+        let binaryStr = String.fromCharCode.apply(null, numArray);
+        return `data:${this.mimeType};base64,${btoa(binaryStr)}`;
     }
 
     get size(){

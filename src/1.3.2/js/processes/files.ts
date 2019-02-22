@@ -8,13 +8,15 @@ export abstract class ProcessFile extends BasicFile {
     private readonly _id : number;
     private readonly _created = new Date();
     private _lastModified = new Date();
+    public readonly extra = {};
 
-    constructor(){
+    protected constructor(){
         super();
 
         idCounter ++;
         this._id = idCounter;
 
+        console.log("PUSH", this);
         processes.push(this);
     }
 
@@ -48,6 +50,8 @@ export abstract class ProcessFile extends BasicFile {
     }
 
     async delete() {
+        console.log("DELETE");
+        console.trace();
         processes = processes.filter((file) => {return file !== this});
     }
 }
@@ -81,6 +85,7 @@ export abstract class ProcessDirectory extends Directory {
     }
 
     async getChildren(){
+        console.log("PROC CHILD", processes.slice());
         return processes.slice();
     }
 }

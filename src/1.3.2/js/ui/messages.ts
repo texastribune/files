@@ -1,6 +1,4 @@
-
 import {CustomElement} from "elements/lib/element";
-import {FileBrowser} from "./browser";
 
 export class Message extends CustomElement {
   private delay : number | null = null;
@@ -51,6 +49,7 @@ export class Message extends CustomElement {
   }
 
   render(shadowRoot: ShadowRoot): void {
+    super.render(shadowRoot);
     let slot = document.createElement('slot');
     shadowRoot.appendChild(slot);
 
