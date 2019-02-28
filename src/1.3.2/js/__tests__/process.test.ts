@@ -2,11 +2,11 @@
 /* global jest, test, expect, describe */
 
 
-import {MemoryDirectory} from "../js/files/memory";
-import {stringToArrayBuffer} from "../js/utils";
-import {Process} from "../js/processes/base";
-import {DeviceDirectory} from "../js/devices/base";
-import {ProcessDirectory} from "../js/processes/files";
+import {MemoryDirectory} from "../files/memory";
+import {stringToArrayBuffer} from "../utils";
+import {Process} from "../processes/base";
+import {DeviceDirectory} from "../devices/base";
+import {ProcessDirectory} from "../processes/files";
 
 class MockWorker {
     constructor(url){

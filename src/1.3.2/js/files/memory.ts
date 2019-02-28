@@ -66,7 +66,7 @@ export class MemoryDirectory extends files.Directory {
 
     private parent : MemoryDirectory | null;
     public name : string;
-    private _children : (MemoryFile | MemoryDirectory)[] = [];
+    private children : (MemoryFile | MemoryDirectory)[] = [];
 
     constructor(parent : MemoryDirectory | null, name : string) {
         super();
@@ -79,11 +79,11 @@ export class MemoryDirectory extends files.Directory {
     }
 
     get lastModified() : Date {
-        let children = Object.values(this._children);
+        let children = Object.values(this.children);
         if (children.length === 0){
             return this.created;
         }
-        return new Date(Math.max.apply(null, Object.values(this._children).map(function(e) {
+        return new Date(Math.max.apply(null, Object.values(this.children).map(function(e) {
             return new Date(e.lastModified).getTime();
         })));
     }
@@ -99,12 +99,12 @@ export class MemoryDirectory extends files.Directory {
     }
 
     async getChildren(){
-        return this._children.slice();
+        return this.children.slice();
     }
 
     async search(query : string) {
         let results : files.File[] = [];
-        for (let child of this._children){
+        for (let child of this.children){
             if (name === query){
                 results.push(child);
             }
@@ -129,10 +129,10 @@ export class MemoryDirectory extends files.Directory {
     }
 
     addChild(memoryFile : MemoryFile | MemoryDirectory){
-        this._children.push(memoryFile);
+        this.children.push(memoryFile);
     }
 
     removeChild(memoryFile : MemoryFile | MemoryDirectory){
-        this._children = this._children.filter((file) => {return file !== memoryFile});
+        this.children = this.children.filter((file) => {return file !== memoryFile});
     }
 }

@@ -1,22 +1,31 @@
 /* eslint-disable import/first */
 /* global jest, test, expect, describe */
 
-import {MemoryDirectory} from "../js/files/memory.ts";
-import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer, compareById} from "../js/utils.ts";
-import IndexedDB from "../../../node_modules/fake-indexeddb/build/index.js";
-import {LocalStorageRoot, database} from "../js/files/local.js";
-import {VirtualRootDirectory} from "../js/files/virtual.js";
-import {BasicFile} from "../js/files/base.js";
-import {NodeDirectory} from "../js/files/node.js";
+import {MemoryDirectory} from "../files/memory";
+import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer} from "../utils";
+import IndexedDB from "fake-indexeddb/build";
+import {LocalStorageRoot, database} from "../files/local";
+import {VirtualDirectory} from "../files/virtual";
+import {BasicFile, Directory, File} from "../files/base";
+import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
 
+function compareById(a : File, b : File) {
+    if (a.id > b.id){
+        return 1;
+    }
+    if (a.id < b.id){
+        return -1;
+    }
+    return 0;
+}
 
-async function listDirectoryDataFromRead(directory) {
+async function listDirectoryDataFromRead(directory : Directory) {
     let directoryArrayBuffer = await directory.read();
     return parseJsonArrayBuffer(directoryArrayBuffer);
 }
 
-async function listDirectoryDataFromGetChildren(directory){
+async function listDirectoryDataFromGetChildren(directory : Directory){
     let children = await directory.getChildren();
     let dataArray = [];
     for (let file of children){
@@ -36,14 +45,14 @@ async function listDirectoryDataFromGetChildren(directory){
     return dataArray;
 }
 
-function testStorage(rootDirectory) {
+function testStorage(rootDirectory : Directory) {
     let file1String = 'abc';
     let file2String = 'def';
     let file1Name = 'file1';
     let file2Name = 'file2';
     let dir1Name = 'dir1';
 
-    async function addTestFiles() {
+    async function addTestFiles() : Promise<[Directory, File, File]> {
         let dir1 = await rootDirectory.addDirectory(dir1Name);
         let file1 = await rootDirectory.addFile(stringToArrayBuffer(file1String), file1Name);
         let file2 = await dir1.addFile(stringToArrayBuffer(file2String), file2Name, 'text/plain');
@@ -55,8 +64,11 @@ function testStorage(rootDirectory) {
 
         let arrayBuffer = await rootDirectory.read();
         let childData = parseJsonArrayBuffer(arrayBuffer);
-        expect(childData).toBeInstanceOf(Array);
-        expect(childData.length).toEqual(0);
+        if (childData instanceof Array){
+            expect(childData.length).toEqual(0);
+        } else {
+            throw new Error('directory data is not an array')
+        }
     });
 
     test('Storage can add files and directories', async () => {
@@ -80,54 +92,7 @@ function testStorage(rootDirectory) {
 
         expect(files[0].mimeType).toMatch('application/json'); // All directories should be json files
         expect(files[1].mimeType).toMatch('application/octet-stream'); // Fallback since not given in addFile
-        if (rootDirectory.constructor.preservesMimeType){
-            expect(files[2].mimeType).toMatch('text/plain'); // As was defined in addFile
-        }
-    });
-
-    test('Storage cannot add files or directories to non directory', async () => {
-        let file1 = await rootDirectory.addFile(stringToArrayBuffer('jkl'), 'file', 'text/plain');
-        let error;
-
-        // Try to add a file to file1.
-        error = null;
-        try {
-            await file1.addFile(stringToArrayBuffer('mno'), 'anotherFile', 'text/plain');
-        } catch (e) {
-            error = e;
-        }
-        expect(error).not.toBeNull();
-
-        // Try to add a directory to file1.
-        error = null;
-        try {
-            await file1.addDirectory('directory');
-        } catch (e) {
-            error = e;
-        }
-        expect(error).not.toBeNull();
-    });
-
-    test('Storage cannot add wrong type', async () => {
-        let error;
-
-        // Test can't add Blob
-        error = null;
-        try {
-            await rootDirectory.addFile(new Blob(['stu']), 'file', 'text/plain');
-        } catch (e) {
-            error = e;
-        }
-        expect(error).not.toBeNull();
-
-        // Test can't add plain string
-        error = null;
-        try {
-            await rootDirectory.addFile('stu', 'file', 'text/plain');
-        } catch (e) {
-            error = e;
-        }
-        expect(error).not.toBeNull();
+        expect(files[2].mimeType).toMatch('text/plain'); // As was defined in addFile
     });
 
     test('It can read files and directories', async () => {
@@ -155,20 +120,10 @@ function testStorage(rootDirectory) {
 
         // Get the data from an instance of AbstractFile which should not change since it was added or
         // directly written to Directory size, lastModified, and url can change when child files are added.
-        function staticDataFromFile(file){
-            let staticData = {
-                id: file.id,
-                name: file.name,
-                // created: file.created.toISOString(), //TODO this is variable on NodeFileStorage for some reason
-                directory: file.directory,
-                mimeType: file.mimeType
-            };
-            if (!file.directory){
-                staticData.size = file.size;
-                staticData.lastModified = file.lastModified.toISOString();
-                staticData.url = file.url;
-            }
-            return staticData;
+        function areFilesSame(file1 : File, file2 : File) : boolean {
+            return file1.id === file2.id && file1.name === file2.name && file1.directory === file2.directory
+                && (file1.directory || file1.size === file2.size && file1.lastModified === file2.lastModified
+                    && file1.url === file2.url);
         }
 
         let rootExpectedStaticData = rootExpectedChildren.map(staticDataFromFile);
@@ -177,7 +132,14 @@ function testStorage(rootDirectory) {
         let rootFileNodesStaticData = rootChildFiles.map(staticDataFromFile);
         let dir1FileNodesStaticData = dir1ChildFiles.map(staticDataFromFile);
 
-        expect(rootFileNodesStaticData.sort(compareById)).toEqual(rootExpectedStaticData.sort(compareById));
+        for (file in rootExpectedChildren){
+
+        }
+
+        if (rootExpectedStaticData instanceof Array){
+            expect(rootFileNodesStaticData.sort(compareById)).toEqual(rootExpectedStaticData.sort(compareById));
+        }
+
         expect(dir1FileNodesStaticData.sort(compareById)).toEqual(dir1ExpectedStaticData.sort(compareById));
     });
 
@@ -265,7 +227,7 @@ describe('Test memory file storage', () => {
     let storage = new MemoryDirectory(null, 'root');
 
     beforeEach(() => {
-        storage._children = [];
+        storage = new MemoryDirectory(null, 'root');
     });
 
     testStorage(storage);
@@ -290,18 +252,18 @@ describe('Test local file storage', () => {
 
 describe('Test virtual file storage', () => {
     let rootMounted = new MemoryDirectory(null, 'mounted');
-    let storage = new VirtualRootDirectory(rootMounted);
+    let storage = new VirtualDirectory(rootMounted);
 
     beforeEach(async () => {
-      rootMounted._children = [];
-      storage._mounts = {};
+      rootMounted = new MemoryDirectory(null, 'mounted');
+      storage = new VirtualDirectory(rootMounted);
     });
 
     testStorage(storage);
 });
 
 describe('Test node file storage', () => {
-  function rmDir(path) {
+  function rmDir(path : string) {
     if (fs.existsSync(path)) {
       fs.readdirSync(path).forEach((fileName, index) => {
         let subPath = path + '/' + fileName;

@@ -92,17 +92,13 @@ export interface File {
   move(targetDirectory : Directory) : Promise<void>;
 }
 
-export function isDirectory(file : File) : file is Directory {
-  return file.directory;
-}
-
 
 /**
  * @abstract
  * An object representing a file.
  */
 export abstract class BasicFile implements File {
-  private _onChangeListeners : ((file : File) => void)[] = [];
+  private readonly onChangeListeners : ((file : File) => void)[] = [];
 
   abstract readonly id : string;
   abstract readonly name : string;
@@ -131,13 +127,15 @@ export abstract class BasicFile implements File {
   // }
 
   onChange() {
-    for (let listener of this._onChangeListeners) {
+    console.log("CHANGE FUNC", this, this.name, this.onChangeListeners);
+    for (let listener of this.onChangeListeners) {
       listener(this);
     }
   }
 
   addOnChangeListener(listener : (file : File) => void) {
-    this._onChangeListeners.push(listener);
+    console.log("ADD", this, this.name, listener);
+    this.onChangeListeners.push(listener);
   }
 
   get directory() {
@@ -206,7 +204,7 @@ export abstract class Directory extends BasicFile {
     return null;
   }
 
-  async read(params : Object) {
+  async read(params? : Object) {
     let fileData = [];
     let children = await this.getChildren();
     for (let child of children) {

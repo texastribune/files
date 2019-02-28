@@ -1,7 +1,6 @@
 import * as files from "./base";
 /**
  * Proxy to an file
- * @property {BasicFile} concreteFile - The file to proxy
  */
 export declare class ProxyFile extends files.BasicFile {
     private readonly concreteFile;
@@ -16,6 +15,7 @@ export declare class ProxyFile extends files.BasicFile {
     readonly lastModified: Date;
     readonly created: Date;
     readonly extra: Object;
+    addOnChangeListener(listener: (file: files.File) => void): void;
     read(params?: Object): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
@@ -36,6 +36,8 @@ export declare class ProxyDirectory extends files.Directory {
     readonly lastModified: Date;
     readonly created: Date;
     readonly extra: Object;
+    onChange(): void;
+    addOnChangeListener(listener: (file: files.File) => void): void;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     search(query: string): Promise<files.File[]>;
@@ -43,7 +45,19 @@ export declare class ProxyDirectory extends files.Directory {
     addDirectory(name: string): Promise<files.Directory>;
     getChildren(): Promise<files.File[]>;
 }
-export declare class CachedProxyDirectory extends ProxyDirectory {
+export declare class ChangeEventProxyFile extends ProxyFile {
+    write(data: ArrayBuffer): Promise<ArrayBuffer>;
+    rename(newName: string): Promise<void>;
+    delete(): Promise<void>;
+}
+export declare class ChangeEventProxyDirectory extends ProxyDirectory {
+    rename(newName: string): Promise<void>;
+    delete(): Promise<void>;
+    addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
+    addDirectory(name: string): Promise<files.Directory>;
+    getChildren(): Promise<files.File[]>;
+}
+export declare class CachedProxyDirectory extends ChangeEventProxyDirectory {
     private cachedChildren;
     private readonly parent;
     constructor(concreteDirectory: files.Directory, parentDirectory?: CachedProxyDirectory);

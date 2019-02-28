@@ -68,13 +68,12 @@ export interface File {
      */
     move(targetDirectory: Directory): Promise<void>;
 }
-export declare function isDirectory(file: File): file is Directory;
 /**
  * @abstract
  * An object representing a file.
  */
 export declare abstract class BasicFile implements File {
-    private _onChangeListeners;
+    private readonly onChangeListeners;
     abstract readonly id: string;
     abstract readonly name: string;
     abstract readonly url: string | null;
@@ -105,7 +104,7 @@ export declare abstract class BasicFile implements File {
      * @param {Object} [params={}] - Read parameters.
      * @returns {Object|Array} - File file data converted to a Javascript Object.
      */
-    readJSON(params: Object): Promise<string>;
+    readJSON(params: Object): Promise<Object>;
     copy(targetDirectory: Directory): Promise<void>;
     move(targetDirectory: Directory): Promise<void>;
     toString(): string;
@@ -118,7 +117,7 @@ export declare abstract class Directory extends BasicFile {
     readonly mimeType: string;
     readonly size: number;
     readonly url: null;
-    read(params: Object): Promise<ArrayBuffer>;
+    read(params?: Object): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     /**
      * Get the file object at the given path relative to this directory.

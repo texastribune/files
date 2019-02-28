@@ -1,51 +1,29 @@
-import {BasicFile, DirectoryMixin} from "./base";
-import * as fs from 'fs';
+import * as files from "./base";
+import {statSync, Stats} from "fs";
+import {promises as fs} from "fs";
 import * as path from 'path';
 
 
-function nodeFSFuncAsyncWrapper(func) {
-  return async (...args) => {
-    return await new Promise((resolve, reject) => {
-      let callback = (err, stats) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(stats);
-        }
-      };
-      args.push(callback);
-      func(...args);
-    })
-  }
-}
+/**
+ * A file on the local system using NodeJS file operations.
+ */
+export class NodeFile extends files.BasicFile {
+  private stat : Stats;
+  private path : string;
+  public extra = {};
 
-
-class AbstractNodeFileBase extends BasicFile {
-  constructor(path, stat) {
+  constructor(path : string, stat? : Stats) {
     super();
-    this._path = path;
-    this._stat = stat || fs.statSync(path);
-
-    this.stat = nodeFSFuncAsyncWrapper(fs.stat);
-    this.readFile = nodeFSFuncAsyncWrapper(fs.readFile);
-    this.writeFile = nodeFSFuncAsyncWrapper(fs.writeFile);
-    this.readdir = nodeFSFuncAsyncWrapper(fs.readdir);
-    this.appendFile = nodeFSFuncAsyncWrapper(fs.appendFile);
-    this.mkdir = nodeFSFuncAsyncWrapper(fs.mkdir);
-    this.fsrename = nodeFSFuncAsyncWrapper(fs.rename);
-    this.unlink = nodeFSFuncAsyncWrapper(fs.unlink);
-  }
-
-  static get preservesMimeType(){
-    return false;
+    this.path = path;
+    this.stat = stat || statSync(path);
   }
 
   get id() {
-    return this._path;
+    return this.path;
   }
 
   get name() {
-    return path.basename(this._path);
+    return path.basename(this.path);
   }
 
   get url() {
@@ -57,85 +35,132 @@ class AbstractNodeFileBase extends BasicFile {
   }
 
   get size() {
-    return this._stat.size;
+    return this.stat.size;
   }
 
   get lastModified() {
-    return this._stat.birthtime;
+    return this.stat.birthtime;
   }
 
   get created() {
-    return this._stat.ctime;
+    return this.stat.ctime;
   }
 
-  async rename(newName) {
-    let dirName = path.dirname(this.id);
-    let newPath = path.join(dirName, newName);
-    await this.fsrename(this.id, newPath);
-    this._path = newPath;
-  }
-
-  async delete() {
-    await this.unlink(this.id);
-  }
-
-  async copy(targetParentId) {
-    throw new Error("Not implemented")
-  }
-
-  async move(targetParentId) {
-    throw new Error("Not implemented")
-  }
-
-  async search(query) {
-    throw new Error("Not implemented")
-  }
-}
-
-
-/**
- * A file on the local system using NodeJS file operations.
- */
-export class NodeFile extends AbstractNodeFileBase {
   get mimeType() {
     return 'application/octet-stream';
   }
 
-  async read(params) {
-    let typedArray = await this.readFile(this.id);
+  async rename(newName : string) {
+    let dirName = path.dirname(this.id);
+    let newPath = path.join(dirName, newName);
+    await fs.rename(this.id, newPath);
+    this.path = newPath;
+  }
+
+  async delete() {
+    await fs.unlink(this.id);
+  }
+
+  async copy(targetDirectory : files.Directory) {
+    throw new Error("Not implemented")
+  }
+
+  async move(targetDirectory : files.Directory) {
+    throw new Error("Not implemented")
+  }
+
+  async search(query : string) {
+    throw new Error("Not implemented")
+  }
+
+  async read(params? : Object) {
+    let typedArray = await fs.readFile(this.id);
     return typedArray.buffer;
   }
 
-  async write(data) {
-    await this.writeFile(this.id, new Buffer.from(data));
-    return await this.readFile(this.id);
+  async write(data : ArrayBuffer) {
+    await fs.writeFile(this.id, new Buffer.from(data));
+    return await fs.readFile(this.id);
   }
 }
 
-export class NodeDirectory extends DirectoryMixin(NodeFile) {
-  async addFile(fileData, filename, type) {
+export class NodeDirectory extends files.Directory {
+  private stat : Stats;
+  private path : string;
+  public extra = {};
+
+  constructor(path : string, stat? : Stats) {
+    super();
+    this.path = path;
+    this.stat = stat || statSync(path);
+  }
+
+  get id() {
+    return this.path;
+  }
+
+  get name() {
+    return path.basename(this.path);
+  }
+
+  get icon() {
+    return null;
+  }
+
+  get lastModified() {
+    return this.stat.birthtime;
+  }
+
+  get created() {
+    return this.stat.ctime;
+  }
+
+  async rename(newName : string) {
+    let dirName = path.dirname(this.id);
+    let newPath = path.join(dirName, newName);
+    await fs.rename(this.id, newPath);
+    this.path = newPath;
+  }
+
+  async delete() {
+    await fs.unlink(this.id);
+  }
+
+  async copy(targetDirectory : files.Directory) {
+    throw new Error("Not implemented")
+  }
+
+  async move(targetDirectory : files.Directory) {
+    throw new Error("Not implemented")
+  }
+
+  async search(query : string) : Promise<files.File[]> {
+    throw new Error("Not implemented")
+  }
+
+  async addFile(fileData: ArrayBuffer, filename: string, mimeType?: string) {
     if (!(fileData instanceof ArrayBuffer)) {
       throw new Error(`File data must be ArrayBuffer not ${typeof fileData}.`)
     }
     let filePath = path.join(this.id, filename);
-    await this.appendFile(filePath, new Buffer.from(fileData));
-    let stat = await this.stat(filePath);
+    await fs.appendFile(filePath, new Buffer.from(fileData));
+    let stat = await fs.stat(filePath);
     return new NodeFile(filePath, stat);
   }
 
-  async addDirectory(name) {
+  async addDirectory(name : string) {
     let dirPath = path.join(this.id, name);
-    await this.mkdir(dirPath, null);
-    let stat = await this.stat(dirPath);
+    await fs.mkdir(dirPath, null);
+    let stat = await fs.stat(dirPath);
     return new NodeDirectory(dirPath, stat);
   }
 
-  async getChildren(){
-    let children = [];
-    let nameArray = await this.readdir(this.id);
+  async getChildren() : Promise<files.File[]> {
+    let children : files.File[] = [];
+    let nameArray = await fs.readdir(this.id);
     for (let name of nameArray) {
       let childPath = path.join(this.id, name);
-      let stat = await this.stat(childPath);
+      let stat = await fs.stat(childPath);
       if (stat.isDirectory()){
         children.push(new NodeDirectory(childPath, stat));
       } else {

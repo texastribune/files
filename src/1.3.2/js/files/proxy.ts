@@ -4,7 +4,6 @@ import {Directory} from "./base";
 
 /**
  * Proxy to an file
- * @property {BasicFile} concreteFile - The file to proxy
  */
 export class ProxyFile extends files.BasicFile {
   private readonly concreteFile : files.File;
@@ -52,6 +51,10 @@ export class ProxyFile extends files.BasicFile {
 
   get extra(){
     return this.concreteFile.extra;
+  }
+
+  addOnChangeListener(listener: (file: files.File) => void) {
+    this.concreteFile.addOnChangeListener(listener);
   }
 
   read(params? : Object) {
@@ -116,6 +119,14 @@ export class ProxyDirectory extends files.Directory {
     return this.concreteDirectory.extra;
   }
 
+  onChange() {
+    this.concreteDirectory.onChange();
+  }
+
+  addOnChangeListener(listener: (file: files.File) => void) {
+    this.concreteDirectory.addOnChangeListener(listener);
+  }
+
   rename(newName : string) {
     return this.concreteDirectory.rename(newName);
   }
@@ -141,7 +152,70 @@ export class ProxyDirectory extends files.Directory {
   }
 }
 
-export class CachedProxyDirectory extends ProxyDirectory {
+
+export class ChangeEventProxyFile extends ProxyFile {
+  async write(data : ArrayBuffer) {
+    let ret = await super.write(data);
+    this.onChange();
+    return ret;
+  }
+
+  async rename(newName : string) {
+    let ret = await super.rename(newName);
+    this.onChange();
+    return ret;
+  }
+
+  async delete() {
+    await super.delete();
+    this.onChange();
+  }
+}
+
+export class ChangeEventProxyDirectory extends ProxyDirectory {
+  async rename(newName : string) {
+    let ret = await super.rename(newName);
+    this.onChange();
+    return ret;
+  }
+
+  async delete() {
+    await super.delete();
+    this.onChange();
+  }
+
+
+  async addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File> {
+    let ret = super.addFile(fileData, filename, mimeType);
+    this.onChange();
+    return ret;
+  }
+
+  async addDirectory(name: string): Promise<files.Directory> {
+    console.log("ADD DIR", name);
+    let ret = super.addDirectory(name);
+    this.onChange();
+    return ret;
+  }
+
+  async getChildren(): Promise<files.File[]> {
+    let children = [];
+    for (let child of await super.getChildren()){
+      if (child instanceof files.Directory){
+        child = new ChangeEventProxyDirectory(child);
+      } else {
+        child = new ChangeEventProxyFile(child);
+      }
+      child.addOnChangeListener(() => {
+        this.onChange();
+      });
+      children.push(child);
+    }
+    return children;
+  }
+}
+
+export class CachedProxyDirectory extends ChangeEventProxyDirectory {
   private cachedChildren : files.File[] | null = null;
   private readonly parent : CachedProxyDirectory | null;
 

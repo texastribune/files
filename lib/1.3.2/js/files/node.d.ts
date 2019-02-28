@@ -1,32 +1,45 @@
-import { BasicFile } from "./base";
-declare class AbstractNodeFileBase extends BasicFile {
-    constructor(path: any, stat: any);
-    static readonly preservesMimeType: boolean;
-    readonly id: any;
-    readonly name: string;
-    readonly url: null;
-    readonly icon: null;
-    readonly size: any;
-    readonly lastModified: any;
-    readonly created: any;
-    rename(newName: any): Promise<void>;
-    delete(): Promise<void>;
-    copy(targetParentId: any): Promise<void>;
-    move(targetParentId: any): Promise<void>;
-    search(query: any): Promise<void>;
-}
+import * as files from "./base";
+import { Stats } from "fs";
 /**
  * A file on the local system using NodeJS file operations.
  */
-export declare class NodeFile extends AbstractNodeFileBase {
+export declare class NodeFile extends files.BasicFile {
+    private stat;
+    private path;
+    extra: {};
+    constructor(path: string, stat?: Stats);
+    readonly id: string;
+    readonly name: string;
+    readonly url: null;
+    readonly icon: null;
+    readonly size: number;
+    readonly lastModified: Date;
+    readonly created: Date;
     readonly mimeType: string;
-    read(params: any): Promise<any>;
-    write(data: any): Promise<any>;
+    rename(newName: string): Promise<void>;
+    delete(): Promise<void>;
+    copy(targetDirectory: files.Directory): Promise<void>;
+    move(targetDirectory: files.Directory): Promise<void>;
+    search(query: string): Promise<void>;
+    read(params?: Object): Promise<ArrayBuffer | SharedArrayBuffer>;
+    write(data: ArrayBuffer): Promise<Buffer>;
 }
-declare const NodeDirectory_base: any;
-export declare class NodeDirectory extends NodeDirectory_base {
-    addFile(fileData: any, filename: any, type: any): Promise<NodeFile>;
-    addDirectory(name: any): Promise<any>;
-    getChildren(): Promise<any[]>;
+export declare class NodeDirectory extends files.Directory {
+    private stat;
+    private path;
+    extra: {};
+    constructor(path: string, stat?: Stats);
+    readonly id: string;
+    readonly name: string;
+    readonly icon: null;
+    readonly lastModified: Date;
+    readonly created: Date;
+    rename(newName: string): Promise<void>;
+    delete(): Promise<void>;
+    copy(targetDirectory: files.Directory): Promise<void>;
+    move(targetDirectory: files.Directory): Promise<void>;
+    search(query: string): Promise<files.File[]>;
+    addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<NodeFile>;
+    addDirectory(name: string): Promise<NodeDirectory>;
+    getChildren(): Promise<files.File[]>;
 }
-export {};

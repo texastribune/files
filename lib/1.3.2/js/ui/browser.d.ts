@@ -1,10 +1,15 @@
 import { File, Directory } from "../files/base";
-import { Row } from "elements/lib/table";
+import { Row, Data } from "elements/lib/table";
+import { CachedProxyDirectory } from "../files/proxy";
 import { CustomElement } from "elements/lib/element";
 declare class FileTableRow extends Row {
     private file;
+    private readonly folderIcon;
+    private readonly documentIcon;
+    constructor();
     getFile(): File | null;
     setFile(value: File): void;
+    createNameColumn(): Data;
 }
 /**
  * An element for browsing a file system.
@@ -35,19 +40,17 @@ export declare class FileBrowser extends CustomElement {
     private readonly breadCrumbs;
     private readonly table;
     private readonly fileContextMenu;
-    private currentDirectory;
+    private cachedCurrentDirectory;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
     private readonly searchIcon;
-    private readonly folderIcon;
-    private readonly documentIcon;
     constructor();
     static readonly observedAttributes: never[];
     updateAttributes(attributes: {
         [p: string]: string | null;
     }): void;
-    private static createIconTemplate;
     rootDirectory: Directory;
+    currentDirectory: CachedProxyDirectory;
     path: string[];
     readonly css: string | null;
     render(shadowRoot: ShadowRoot): void;

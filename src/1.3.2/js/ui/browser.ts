@@ -2,7 +2,7 @@ import {BreadCrumbs} from "./breadCrumbs";
 import {Message} from "./messages";
 import {File, Directory, FileNotFoundError} from "../files/base";
 import {
-  convertBytesToReadable, fileToArrayBuffer
+  convertBytesToReadable, createNode, fileToArrayBuffer
 } from "../utils";
 import * as icons from './icons.js';
 import {parseConfigFile, updateConfigFile} from "./config";
@@ -12,8 +12,21 @@ import {MemoryDirectory} from "../files/memory";
 import {CachedProxyDirectory} from "../files/proxy";
 import {CustomElement} from "elements/lib/element";
 
+
 class FileTableRow extends Row {
   private file : File | null = null;
+  private readonly folderIcon : Element;
+  private readonly documentIcon : Element;
+
+  constructor(){
+    super();
+
+    this.folderIcon = createNode(icons.folderIcon);
+    this.folderIcon.classList.add(FileBrowser.tableIconClass);
+
+    this.documentIcon = createNode(icons.documentIcon);
+    this.documentIcon.classList.add(FileBrowser.tableIconClass);
+  }
 
   getFile() : File | null {
     return this.file
@@ -23,7 +36,7 @@ class FileTableRow extends Row {
     this.file = value;
 
     let idColumn = document.createElement('table-data') as Data;
-    let nameColumn = document.createElement('table-data') as Data;
+    let nameColumn = this.createNameColumn();
     let sizeColumn = document.createElement('table-data') as Data;
     let lastModifiedColumn = document.createElement('table-data') as Data;
     let createdColumn = document.createElement('table-data') as Data;
@@ -32,7 +45,6 @@ class FileTableRow extends Row {
     this.hidden = this.file.name.startsWith('.');
 
     idColumn.innerText = value.id;
-    nameColumn.innerText = value.name;
     sizeColumn.innerText = convertBytesToReadable(value.size);
     lastModifiedColumn.innerText = new Date(value.lastModified).toLocaleString();
     createdColumn.innerText = new Date(value.created).toLocaleString();
@@ -47,6 +59,54 @@ class FileTableRow extends Row {
         createdColumn,
         typeColumn,
     ]);
+  }
+
+  createNameColumn() : Data {
+    let column = document.createElement('table-data') as Data;
+    if (this.file !== null) {
+      if (this.file.icon !== null){
+        let img = document.createElement('img');
+        img.width = 22;
+        img.height = 22;
+        img.ondragstart = () => {return false};
+        img.classList.add(FileBrowser.tableIconClass);
+
+        column.appendChild(img);
+
+        if (this.file.directory) {
+          img.src = this.file.icon;
+
+        } else {
+          img.src = this.file.icon;
+
+          // Create expanded image
+          let expandedImg = document.createElement('img');
+          expandedImg.className = 'hover-image';
+          expandedImg.style.display = 'none';
+
+          img.onmouseover = (event) => {
+            if (this.file !== null && this.file.url !== null) {
+              expandedImg.src = this.file.url;
+            }
+            expandedImg.style.display = 'inline-block';
+          };
+          img.onmouseout = () => {
+            expandedImg.style.display = 'none';
+          };
+
+          column.appendChild(expandedImg);
+        }
+      } else if (this.file instanceof Directory) {
+        column.appendChild(this.folderIcon);
+      } else {
+        column.appendChild(this.documentIcon);
+      }
+
+      let text = document.createTextNode(this.file.name);
+      column.appendChild(text);
+    }
+
+    return column;
   }
 }
 
@@ -115,13 +175,11 @@ export class FileBrowser extends CustomElement {
 
   private readonly table : Table;
   private readonly fileContextMenu : Dialog;
-  private currentDirectory : CachedProxyDirectory;
+  private cachedCurrentDirectory : CachedProxyDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
 
-  private readonly dropdownMenuIcon : SVGSVGElement;
-  private readonly carrotIcon : SVGSVGElement;
-  private readonly searchIcon : SVGSVGElement;
-  private readonly folderIcon : SVGSVGElement;
-  private readonly documentIcon : SVGSVGElement;
+  private readonly dropdownMenuIcon : Element;
+  private readonly carrotIcon : Element;
+  private readonly searchIcon : Element;
 
 
   constructor() {
@@ -131,21 +189,15 @@ export class FileBrowser extends CustomElement {
     this.table = document.createElement('selectable-table') as Table;
     this.breadCrumbs = document.createElement('bread-crumbs') as BreadCrumbs;
 
-    this.dropdownMenuIcon = FileBrowser.createIconTemplate(icons.dropdownMenuIcon);
+    this.dropdownMenuIcon = createNode(icons.dropdownMenuIcon);
     this.dropdownMenuIcon.classList.add(FileBrowser.tableIconClass);
 
-    this.carrotIcon = FileBrowser.createIconTemplate(icons.carrotIcon);
+    this.carrotIcon = createNode(icons.carrotIcon);
     this.carrotIcon.classList.add(FileBrowser.tableIconClass);
     this.carrotIcon.classList.add('small');
 
-    this.searchIcon = FileBrowser.createIconTemplate(icons.searchIcon);
+    this.searchIcon = createNode(icons.searchIcon);
     this.searchIcon.classList.add(FileBrowser.tableIconClass);
-
-    this.folderIcon = FileBrowser.createIconTemplate(icons.folderIcon);
-    this.folderIcon.classList.add(FileBrowser.tableIconClass);
-
-    this.documentIcon = FileBrowser.createIconTemplate(icons.documentIcon);
-    this.documentIcon.classList.add(FileBrowser.tableIconClass);
 
     // Context menu
     this.fileContextMenu = document.createElement('base-dialog') as Dialog;
@@ -201,12 +253,6 @@ export class FileBrowser extends CustomElement {
   updateAttributes(attributes: { [p: string]: string | null }): void {
   }
 
-  private static createIconTemplate(icon : string){
-    let template = document.createElement('template');
-    template.innerHTML = icon;
-    return template.content.firstChild as SVGSVGElement;
-  }
-
   get rootDirectory() : Directory {
     return this.currentDirectory.root;
   }
@@ -214,6 +260,18 @@ export class FileBrowser extends CustomElement {
   set rootDirectory(value : Directory){
     console.log("SET ROOT", value, value.getChildren().then((val) => console.log(val)));
     this.currentDirectory = new CachedProxyDirectory(value);
+  }
+
+  get currentDirectory() : CachedProxyDirectory {
+    return this.cachedCurrentDirectory;
+  }
+
+  set currentDirectory(value : CachedProxyDirectory){
+    this.cachedCurrentDirectory = value;
+    this.cachedCurrentDirectory.addOnChangeListener(() => {
+      console.log("CHANGE");
+      this.refreshFiles();
+    });
     this.refreshFiles();
   }
 

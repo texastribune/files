@@ -49,10 +49,8 @@ export function parseTextArrayBuffer(arrayBuffer : ArrayBuffer) : string {
 
 /**
  * Convert a file containing JSON encoded data into a Javascript Object or Array.
- * @param {ArrayBuffer} arrayBuffer - The ArrayBuffer to decode.
- * @returns {Object|Array} - A Javascript Object or Array.
  */
-export function parseJsonArrayBuffer(arrayBuffer : ArrayBuffer) : string {
+export function parseJsonArrayBuffer(arrayBuffer : ArrayBuffer) : Object {
   let text = parseTextArrayBuffer(arrayBuffer);
   return JSON.parse(text);
 
@@ -132,3 +130,12 @@ export function getOpt(...args : string[]){
   return [args, kwargs];
 }
 
+export function createNode(htmlString : string) : Element {
+  let template = document.createElement('template');
+  template.innerHTML = htmlString;
+  let element = template.content.firstChild;
+  if (element instanceof Element){
+    return element;
+  }
+  throw Error("string could not be converted to HTML element")
+}

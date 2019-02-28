@@ -11,10 +11,8 @@ export declare function compareDateStrings(dateString1: string, dateString2: str
 export declare function parseTextArrayBuffer(arrayBuffer: ArrayBuffer): string;
 /**
  * Convert a file containing JSON encoded data into a Javascript Object or Array.
- * @param {ArrayBuffer} arrayBuffer - The ArrayBuffer to decode.
- * @returns {Object|Array} - A Javascript Object or Array.
  */
-export declare function parseJsonArrayBuffer(arrayBuffer: ArrayBuffer): string;
+export declare function parseJsonArrayBuffer(arrayBuffer: ArrayBuffer): Object;
 /**
  * Convert a file containing text data into a string.
  * @param {ArrayBuffer} arrayBuffer - An array buffer to encode.
@@ -44,3 +42,4 @@ export declare function copyArrayBuffer(arrayBuffer: ArrayBuffer): ArrayBuffer;
 export declare function getOpt(...args: string[]): (string[] | {
     [key: string]: string;
 })[];
+export declare function createNode(htmlString: string): Element;

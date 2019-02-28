@@ -1,11 +1,11 @@
 /* eslint-disable import/first */
 /* global jest, test, expect, describe */
 
-import {MemoryDirectory} from "../js/files/memory.ts";
-import {FileBrowser} from "../js/ui/browser.js";
-import {Table, Column} from "../js/ui/table.js";
-import {stringToArrayBuffer} from "../js/utils.ts";
-import {StateMixin} from "../js/files/mixins/state.js";
+import {MemoryDirectory} from "../files/memory";
+import {FileBrowser} from "../ui/browser";
+import {stringToArrayBuffer} from "../utils";
+import {StateMixin} from "../files/mixins/state";
+import {Directory} from "../files/base";
 
 const dir1Name = 'dir1';
 const file1Name = 'file1';
@@ -14,7 +14,7 @@ const file2Name = 'file2';
 const file1Text = 'abc';
 const file2Text = 'def';
 
-async function addTestFiles(rootDirectory){
+async function addTestFiles(rootDirectory : Directory){
   let dir1FileObject = await rootDirectory.addDirectory(dir1Name);
   let file1FileObject = await rootDirectory.addFile(stringToArrayBuffer(file1Text),
                                                     file1Name,
@@ -25,16 +25,25 @@ async function addTestFiles(rootDirectory){
   return [dir1FileObject, file1FileObject, file2FileObject];
 }
 
-class MutationObserver {
-  constructor(...args){
+class MockMutationObserver implements MutationObserver {
+  constructor(callback: MutationCallback){
     // Do nothing
   }
-  observe(...args){
+
+  observe(target: Node, options?: MutationObserverInit){
     // Do nothing
+  }
+
+  disconnect() {
+    // Do nothing
+  }
+
+  takeRecords(): MutationRecord[] {
+    return [];
   }
 }
 
-global.MutationObserver = MutationObserver;
+global["MutationObserver"] = MockMutationObserver;
 
 
 describe('Test browser', () => {
