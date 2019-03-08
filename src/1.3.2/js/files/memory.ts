@@ -88,6 +88,13 @@ export class MemoryDirectory extends files.Directory {
         })));
     }
 
+    private get path() : string[] {
+        if (this.parent === null){
+            return [this.name];
+        }
+        return this.parent.path.concat([this.name]);
+    }
+
     async delete() {
         if (this.parent !== null) {
             this.parent.removeChild(this);
@@ -103,10 +110,11 @@ export class MemoryDirectory extends files.Directory {
     }
 
     async search(query : string) {
-        let results : files.File[] = [];
+        let results : files.SearchResult[] = [];
+        let path = this.path;
         for (let child of this.children){
-            if (name === query){
-                results.push(child);
+            if (child.name.includes(query)){
+                results.push({path: path.concat([child.name]), file: child});
             }
             if (child instanceof files.Directory){
                 let subResults = await child.search(query);

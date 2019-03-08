@@ -125,8 +125,12 @@ export declare abstract class Directory extends BasicFile {
      * @throws FileNotFoundError
      */
     getFile(pathArray: string[]): Promise<File>;
-    abstract search(query: string): Promise<File[]>;
+    abstract search(query: string): Promise<SearchResult[]>;
     abstract addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<File>;
     abstract addDirectory(name: string): Promise<Directory>;
     abstract getChildren(): Promise<File[]>;
+}
+export interface SearchResult {
+    path: string[];
+    file: File;
 }

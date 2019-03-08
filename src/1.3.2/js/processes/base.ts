@@ -87,7 +87,6 @@ export class Process extends ProcessFile {
 
     constructor(parentProcess : Process, workingDirectory : Directory, executablePathArray : string[], stdout : File, stderr : File){
         super();
-        console.log("START");
 
         this.parentProcess = parentProcess;
         this.workingDirectory = workingDirectory;

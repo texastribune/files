@@ -16,7 +16,6 @@ export class ProcessFile extends files.BasicFile {
         idCounter ++;
         this.id = idCounter.toString();
 
-        console.log("PUSH", this);
         processes.push(this);
     }
 

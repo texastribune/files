@@ -39,7 +39,7 @@ export declare class NodeDirectory extends files.Directory {
     delete(): Promise<void>;
     copy(targetDirectory: files.Directory): Promise<void>;
     move(targetDirectory: files.Directory): Promise<void>;
-    search(query: string): Promise<files.File[]>;
+    search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<NodeFile>;
     addDirectory(name: string): Promise<NodeDirectory>;
     getChildren(): Promise<files.File[]>;

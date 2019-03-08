@@ -192,7 +192,6 @@ export class ChangeEventProxyDirectory extends ProxyDirectory {
   }
 
   async addDirectory(name: string): Promise<files.Directory> {
-    console.log("ADD DIR", name);
     let ret = super.addDirectory(name);
     this.onChange();
     return ret;

@@ -1,6 +1,6 @@
 import {BreadCrumbs} from "./breadCrumbs";
 import {Message} from "./messages";
-import {File, Directory, FileNotFoundError} from "../files/base";
+import {File, Directory, FileNotFoundError, SearchResult} from "../files/base";
 import {
   convertBytesToReadable, createNode, fileToArrayBuffer
 } from "../utils";
@@ -258,7 +258,6 @@ export class FileBrowser extends CustomElement {
   }
 
   set rootDirectory(value : Directory){
-    console.log("SET ROOT", value, value.getChildren().then((val) => console.log(val)));
     this.currentDirectory = new CachedProxyDirectory(value);
   }
 
@@ -269,27 +268,23 @@ export class FileBrowser extends CustomElement {
   set currentDirectory(value : CachedProxyDirectory){
     this.cachedCurrentDirectory = value;
     this.cachedCurrentDirectory.addOnChangeListener(() => {
-      console.log("CHANGE");
       this.refreshFiles();
     });
     this.refreshFiles();
   }
 
   get path() : string[] {
-    return this.currentDirectory.path.slice(1).reduce((pathArray : string[], directory : Directory) => {
-      pathArray.push(directory.name);
-      return pathArray;
-    }, []);
+    return this.currentDirectory.path.slice(1).map((directory : Directory) => {
+      return directory.name;
+    });
   }
 
   set path(path : string[]){
-    console.log("SET PATH", path);
     this.busy = this.busy
         .then(() => {
           return this.logAndLoadWrapper(
               this.currentDirectory.root.getFile(path)
                   .then((newDirectory) => {
-                    console.log("NEW DIR", newDirectory);
                     if (newDirectory instanceof CachedProxyDirectory){
                       this.currentDirectory = newDirectory;
                     } else {
@@ -445,10 +440,8 @@ export class FileBrowser extends CustomElement {
     contextMenuButton.className = FileBrowser.dropdownMenuButtonClass;
     contextMenuButton.appendChild(this.dropdownMenuIcon.cloneNode(true));
     contextMenuButton.appendChild(this.carrotIcon.cloneNode(true));
-    console.log("BUTOTN", contextMenuButton);
     contextMenuButton.onclick = (event) => {
       event.stopPropagation();
-      console.log("CLICK");
       let rect = contextMenuButton.getBoundingClientRect();
       let scrollLeft = document.documentElement.scrollLeft;
       let scrollTop = document.documentElement.scrollTop;
@@ -535,7 +528,8 @@ export class FileBrowser extends CustomElement {
   async search(searchTerm : string) {
     this.clearMessages();
     if (searchTerm){
-      await this.loadingWrapper(this.currentDirectory.search(searchTerm).then((foundFiles) => {
+      await this.loadingWrapper(this.currentDirectory.search(searchTerm).then((searchResults : SearchResult[]) => {
+        let foundFiles = searchResults.map((result) => {return result.file});
         this.setTableData(foundFiles);
         let readablePath = [this.breadCrumbs.baseName].concat(this.path).join('/');
         this.addMessage(
@@ -876,7 +870,6 @@ export class FileBrowser extends CustomElement {
   async refreshFiles(){
     this.currentDirectory.clearCache();
     let children = await this.currentDirectory.getChildren();
-    console.log("CHILDREN", children, this.currentDirectory);
     await this.setTableData(children);
   }
 }

@@ -27,10 +27,11 @@ export declare class MemoryDirectory extends files.Directory {
     private children;
     constructor(parent: MemoryDirectory | null, name: string);
     readonly lastModified: Date;
+    private readonly path;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;
     getChildren(): Promise<files.File[]>;
-    search(query: string): Promise<files.File[]>;
+    search(query: string): Promise<files.SearchResult[]>;
     private nameExists;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<MemoryFile>;
     addDirectory(name: string): Promise<MemoryDirectory>;

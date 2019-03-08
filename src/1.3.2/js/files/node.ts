@@ -137,7 +137,7 @@ export class NodeDirectory extends files.Directory {
     throw new Error("Not implemented")
   }
 
-  async search(query : string) : Promise<files.File[]> {
+  async search(query : string) : Promise<files.SearchResult[]> {
     throw new Error("Not implemented")
   }
 

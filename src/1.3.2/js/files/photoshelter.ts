@@ -320,7 +320,7 @@ export class PhotoshelterCollection extends files.Directory {
         this.api = api;
     }
 
-    async search(query: string): Promise<files.File[]> {
+    async search(query: string): Promise<files.SearchResult[]> {
         throw Error("cannot search photoshelter collection");
     }
 
@@ -377,7 +377,7 @@ export class PhotoshelterGallery extends files.Directory {
         this.api = api;
     }
 
-    async search(query: string): Promise<files.File[]> {
+    async search(query: string): Promise<files.SearchResult[]> {
         throw Error("cannot search to photoshelter gallery");
     }
 

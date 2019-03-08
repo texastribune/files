@@ -1,6 +1,4 @@
 import * as files from "./base";
-import {MemoryDirectory} from "./memory";
-import {Directory} from "./base";
 
 
 function indexedDbRequestToPromise(request : IDBRequest) : Promise<any> {
@@ -160,7 +158,7 @@ class FileStore extends Database {
     async add(parentId : string, name : string, file? : ArrayBuffer | null, type? : string) : Promise<FileData> {
         let now = new Date().toISOString();
         if (file === undefined){
-            type = Directory.mimeType;
+            type = files.Directory.mimeType;
         } else if (type === undefined) {
             type = 'application/octet-stream';
         }
@@ -303,24 +301,24 @@ export const database = new FileStore('db');
  * A storage class uses IndexedDB to store files locally in the browser.
  */
 export class LocalStorageFile extends files.BasicFile {
-    private _id : string;
     private _name : string;
-    private _created : Date;
     private _lastModified : Date;
-    private _mimeType : string;
     private _size : number;
 
+    public readonly id : string;
+    public readonly created : Date;
+    public readonly mimeType : string;
     public readonly url = null;
     public readonly icon = null;
     public extra = {};
 
     constructor(databaseData : FileData) {
         super();
-        this._id = databaseData.id.toString();
+        this.id = databaseData.id.toString();
         this._name = databaseData.name;
-        this._created = new Date(databaseData.lastModified);
+        this.created = new Date(databaseData.lastModified);
         this._lastModified = new Date(databaseData.created);
-        this._mimeType = databaseData.mimeType;
+        this.mimeType = databaseData.mimeType;
         if (databaseData.file){
             this._size = databaseData.file.byteLength;
         } else {
@@ -328,27 +326,15 @@ export class LocalStorageFile extends files.BasicFile {
         }
     }
 
-    get id() {
-        return this._id;
-    }
-
-    get name() {
+    get name() : string {
         return this._name;
     }
 
-    get lastModified() {
+    get lastModified() : Date {
         return this._lastModified;
     }
 
-    get created() {
-        return this._created;
-    }
-
-    get mimeType(){
-        return this._mimeType;
-    }
-
-    get size(){
+    get size() : number {
         return this._size;
     }
 
@@ -358,24 +344,26 @@ export class LocalStorageFile extends files.BasicFile {
     }
 
     async write(data : ArrayBuffer) {
-        await database.update(this.id, {file: data});
+        let fileData = await database.update(this.id, {file: data});
+        this._size = data.byteLength;
+        this._lastModified = new Date(fileData.lastModified);
         return data;
     }
 
     async rename(newName : string) {
-        await database.update(this.id, {name: newName});
-        this._name = newName;
+        let fileData = await database.update(this.id, {name: newName});
+        this._name = fileData.name;
     }
 
     async delete() {
         await database.delete(this.id);
     }
 
-    async copy(targetDirectory : Directory) {
+    async copy(targetDirectory : files.Directory) {
         await database.copy(this.id, targetDirectory.id);
     }
 
-    async move(targetDirectory : Directory) {
+    async move(targetDirectory : files.Directory) {
         await database.move(this.id, targetDirectory.id);
     }
 }
@@ -384,33 +372,25 @@ export class LocalStorageFile extends files.BasicFile {
  * A directory class uses IndexedDB to store files locally in the browser.
  */
 export class LocalStorageDirectory extends files.Directory {
-    private _id : string;
     private _name : string;
-    private _created : Date;
     private _lastModified : Date;
 
+    public readonly id : string;
+    public readonly created : Date;
     public readonly icon = null;
     public extra = {};
 
     constructor(databaseData : FileData) {
         super();
 
-        this._id = databaseData.id.toString();
+        this.id = databaseData.id.toString();
         this._name = databaseData.name;
-        this._created = new Date(databaseData.lastModified);
+        this.created = new Date(databaseData.lastModified);
         this._lastModified = new Date(databaseData.created);
     }
 
-    get id() {
-        return this._id;
-    }
-
-    get name() {
+    get name() : string {
         return this._name;
-    }
-
-    get created() {
-        return this._created;
     }
 
     get lastModified() {
@@ -418,8 +398,8 @@ export class LocalStorageDirectory extends files.Directory {
     }
 
     async rename(newName : string) {
-        await database.update(this.id, {name: newName});
-        this._name = newName;
+        let fileData = await database.update(this.id, {name: newName});
+        this._name = fileData.name;
     }
 
     async delete() {
@@ -456,7 +436,7 @@ export class LocalStorageDirectory extends files.Directory {
         return new LocalStorageDirectory(fileData);
     }
 
-    async search(query : string) : Promise<files.File[]> {
+    async search(query : string) : Promise<files.SearchResult[]> {
         return [];
     }
 }

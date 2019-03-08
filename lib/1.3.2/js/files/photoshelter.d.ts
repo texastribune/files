@@ -104,7 +104,7 @@ export declare class PhotoshelterCollection extends files.Directory {
     extra: {};
     private readonly api;
     constructor(data: CollectionData, api: PhotoshelterAPI);
-    search(query: string): Promise<files.File[]>;
+    search(query: string): Promise<files.SearchResult[]>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File>;
@@ -121,7 +121,7 @@ export declare class PhotoshelterGallery extends files.Directory {
     extra: {};
     private readonly api;
     constructor(data: GalleryData, api: PhotoshelterAPI);
-    search(query: string): Promise<files.File[]>;
+    search(query: string): Promise<files.SearchResult[]>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File>;

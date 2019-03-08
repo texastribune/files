@@ -1,5 +1,4 @@
 import * as files from "./base";
-import { Directory } from "./base";
 declare class Database {
     name: string;
     _readyPromise: Promise<IDBDatabase> | null;
@@ -45,50 +44,45 @@ export declare const database: FileStore;
  * A storage class uses IndexedDB to store files locally in the browser.
  */
 export declare class LocalStorageFile extends files.BasicFile {
-    private _id;
     private _name;
-    private _created;
     private _lastModified;
-    private _mimeType;
     private _size;
+    readonly id: string;
+    readonly created: Date;
+    readonly mimeType: string;
     readonly url: null;
     readonly icon: null;
     extra: {};
     constructor(databaseData: FileData);
-    readonly id: string;
     readonly name: string;
     readonly lastModified: Date;
-    readonly created: Date;
-    readonly mimeType: string;
     readonly size: number;
     read(params?: Object): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
-    copy(targetDirectory: Directory): Promise<void>;
-    move(targetDirectory: Directory): Promise<void>;
+    copy(targetDirectory: files.Directory): Promise<void>;
+    move(targetDirectory: files.Directory): Promise<void>;
 }
 /**
  * A directory class uses IndexedDB to store files locally in the browser.
  */
 export declare class LocalStorageDirectory extends files.Directory {
-    private _id;
     private _name;
-    private _created;
     private _lastModified;
+    readonly id: string;
+    readonly created: Date;
     readonly icon: null;
     extra: {};
     constructor(databaseData: FileData);
-    readonly id: string;
     readonly name: string;
-    readonly created: Date;
     readonly lastModified: Date;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     getChildren(): Promise<files.File[]>;
     addFile(file: ArrayBuffer, name: string, mimeType: string): Promise<LocalStorageFile>;
     addDirectory(name: string): Promise<LocalStorageDirectory>;
-    search(query: string): Promise<files.File[]>;
+    search(query: string): Promise<files.SearchResult[]>;
 }
 export declare class LocalStorageRoot extends LocalStorageDirectory {
     constructor();

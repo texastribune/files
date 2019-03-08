@@ -40,7 +40,7 @@ export declare class ProxyDirectory extends files.Directory {
     addOnChangeListener(listener: (file: files.File) => void): void;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
-    search(query: string): Promise<files.File[]>;
+    search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
     getChildren(): Promise<files.File[]>;
