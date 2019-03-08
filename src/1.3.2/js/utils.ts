@@ -33,8 +33,6 @@ export function compareDateStrings(dateString1 : string, dateString2 : string) :
 
 /**
  * Convert a file containing text data into a string.
- * @param {ArrayBuffer} arrayBuffer - The ArrayBuffer to decode.
- * @returns {string} - The text contained in the file.
  */
 export function parseTextArrayBuffer(arrayBuffer : ArrayBuffer) : string {
   if (typeof Buffer !== 'undefined'){
@@ -58,9 +56,6 @@ export function parseJsonArrayBuffer(arrayBuffer : ArrayBuffer) : Object {
 
 /**
  * Convert a file containing text data into a string.
- * @param {ArrayBuffer} arrayBuffer - An array buffer to encode.
- * @param {string} mimeType - The mime type of the data in the array buffer.
- * @returns {string} - Data url for file.
  */
 export function arrayBufferToDataUrl(arrayBuffer : ArrayBuffer, mimeType : string) : string {
   let binary = '';
@@ -73,9 +68,6 @@ export function arrayBufferToDataUrl(arrayBuffer : ArrayBuffer, mimeType : strin
 
 /**
  * Convert a file containing text data into a string.
- * @async
- * @param {File|Blob} file - File object containing text.
- * @returns {ArrayBuffer} - ArrayBuffer with data from file.
  */
 export function fileToArrayBuffer(file : File) : Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
@@ -97,8 +89,6 @@ export function fileToArrayBuffer(file : File) : Promise<ArrayBuffer> {
 
 /**
  * Convert string to an ArrayBuffer.
- * @param {string} string - string to encode.
- * @returns {ArrayBuffer} - Data as an ArrayBuffer.
  */
 export function stringToArrayBuffer(string : string) : ArrayBuffer{
   return Uint8Array.from([...string].map(ch => ch.charCodeAt(0))).buffer;
@@ -106,8 +96,6 @@ export function stringToArrayBuffer(string : string) : ArrayBuffer{
 
 /**
  * Copy an ArrayBuffer.
- * @param {ArrayBuffer} arrayBuffer - ArrayBuffer to copy.
- * @returns {ArrayBuffer} - new ArrayBuffer.
  */
 export function copyArrayBuffer(arrayBuffer : ArrayBuffer) : ArrayBuffer {
     let dst = new ArrayBuffer(arrayBuffer.byteLength);
@@ -130,6 +118,9 @@ export function getOpt(...args : string[]){
   return [args, kwargs];
 }
 
+/**
+ * Create an HTML element from an HTML string
+ */
 export function createNode(htmlString : string) : Element {
   let template = document.createElement('template');
   template.innerHTML = htmlString;

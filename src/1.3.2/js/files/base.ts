@@ -110,22 +110,6 @@ export abstract class BasicFile implements File {
   abstract readonly lastModified : Date;
   abstract readonly extra : Object;
 
-  protected constructor() {
-    // this.write = this.wrapChangeFunc(this.write);
-    // this.rename = this.wrapChangeFunc(this.rename);
-    // this.delete = this.wrapChangeFunc(this.delete);
-    // this.move = this.wrapChangeFunc(this.move);
-  }
-
-  // wrapChangeFunc(func) {
-  //     let wrapped = async (...args) => {
-  //         let ret = await func(...args);
-  //         this.onChange(id);
-  //         return ret;
-  //     };
-  //     return wrapped.bind(this);
-  // }
-
   onChange() {
     console.log("CHANGE FUNC", this, this.name, this.onChangeListeners);
     for (let listener of this.onChangeListeners) {
@@ -190,6 +174,10 @@ export abstract class BasicFile implements File {
 export abstract class Directory extends BasicFile {
   static get mimeType() {
     return 'application/json';
+  }
+
+  get directory() {
+    return true;
   }
 
   get mimeType() {

@@ -1,6 +1,10 @@
 {
   "presets": [
-    ["env", { "modules": false }]
+    ["@babel/preset-env", {
+      "targets": {
+        "browsers": ["last 2 Chrome versions"]
+      }
+    }]
   ],
 
   "plugins": [],
@@ -11,7 +15,13 @@
     },
 
     "test": {
-      "presets": ["env"],
+      "presets": [
+        ["@babel/preset-env", {
+          "targets": {
+            "browsers": ["last 2 Chrome versions"]
+          }
+        }]
+      ],
       "plugins": []
     }
   }

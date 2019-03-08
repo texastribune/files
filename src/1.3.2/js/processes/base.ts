@@ -4,8 +4,6 @@ import {File, Directory} from "../files/base";
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
-type sysCalls = "open" | "close" | "read" | "import" | "write" | "fork" | "exec" | "exit" | "error"
-
 type syscallTable = {
     open: (pathArray : string[]) => Promise<number>,
     close: (fileDescriptor : number) => void,

@@ -83,7 +83,6 @@ export declare abstract class BasicFile implements File {
     abstract readonly created: Date;
     abstract readonly lastModified: Date;
     abstract readonly extra: Object;
-    protected constructor();
     onChange(): void;
     addOnChangeListener(listener: (file: File) => void): void;
     readonly directory: boolean;
@@ -114,6 +113,7 @@ export declare abstract class BasicFile implements File {
  */
 export declare abstract class Directory extends BasicFile {
     static readonly mimeType: string;
+    readonly directory: boolean;
     readonly mimeType: string;
     readonly size: number;
     readonly url: null;

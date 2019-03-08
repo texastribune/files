@@ -123,7 +123,10 @@ export class NodeDirectory extends files.Directory {
   }
 
   async delete() {
-    await fs.unlink(this.id);
+    for (let child of await this.getChildren()){
+      await child.delete();
+    }
+    await fs.rmdir(this.id);
   }
 
   async copy(targetDirectory : files.Directory) {

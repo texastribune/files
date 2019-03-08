@@ -45,6 +45,7 @@ describe('Test Device Directory', () => {
     test('Dom device exists for element', async () => {
         // All directories should be dom devices. Should be one for the div created above.
         let children = await deviceDirectory.getChildren();
+        console.log("DEVICES", children);
         let domDevices = children.filter((file) => {return file.directory});
 
         expect(domDevices.length).toBe(1);
@@ -118,21 +119,16 @@ describe('Test Device Directory', () => {
         if (device instanceof Directory) {
             let domMouseFile = await device.getFile(['mouse']);
 
-            let data = await new Promise((resolve, reject) => {
-                // read should not resolve until a mouse event occurs.
-                domMouseFile.read()
-                    .then((eventData) => {
-                        resolve(eventData)
-                    });
+            let dataPromise : Promise<ArrayBuffer> = domMouseFile.read();
 
-                // trigger mouse event after read called
-                let mouseEvent = new MouseEvent('click');
-                let element = document.getElementById(elementId);
-                if (element === null){
-                    throw new Error('dom element does not exist')
-                }
-                element.dispatchEvent(mouseEvent);
-            });
+            // trigger mouse event after read called
+            let element = document.getElementById(elementId);
+            if (element === null){
+                throw new Error('dom element does not exist')
+            }
+            element.click();
+
+            let data = await dataPromise;
 
             let dataObject = parseJsonArrayBuffer(data);
             expect(dataObject).toHaveProperty('clientX');

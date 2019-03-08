@@ -64,7 +64,7 @@ export class MemoryDirectory extends files.Directory {
     public readonly icon = null;
     public readonly extra = {};
 
-    private parent : MemoryDirectory | null;
+    private readonly parent : MemoryDirectory | null;
     public name : string;
     private children : (MemoryFile | MemoryDirectory)[] = [];
 
@@ -98,7 +98,7 @@ export class MemoryDirectory extends files.Directory {
         this.name = newName;
     }
 
-    async getChildren(){
+    async getChildren() : Promise<files.File[]> {
         return this.children.slice();
     }
 
@@ -116,13 +116,27 @@ export class MemoryDirectory extends files.Directory {
         return results;
     }
 
+    private nameExists(name : string){
+        let names = this.children.reduce((names, file) => {
+            names.add(file.name);
+            return names;
+        }, new Set<string>());
+        return names.has(name);
+    }
+
     async addFile(fileData : ArrayBuffer, filename : string, mimeType : string) {
+        if (this.nameExists(filename)){
+            throw new Error(`name ${filename} already exists`);
+        }
         let newFile = new MemoryFile(this, filename, mimeType, fileData);
         this.addChild(newFile);
         return newFile;
     }
 
     async addDirectory(name : string) {
+        if (this.nameExists(name)){
+            throw new Error(`name ${name} already exists`);
+        }
         let newDir = new MemoryDirectory(this, name);
         this.addChild(newDir);
         return newDir;

@@ -36,7 +36,7 @@ declare class FileStore extends Database {
     move(sourceId: string, targetParentId: string): Promise<void>;
     search(id: string, query: string): Promise<void>;
     getChildren(id: string): Promise<any[]>;
-    validate(fileData: UnSavedFileData | FileData): FileData | UnSavedFileData;
+    validate(fileData: UnSavedFileData | FileData): UnSavedFileData | FileData;
     close(): Promise<void>;
     clearAll(): Promise<void>;
 }

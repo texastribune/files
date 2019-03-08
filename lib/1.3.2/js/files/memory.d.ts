@@ -22,15 +22,16 @@ export declare class MemoryDirectory extends files.Directory {
     readonly created: Date;
     readonly icon: null;
     readonly extra: {};
-    private parent;
+    private readonly parent;
     name: string;
     private children;
     constructor(parent: MemoryDirectory | null, name: string);
     readonly lastModified: Date;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;
-    getChildren(): Promise<(MemoryDirectory | MemoryFile)[]>;
+    getChildren(): Promise<files.File[]>;
     search(query: string): Promise<files.File[]>;
+    private nameExists;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<MemoryFile>;
     addDirectory(name: string): Promise<MemoryDirectory>;
     addChild(memoryFile: MemoryFile | MemoryDirectory): void;

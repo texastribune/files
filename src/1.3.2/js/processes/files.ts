@@ -1,28 +1,27 @@
-import {Directory, BasicFile} from "../files/base.js";
+import * as files from "../files/base";
 
 let idCounter = 0;
 
 let processes : ProcessFile[] = [];
 
-export abstract class ProcessFile extends BasicFile {
-    private readonly _id : number;
-    private readonly _created = new Date();
-    private _lastModified = new Date();
+export class ProcessFile extends files.BasicFile {
+    public readonly id : string;
+    public readonly created = new Date();
+    public readonly lastModified = new Date();
     public readonly extra = {};
 
     protected constructor(){
         super();
 
         idCounter ++;
-        this._id = idCounter;
+        this.id = idCounter.toString();
 
         console.log("PUSH", this);
         processes.push(this);
     }
 
-
-    get id(){
-        return this._id.toString();
+    get name(){
+        return this.id;
     }
 
     get url(){
@@ -41,24 +40,29 @@ export abstract class ProcessFile extends BasicFile {
         return 'text/plain';
     }
 
-    get created(){
-        return this._created;
-    }
-
-    get lastModified(){
-        return this._lastModified;
-    }
-
     async delete() {
         console.log("DELETE");
         console.trace();
         processes = processes.filter((file) => {return file !== this});
     }
+
+    read(params?: Object): Promise<ArrayBuffer> {
+        throw new Error("Cannot rename process file");
+    }
+
+    rename(newName: string): Promise<void> {
+        throw new Error("Cannot rename process file");
+    }
+
+    write(data: ArrayBuffer): Promise<ArrayBuffer> {
+        throw new Error("Cannot write to process file");
+    }
 }
 
-export abstract class ProcessDirectory extends Directory {
-    private readonly _created = new Date();
-    private _lastModified = new Date();
+export class ProcessDirectory extends files.Directory {
+    public readonly created = new Date();
+    public readonly lastModified = new Date();
+    public readonly extra = {};
 
     get id(){
         return 'proc';
@@ -76,16 +80,28 @@ export abstract class ProcessDirectory extends Directory {
         return null;
     }
 
-    get created(){
-        return this._created;
-    }
-
-    get lastModified(){
-        return this._lastModified;
-    }
-
     async getChildren(){
         console.log("PROC CHILD", processes.slice());
         return processes.slice();
+    }
+
+    delete(): Promise<void> {
+        throw new Error("Cannot delete process directory");
+    }
+
+    rename(newName: string): Promise<void> {
+        throw new Error("Cannot rename process directory");
+    }
+
+    search(query: string): Promise<File[]> {
+        return undefined;
+    }
+
+    async addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File> {
+        throw new Error("Cannot add file to process directory");
+    }
+
+    async addDirectory(name: string): Promise<files.Directory> {
+        throw new Error("Cannot add directory to process directory");
     }
 }

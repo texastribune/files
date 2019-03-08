@@ -3,34 +3,47 @@
 
 
 import {MemoryDirectory} from "../files/memory";
-import {stringToArrayBuffer} from "../utils";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 import {Process} from "../processes/base";
 import {DeviceDirectory} from "../devices/base";
 import {ProcessDirectory} from "../processes/files";
+import * as files from "../files/base";
 
-class MockWorker {
-    constructor(url){
-        this._terminated = false;
+class MockWorker implements Worker {
+    private terminated = false;
+    public onmessage : ((ev: MessageEvent) => any) | null = null;
+    public onerror: ((ev: ErrorEvent) => any) | null = null;
+    private workeronmessage : (data : any) => (this: Worker, ev: MessageEvent) => any;
+
+    constructor(url : string){
         let script = decodeURIComponent(url.split(',')[1]);  // We assume its a data url with javascript.
         script += ';return onmessage;';
-        this.onmessage = (event) => {};
-
         let f = new Function('postMessage', script);
-        this._workeronmessage = f((data) => {
-            if (!this._terminated){
+        this.workeronmessage = f((data : any) => {
+            if (!this.terminated && this.onmessage !== null){
                 this.onmessage(new MessageEvent("test", {data: data}));
             }
         });
     }
 
-    postMessage(data){
-        if (!this._terminated){
-            this._workeronmessage(new MessageEvent("test", {data: data}));
+    postMessage(message : any){
+        if (!this.terminated){
+            this.workeronmessage(new MessageEvent("test", {data: message}));
         }
     }
 
     terminate(){
-        this._terminated = true;
+        this.terminated = true;
+    }
+
+    addEventListener<K extends keyof WorkerEventMap>(type: K, listener: (this: Worker, ev: WorkerEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void {
+    }
+
+    removeEventListener<K extends keyof WorkerEventMap>(type: K, listener: (this: Worker, ev: WorkerEventMap[K]) => any, options?: boolean | EventListenerOptions): void {
+    }
+
+    dispatchEvent(event: Event): boolean {
+        return false;
     }
 }
 
@@ -42,7 +55,7 @@ global.window.Worker = MockWorker;
  * @param process - The promise to wait for.
  * @returns {Promise} - A promise which resolves when the given process has exited.
  */
-function onProcessExit(process) {
+function onProcessExit(process : Process) {
     // Returns a promise that resolves after the process has exited. Does this
     // by checking every 10ms for the process file in the process directory.
     let dir = new ProcessDirectory();
@@ -52,11 +65,12 @@ function onProcessExit(process) {
                 dir.getChildren()
                     .then((children) => {
                         let proc;
-                        while (children.length > 0 && proc === undefined){
-                            let child = children.pop();
+                        let child = children.pop();
+                        while (child !== undefined && proc === undefined){
                             if (child.id === process.id){
                                 proc = child;
                             }
+                            child = children.pop();
                         }
                         if (proc === undefined){
                             resolve();
@@ -72,26 +86,26 @@ function onProcessExit(process) {
 }
 
 class TestFS extends MemoryDirectory {
+    private extraChildren : files.File[] = [
+        new DeviceDirectory(),
+        new ProcessDirectory()
+    ];
+
     constructor(){
         super(null, 'root');
-
-        this._extraChildren = [
-            new DeviceDirectory(),
-            new ProcessDirectory()
-        ]
     }
 
     async getChildren(){
         let children = await super.getChildren();
-        return children.concat(this._extraChildren);
+        return children.concat(this.extraChildren);
     }
 }
 
 describe('Test Process', () => {
     let root = new TestFS();
-    let consoleDev;
-    let out;
-    let err;
+    let consoleDev : files.File;
+    let out : files.File;
+    let err : files.File;
 
     beforeEach(async () => {
         consoleDev = await root.getFile(['dev', 'console']);
@@ -100,18 +114,20 @@ describe('Test Process', () => {
     });
 
     afterEach(async () => {
-        root._children = [];
+        await out.delete();
+        await err.delete();
     });
 
     test('System exit call writes to stdout', async () => {
         let script = `
             await system.exit("text text");
         `;
-        await root.addFile(stringToArrayBuffer(script), 'init.js');
+        await root.addFile(stringToArrayBuffer(script), 'init.js', 'application/javascript');
 
         let process = new Process(null, root, ['init.js'], out, err);
         await onProcessExit(process);
-        let text = await out.readText();
+        let textArrayBuffer = await out.read();
+        let text = parseTextArrayBuffer(textArrayBuffer);
         expect(text).toMatch("text text");
     });
 
@@ -121,7 +137,7 @@ describe('Test Process', () => {
             let procDirText = await system.readText(fd);
             await system.exit(procDirText);
         `;
-        await root.addFile(stringToArrayBuffer(script), 'init.js');
+        await root.addFile(stringToArrayBuffer(script), 'init.js', 'application/javascript');
         let process = new Process(null, root, ['init.js'], out, err);
         await onProcessExit(process);
         let inProcessData = await out.readJSON();
@@ -139,11 +155,12 @@ describe('Test Process', () => {
             let fd = await system.open(["test.txt"]);
             await system.write(fd, buf);
         `;
-        await root.addFile(stringToArrayBuffer(script), 'init.js');
+        await root.addFile(stringToArrayBuffer(script), 'init.js', 'application/javascript');
         let testFile = await root.addFile(new ArrayBuffer(0), 'test.txt', 'text/plain');
         let process = new Process(null, root, ['init.js'], out, err);
         await onProcessExit(process);
-        let outText = await testFile.readText();
-        expect(outText).toMatch('text');
+        let textArrayBuffer = await out.read();
+        let text = parseTextArrayBuffer(textArrayBuffer);
+        expect(text).toMatch('text');
     });
 });

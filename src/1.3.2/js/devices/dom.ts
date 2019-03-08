@@ -9,7 +9,7 @@ export abstract class AbstractElementFile extends files.BasicFile {
     public lastModified = new Date();
     protected readonly element : HTMLElement;
 
-    constructor(element : HTMLElement) {
+    protected constructor(element : HTMLElement) {
         super();
 
         this.element = element;
@@ -40,13 +40,11 @@ export abstract class AbstractElementFile extends files.BasicFile {
 
 abstract class AbstractEventFile extends AbstractElementFile {
     private readonly readBuffer : ((event : Event) => void)[] = [];
-    abstract EVENT_NAME : string;
 
     constructor(element : HTMLElement){
         super(element);
 
-        this.element.addEventListener(this.eventName, (event) => {
-            console.log("EVENT", event);
+        this.element.addEventListener(this.getEventName(), (event) => {
             while (this.readBuffer.length > 0){
                 let callback = this.readBuffer.shift();
                 if (callback !== undefined){
@@ -61,9 +59,7 @@ abstract class AbstractEventFile extends AbstractElementFile {
         return 0;
     }
 
-    private get eventName(){
-        return this.EVENT_NAME;
-    }
+    abstract getEventName() : string
 
     /**
      *
@@ -89,14 +85,16 @@ abstract class AbstractEventFile extends AbstractElementFile {
  * @property {HTMLElement} element - The element
  */
 class KeyboardDevice extends AbstractEventFile {
-    readonly EVENT_NAME = 'keydown';
-
     get name(){
         return 'keyboard';
     }
 
     get mimeType() {
         return 'text/plain';
+    }
+
+    getEventName(): string {
+        return 'keydown';
     }
 
     getEventData(event : KeyboardEvent) {
@@ -123,14 +121,16 @@ class KeyboardDevice extends AbstractEventFile {
 
 
 class MouseDevice extends AbstractEventFile {
-    readonly EVENT_NAME = 'click';
-
     get name(){
         return 'mouse';
     }
 
     get mimeType() {
         return 'application/json';
+    }
+
+    getEventName(): string {
+        return 'click';
     }
 
     getEventData(event : MouseEvent) {

@@ -21,7 +21,9 @@ export class DeviceDirectory extends files.Directory {
 
         this.extraChildren = [];
         for (let element of document.querySelectorAll('.device')){
-            this.extraChildren.push(new DomElementDevice(element));
+            if (element instanceof HTMLElement){
+                this.extraChildren.push(new DomElementDevice(element));
+            }
         }
     }
 

@@ -10,6 +10,7 @@ import {BasicFile, Directory, File} from "../files/base";
 import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
 
+
 function compareById(a : File, b : File) {
     if (a.id > b.id){
         return 1;
@@ -59,6 +60,14 @@ function testStorage(rootDirectory : Directory) {
         return [dir1, file1, file2];
     }
 
+    async function removeTestFiles() {
+        for (let child of await rootDirectory.getChildren()){
+            await child.delete();
+        }
+    }
+
+    afterEach(removeTestFiles);
+
     test('Directories are files with json array string', async () => {
         expect(rootDirectory).toBeInstanceOf(BasicFile);
 
@@ -87,6 +96,17 @@ function testStorage(rootDirectory : Directory) {
         expect(dir1ChildNames).toContain(file2Name);
     });
 
+    test('Storage cannot add files with same name', async () => {
+        let files = await addTestFiles();
+
+        let caught = false;
+        await rootDirectory.addFile(stringToArrayBuffer('same name as file 1'), file1Name)
+            .catch(() => {
+                caught = true;
+            });
+        expect(caught).toBeTruthy();
+    });
+
     test('Storage correct mime types', async () => {
         let files = await addTestFiles();
 
@@ -111,36 +131,28 @@ function testStorage(rootDirectory : Directory) {
 
     test('Storage directories getChildren returns correct children', async () => {
         let files = await addTestFiles();
-        let rootExpectedChildren = [files[0], files[1]];
-        let dir1ExpectedChildren = [files[2]];
+
+        interface FileMap {[name : string]: File}
 
         // Directories getChildren method should return all children.
         let rootChildFiles = await rootDirectory.getChildren();
+        let rootChildFileMap : FileMap = rootChildFiles.reduce((map : FileMap, file) => {
+            map[file.name] = file;
+            return map;
+        }, {});
         let dir1ChildFiles = await files[0].getChildren();
 
         // Get the data from an instance of AbstractFile which should not change since it was added or
         // directly written to Directory size, lastModified, and url can change when child files are added.
         function areFilesSame(file1 : File, file2 : File) : boolean {
-            return file1.id === file2.id && file1.name === file2.name && file1.directory === file2.directory
-                && (file1.directory || file1.size === file2.size && file1.lastModified === file2.lastModified
-                    && file1.url === file2.url);
+            return file1.id === file2.id && file1.name === file2.name && file1.directory === file2.directory;
         }
 
-        let rootExpectedStaticData = rootExpectedChildren.map(staticDataFromFile);
-        let dir1ExpectedStaticData = dir1ExpectedChildren.map(staticDataFromFile);
-
-        let rootFileNodesStaticData = rootChildFiles.map(staticDataFromFile);
-        let dir1FileNodesStaticData = dir1ChildFiles.map(staticDataFromFile);
-
-        for (file in rootExpectedChildren){
-
-        }
-
-        if (rootExpectedStaticData instanceof Array){
-            expect(rootFileNodesStaticData.sort(compareById)).toEqual(rootExpectedStaticData.sort(compareById));
-        }
-
-        expect(dir1FileNodesStaticData.sort(compareById)).toEqual(dir1ExpectedStaticData.sort(compareById));
+        console.log("ROOT", rootChildFiles);
+        expect(rootChildFiles.length).toEqual(2);
+        expect(areFilesSame(rootChildFileMap[files[0].name], files[0])).toBeTruthy();
+        expect(areFilesSame(rootChildFileMap[files[1].name], files[1])).toBeTruthy();
+        expect(areFilesSame(dir1ChildFiles[0], files[2])).toBeTruthy();
     });
 
     test('Reading directory return json of FileData for all children', async () => {
@@ -175,8 +187,8 @@ function testStorage(rootDirectory : Directory) {
         let files = await addTestFiles();
 
         await files[1].delete();
-        let rootChildren = await listDirectoryDataFromGetChildren(rootDirectory);
-        let rootChildNames = rootChildren.map((fileNode) => {return fileNode.name});
+        let rootChildren = await rootDirectory.getChildren();
+        let rootChildNames = rootChildren.map((file : File) => {return file.name});
         expect(rootChildNames).not.toContain(file1Name);
         expect(rootChildNames).toContain(dir1Name);
     });
@@ -226,10 +238,6 @@ function testStorage(rootDirectory : Directory) {
 describe('Test memory file storage', () => {
     let storage = new MemoryDirectory(null, 'root');
 
-    beforeEach(() => {
-        storage = new MemoryDirectory(null, 'root');
-    });
-
     testStorage(storage);
 });
 
@@ -253,11 +261,6 @@ describe('Test local file storage', () => {
 describe('Test virtual file storage', () => {
     let rootMounted = new MemoryDirectory(null, 'mounted');
     let storage = new VirtualDirectory(rootMounted);
-
-    beforeEach(async () => {
-      rootMounted = new MemoryDirectory(null, 'mounted');
-      storage = new VirtualDirectory(rootMounted);
-    });
 
     testStorage(storage);
 });

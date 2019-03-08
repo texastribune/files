@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import * as files from "./base";
 import { Stats } from "fs";
 /**

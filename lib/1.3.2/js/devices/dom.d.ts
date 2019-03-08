@@ -4,7 +4,7 @@ export declare abstract class AbstractElementFile extends files.BasicFile {
     readonly extra: {};
     lastModified: Date;
     protected readonly element: HTMLElement;
-    constructor(element: HTMLElement);
+    protected constructor(element: HTMLElement);
     readonly id: string;
     readonly icon: string | null;
     readonly url: string | null;
