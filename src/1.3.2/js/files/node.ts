@@ -1,5 +1,5 @@
 import * as files from "./base";
-import {statSync, Stats} from "fs";
+import {statSync, Stats, watch, FSWatcher} from "fs";
 import {promises as fs} from "fs";
 import * as path from 'path';
 
@@ -10,12 +10,18 @@ import * as path from 'path';
 export class NodeFile extends files.BasicFile {
   private stat : Stats;
   private path : string;
+  private watcher : FSWatcher;
+
   public extra = {};
 
   constructor(path : string, stat? : Stats) {
     super();
     this.path = path;
     this.stat = stat || statSync(path);
+
+    this.watcher = watch(this.id, () => {
+      this.onChange();
+    });
   }
 
   get id() {
@@ -58,6 +64,7 @@ export class NodeFile extends files.BasicFile {
   }
 
   async delete() {
+    this.watcher.close();
     await fs.unlink(this.id);
   }
 
@@ -87,12 +94,18 @@ export class NodeFile extends files.BasicFile {
 export class NodeDirectory extends files.Directory {
   private stat : Stats;
   private path : string;
+  private watcher : FSWatcher;
+
   public extra = {};
 
   constructor(path : string, stat? : Stats) {
     super();
     this.path = path;
     this.stat = stat || statSync(path);
+
+    this.watcher = watch(this.id, {recursive: true}, () => {
+      this.onChange();
+    });
   }
 
   get id() {
@@ -123,6 +136,7 @@ export class NodeDirectory extends files.Directory {
   }
 
   async delete() {
+    this.watcher.close();
     for (let child of await this.getChildren()){
       await child.delete();
     }

@@ -1,4 +1,5 @@
 import * as files from "./base.js";
+import {FileAlreadyExistsError} from "./base";
 
 
 let idCounter = 0;
@@ -28,6 +29,11 @@ export class MemoryFile extends files.BasicFile {
         this.id = idCounter.toString();
     }
 
+    protected onChange() {
+        super.onChange();
+        this.parent.onChildChange();
+    }
+
     get url(){
         let numArray = new Uint8Array(this.fileData) as unknown as number[];
         let binaryStr = String.fromCharCode.apply(null, numArray);
@@ -45,6 +51,7 @@ export class MemoryFile extends files.BasicFile {
     async write(data : ArrayBuffer){
         this.fileData = data;
         this.lastModified = new Date();
+        this.onChange();
         return data;
     }
 
@@ -55,6 +62,7 @@ export class MemoryFile extends files.BasicFile {
     async rename(newName : string){
         this.name = newName;
         this.lastModified = new Date();
+        this.onChange();
     }
 }
 
@@ -95,6 +103,13 @@ export class MemoryDirectory extends files.Directory {
         return this.parent.path.concat([this.name]);
     }
 
+    /**
+     * Register change on parent when child changes.
+     */
+    public onChildChange() {
+        this.onChange();
+    }
+
     async delete() {
         if (this.parent !== null) {
             this.parent.removeChild(this);
@@ -102,7 +117,11 @@ export class MemoryDirectory extends files.Directory {
     }
 
     async rename(newName : string){
+        if (this.nameExists(newName)){
+            throw new FileAlreadyExistsError(`name ${newName} already exists`);
+        }
         this.name = newName;
+        this.onChange();
     }
 
     async getChildren() : Promise<files.File[]> {
@@ -134,7 +153,7 @@ export class MemoryDirectory extends files.Directory {
 
     async addFile(fileData : ArrayBuffer, filename : string, mimeType : string) {
         if (this.nameExists(filename)){
-            throw new Error(`name ${filename} already exists`);
+            throw new FileAlreadyExistsError(`file named ${filename} already exists`);
         }
         let newFile = new MemoryFile(this, filename, mimeType, fileData);
         this.addChild(newFile);
@@ -143,7 +162,7 @@ export class MemoryDirectory extends files.Directory {
 
     async addDirectory(name : string) {
         if (this.nameExists(name)){
-            throw new Error(`name ${name} already exists`);
+            throw new FileAlreadyExistsError(`file named ${name} already exists`);
         }
         let newDir = new MemoryDirectory(this, name);
         this.addChild(newDir);
@@ -152,9 +171,11 @@ export class MemoryDirectory extends files.Directory {
 
     addChild(memoryFile : MemoryFile | MemoryDirectory){
         this.children.push(memoryFile);
+        this.onChange();
     }
 
     removeChild(memoryFile : MemoryFile | MemoryDirectory){
         this.children = this.children.filter((file) => {return file !== memoryFile});
+        this.onChange();
     }
 }

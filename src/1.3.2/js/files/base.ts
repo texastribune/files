@@ -7,6 +7,13 @@ export class FileNotFoundError extends Error {
   }
 }
 
+export class FileAlreadyExistsError extends Error {
+  constructor(message : string) {
+    super(message);
+    this.name = this.constructor.name;
+  }
+}
+
 
 export interface File {
   addOnChangeListener(listener : (file : File) => void): void;
@@ -110,8 +117,10 @@ export abstract class BasicFile implements File {
   abstract readonly lastModified : Date;
   abstract readonly extra : Object;
 
-  onChange() {
-    console.log("CHANGE FUNC", this, this.name, this.onChangeListeners);
+  /**
+   * Call whenever a file is changed.
+   */
+  protected onChange() {
     for (let listener of this.onChangeListeners) {
       listener(this);
     }

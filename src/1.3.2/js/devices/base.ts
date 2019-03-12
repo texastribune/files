@@ -2,6 +2,7 @@ import {ConsoleFile} from "./console";
 import {NullFile} from "./null";
 import {DomElementDevice} from "./dom";
 import * as files from "../files/base";
+import {SearchResult} from "../files/base";
 
 
 const deviceFiles : files.File[] = [
@@ -19,12 +20,9 @@ export class DeviceDirectory extends files.Directory {
     constructor(){
         super();
 
-        this.extraChildren = [];
-        for (let element of document.querySelectorAll('.device')){
-            if (element instanceof HTMLElement){
-                this.extraChildren.push(new DomElementDevice(element));
-            }
-        }
+        this.extraChildren = [
+            new DomElementDevice(document.body)
+        ];
     }
 
     get name(){
@@ -59,7 +57,7 @@ export class DeviceDirectory extends files.Directory {
         throw new Error("can't rename device directory");
     }
 
-    async search(query: string): Promise<files.File[]> {
+    async search(query: string): Promise<SearchResult[]> {
         return [];
     }
 }

@@ -7,6 +7,7 @@ import { Stats } from "fs";
 export declare class NodeFile extends files.BasicFile {
     private stat;
     private path;
+    private watcher;
     extra: {};
     constructor(path: string, stat?: Stats);
     readonly id: string;
@@ -28,6 +29,7 @@ export declare class NodeFile extends files.BasicFile {
 export declare class NodeDirectory extends files.Directory {
     private stat;
     private path;
+    private watcher;
     extra: {};
     constructor(path: string, stat?: Stats);
     readonly id: string;

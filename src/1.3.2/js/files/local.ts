@@ -1,4 +1,6 @@
 import * as files from "./base";
+import {FileAlreadyExistsError} from "./base";
+import {File} from "./base";
 
 
 function indexedDbRequestToPromise(request : IDBRequest) : Promise<any> {
@@ -32,8 +34,8 @@ function indexedDbCursorRequestToPromise(cursorRequest : IDBRequest<IDBCursorWit
 }
 
 class Database {
-    name : string;
-    _readyPromise : Promise<IDBDatabase> | null = null;
+    private readonly name : string;
+    private readyPromise : Promise<IDBDatabase> | null = null;
 
     constructor(name : string) {
         this.name = name;
@@ -46,14 +48,14 @@ class Database {
      * nothing.
      * @returns {function[]} - An array of functions the either can return nothing or a promise.
      */
-    static get migrations() : ((db : IDBDatabase, transaction : IDBTransaction) => Promise<void>)[] {
+    get migrations() : ((db : IDBDatabase, transaction : IDBTransaction) => Promise<void>)[] {
         return []
     }
 
     getDB() : Promise<IDBDatabase> {
-        if (this._readyPromise === null){
-            this._readyPromise = new Promise((resolve, reject) => {
-                let newVersion = (this.constructor as typeof Database).migrations.length;
+        if (this.readyPromise === null){
+            this.readyPromise = new Promise((resolve, reject) => {
+                let newVersion = this.migrations.length;
                 let dbRequest = window.indexedDB.open(this.name, newVersion);
 
                 dbRequest.onsuccess = (event : Event) => {
@@ -65,7 +67,7 @@ class Database {
                     // Run the migration functions that are needed
                     let db = dbRequest.result;
                     let transaction = dbRequest.transaction as IDBTransaction;
-                    let migrationsToApply = (this.constructor as typeof Database).migrations.slice(event.oldVersion);
+                    let migrationsToApply = this.migrations.slice(event.oldVersion);
                     let upgradeMigrationChain = Promise.resolve();
                     for (let i = 0; i < migrationsToApply.length; i++) {
                         let migration = migrationsToApply[i];
@@ -94,7 +96,26 @@ class Database {
 
             });
         }
-        return this._readyPromise
+        return this.readyPromise
+    }
+
+    async close(){
+        let db = await this.getDB();
+        db.close();
+        this.readyPromise = null;
+    }
+
+    async clearAll(){
+        let deleteDBRequest = window.indexedDB.deleteDatabase(this.name);
+        await new Promise((resolve, reject) => {
+            deleteDBRequest.onsuccess = (event) => {
+                this.readyPromise = null;
+                resolve()
+            };
+            deleteDBRequest.onerror = (event) => {
+                reject()
+            };
+        });
     }
 }
 
@@ -112,29 +133,33 @@ interface FileData extends UnSavedFileData{
 }
 
 class FileStore extends Database {
-    static get objectStoreName(){
-        return 'files';
+    private readonly objectStoreName : string;
+    private readonly onFileChangeListeners : ((id : string) => void)[] = [];
+
+    constructor(databaseName : string, storeName : string) {
+        super(databaseName);
+        this.objectStoreName = storeName;
+
     }
 
-    static get migrations() {
-        let storeName = this.objectStoreName;
+    get migrations() {
         return [
             async (db : IDBDatabase, transaction : IDBTransaction) => {
                 // Create
-                let objectStore = db.createObjectStore(storeName, {keyPath: 'id', autoIncrement: true});
+                let objectStore = db.createObjectStore(this.objectStoreName, {keyPath: 'id', autoIncrement: true});
                 objectStore.createIndex('parentId', 'parentId', {unique: false});
                 objectStore.createIndex('uniqueNameForDirectory', ['name', 'parentId'], {unique: true});
             },
             async (db : IDBDatabase, transaction : IDBTransaction) => {
                 // Delete and rebuild
                 db.deleteObjectStore("files");
-                let objectStore = db.createObjectStore(storeName, {keyPath: 'id', autoIncrement: true});
+                let objectStore = db.createObjectStore(this.objectStoreName, {keyPath: 'id', autoIncrement: true});
                 objectStore.createIndex('parentId', 'parentId', {unique: false});
                 objectStore.createIndex('uniqueNameForDirectory', ['name', 'parentId'], {unique: true});
             },
             async (db : IDBDatabase, transaction : IDBTransaction) => {
                 // Convert files to ArrayBuffers, add mimeType and lastModified fields
-                let cursorRequest = transaction.objectStore(storeName).getAll();
+                let cursorRequest = transaction.objectStore(this.objectStoreName).getAll();
                 let fileDataArray = await indexedDbRequestToPromise(cursorRequest);
                 let promises = [];
                 for (let fileData of fileDataArray) {
@@ -147,12 +172,30 @@ class FileStore extends Database {
                         fileData.lastModified = fileData.created;
                     }
                     promises.push(
-                        indexedDbRequestToPromise(transaction.objectStore(storeName).put(fileData))
+                        indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).put(fileData))
                     );
                 }
                 await Promise.all(promises);
             }
         ]
+    }
+
+    private async onChange(id : string){
+        for (let listener of this.onFileChangeListeners){
+            listener(id);
+        }
+        if (id !== LocalStorageRoot.id) {
+            try {
+                let fileData = await this.get(id);
+                await this.onChange(fileData.parentId);
+            } catch (NotFoundError) {
+                // No parent
+            }
+        }
+    }
+
+    addOnFilesChangedListener(listener : (id : string) => void){
+        this.onFileChangeListeners.push(listener);
     }
 
     async add(parentId : string, name : string, file? : ArrayBuffer | null, type? : string) : Promise<FileData> {
@@ -173,21 +216,28 @@ class FileStore extends Database {
         unSavedFileData = this.validate(unSavedFileData);
 
         let db = await this.getDB();
-        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName, "readwrite");
+        let transaction = db.transaction(this.objectStoreName, "readwrite");
+        let fileData : FileData;
         try {
-            let newId = await indexedDbRequestToPromise(transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).add(unSavedFileData));
-            return Object.assign(unSavedFileData, {id: newId.toString()});
+            let newId = await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).add(unSavedFileData));
+            fileData = Object.assign(unSavedFileData, {id: newId.toString()});
         } catch (e) {
+            if (e.name === "ConstraintError"){
+                throw new FileAlreadyExistsError(`file named ${unSavedFileData.name} already exists`);
+            }
             throw new Error(`Could not add file ${name}, ${parentId}`);
         }
+
+        await this.onChange(parentId);
+        return fileData;
     }
 
     async get(id : string) : Promise<FileData> {
         let db = await this.getDB();
-        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName);
+        let transaction = db.transaction(this.objectStoreName);
 
         try {
-            return await indexedDbRequestToPromise(transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).get(parseInt(id)));
+            return await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).get(parseInt(id)));
         } catch (e) {
             throw new files.FileNotFoundError(`Could not find file with id ${id}.`);
         }
@@ -195,12 +245,12 @@ class FileStore extends Database {
 
     async update(id : string, updateFields : Object) : Promise<FileData> {
         let db = await this.getDB();
-        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName, "readwrite");
+        let transaction = db.transaction(this.objectStoreName, "readwrite");
 
         // Get file data from database
         let fileData;
         try {
-            fileData = await indexedDbRequestToPromise(transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).get(parseInt(id)));
+            fileData = await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).get(parseInt(id)));
         } catch (e) {
             throw new files.FileNotFoundError(`Could not find file with id ${id}.`);
         }
@@ -210,18 +260,25 @@ class FileStore extends Database {
         fileData = this.validate(fileData);
 
         try {
-            return await indexedDbRequestToPromise(transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).put(fileData));
+            await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).put(fileData));
         } catch (e) {
+            if (e.name === "ConstraintError"){
+                throw new FileAlreadyExistsError(`file named ${fileData.name} already exists`);
+            }
             throw new Error(`Could not update file id ${id}.`);
         }
+        await this.onChange(fileData.id);
+        return fileData;
     }
 
     async delete(id : string) : Promise<void> {
         let db = await this.getDB();
-        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName, "readwrite");
-        let objectStore = transaction.objectStore((this.constructor as typeof FileStore).objectStoreName);
+        let transaction = db.transaction(this.objectStoreName, "readwrite");
+        let objectStore = transaction.objectStore(this.objectStoreName);
 
+        let existing : FileData;
         try {
+            existing = await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).get(parseInt(id)));
             await indexedDbRequestToPromise(objectStore.delete(parseInt(id)));
         } catch (e) {
             throw new Error(`Could not delete file with id ${id}.`);
@@ -236,6 +293,8 @@ class FileStore extends Database {
                 throw new Error(`Could not delete file with id ${id}.`);
             }
         }
+
+        await this.onChange(existing.parentId);
     }
 
     async copy(sourceId : string, targetParentId : string) {
@@ -253,48 +312,29 @@ class FileStore extends Database {
 
     async getChildren(id : string){
         let db = await this.getDB();
-        let transaction = db.transaction((this.constructor as typeof FileStore).objectStoreName);
-        let childCursorRequest = transaction.objectStore((this.constructor as typeof FileStore).objectStoreName).index('parentId').openCursor(id);
+        let transaction = db.transaction(this.objectStoreName);
+        let childCursorRequest = transaction.objectStore(this.objectStoreName).index('parentId').openCursor(id);
         return await indexedDbCursorRequestToPromise(childCursorRequest);
     }
 
-    validate(fileData : UnSavedFileData | FileData) {
+    validate<T extends UnSavedFileData | FileData>(fileData : T) : T {
         fileData.name = fileData.name.toString();
         if (fileData.file !== null && !(fileData.file instanceof ArrayBuffer)) {
             throw new Error(`Invalid file data. Must be ArrayBuffer, not ${typeof fileData.file}`);
         }
-        if (!fileData.lastModified){
+        if (!fileData.lastModified) {
             throw new Error(`Invalid file data. Not lastModified time.`);
         }
-        if (!fileData.created){
+        if (!fileData.created) {
             throw new Error(`Invalid file data. Not created time.`);
         }
 
         return fileData;
     }
-
-    async close(){
-        let db = await this.getDB();
-        db.close();
-        this._readyPromise = null;
-    }
-
-    async clearAll(){
-        let deleteDBRequest = window.indexedDB.deleteDatabase(this.name);
-        await new Promise((resolve, reject) => {
-            deleteDBRequest.onsuccess = (event) => {
-                this._readyPromise = null;
-                resolve()
-            };
-            deleteDBRequest.onerror = (event) => {
-                reject()
-            };
-        });
-    }
 }
 
 
-export const database = new FileStore('db');
+export const database = new FileStore('db', 'files');
 
 
 /**
@@ -442,10 +482,12 @@ export class LocalStorageDirectory extends files.Directory {
 }
 
 export class LocalStorageRoot extends LocalStorageDirectory {
+    static id : string = 'fsRoot';
+
     constructor() {
         let now = new Date().toISOString();
         super({
-            id: 'fsRoot',
+            id: LocalStorageRoot.id,
             parentId: '',
             file: null,
             name: 'root',

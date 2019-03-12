@@ -1,4 +1,5 @@
 import * as files from "../files/base";
+import { SearchResult } from "../files/base";
 export declare abstract class AbstractElementFile extends files.BasicFile {
     readonly created: Date;
     readonly extra: {};
@@ -30,5 +31,5 @@ export declare class DomElementDevice extends files.Directory {
     getChildren(): Promise<files.File[]>;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;
-    search(query: string): Promise<files.File[]>;
+    search(query: string): Promise<SearchResult[]>;
 }

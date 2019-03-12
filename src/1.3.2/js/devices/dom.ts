@@ -1,5 +1,6 @@
 import * as files from "../files/base";
 import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
+import {SearchResult} from "../files/base";
 
 
 export abstract class AbstractElementFile extends files.BasicFile {
@@ -289,7 +290,7 @@ export class DomElementDevice extends files.Directory {
         throw new Error("can't rename element");
     }
 
-    async search(query: string): Promise<files.File[]> {
+    async search(query: string): Promise<SearchResult[]> {
         return [];
     }
 }

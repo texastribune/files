@@ -1,7 +1,7 @@
 import * as files from "./base";
 declare class Database {
-    name: string;
-    _readyPromise: Promise<IDBDatabase> | null;
+    private readonly name;
+    private readyPromise;
     constructor(name: string);
     /**
      * An array of functions to perform on database for version upgrades. Each migration corresponds to a
@@ -10,8 +10,10 @@ declare class Database {
      * nothing.
      * @returns {function[]} - An array of functions the either can return nothing or a promise.
      */
-    static readonly migrations: ((db: IDBDatabase, transaction: IDBTransaction) => Promise<void>)[];
+    readonly migrations: ((db: IDBDatabase, transaction: IDBTransaction) => Promise<void>)[];
     getDB(): Promise<IDBDatabase>;
+    close(): Promise<void>;
+    clearAll(): Promise<void>;
 }
 interface UnSavedFileData {
     parentId: string;
@@ -25,8 +27,12 @@ interface FileData extends UnSavedFileData {
     id: string;
 }
 declare class FileStore extends Database {
-    static readonly objectStoreName: string;
-    static readonly migrations: ((db: IDBDatabase, transaction: IDBTransaction) => Promise<void>)[];
+    private readonly objectStoreName;
+    private readonly onFileChangeListeners;
+    constructor(databaseName: string, storeName: string);
+    readonly migrations: ((db: IDBDatabase, transaction: IDBTransaction) => Promise<void>)[];
+    private onChange;
+    addOnFilesChangedListener(listener: (id: string) => void): void;
     add(parentId: string, name: string, file?: ArrayBuffer | null, type?: string): Promise<FileData>;
     get(id: string): Promise<FileData>;
     update(id: string, updateFields: Object): Promise<FileData>;
@@ -35,9 +41,7 @@ declare class FileStore extends Database {
     move(sourceId: string, targetParentId: string): Promise<void>;
     search(id: string, query: string): Promise<void>;
     getChildren(id: string): Promise<any[]>;
-    validate(fileData: UnSavedFileData | FileData): UnSavedFileData | FileData;
-    close(): Promise<void>;
-    clearAll(): Promise<void>;
+    validate<T extends UnSavedFileData | FileData>(fileData: T): T;
 }
 export declare const database: FileStore;
 /**
@@ -85,6 +89,7 @@ export declare class LocalStorageDirectory extends files.Directory {
     search(query: string): Promise<files.SearchResult[]>;
 }
 export declare class LocalStorageRoot extends LocalStorageDirectory {
+    static id: string;
     constructor();
 }
 export {};

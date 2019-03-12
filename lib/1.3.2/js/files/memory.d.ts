@@ -10,6 +10,7 @@ export declare class MemoryFile extends files.BasicFile {
     name: string;
     lastModified: Date;
     constructor(parent: MemoryDirectory, name: string, mimeType?: string, data?: ArrayBuffer);
+    protected onChange(): void;
     readonly url: string;
     readonly size: number;
     read(params: Object): Promise<ArrayBuffer>;
@@ -28,6 +29,10 @@ export declare class MemoryDirectory extends files.Directory {
     constructor(parent: MemoryDirectory | null, name: string);
     readonly lastModified: Date;
     private readonly path;
+    /**
+     * Register change on parent when child changes.
+     */
+    onChildChange(): void;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;
     getChildren(): Promise<files.File[]>;

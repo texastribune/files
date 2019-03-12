@@ -1,6 +1,9 @@
 export declare class FileNotFoundError extends Error {
     constructor(message: string);
 }
+export declare class FileAlreadyExistsError extends Error {
+    constructor(message: string);
+}
 export interface File {
     addOnChangeListener(listener: (file: File) => void): void;
     /**
@@ -83,7 +86,10 @@ export declare abstract class BasicFile implements File {
     abstract readonly created: Date;
     abstract readonly lastModified: Date;
     abstract readonly extra: Object;
-    onChange(): void;
+    /**
+     * Call whenever a file is changed.
+     */
+    protected onChange(): void;
     addOnChangeListener(listener: (file: File) => void): void;
     readonly directory: boolean;
     abstract read(params?: Object): Promise<ArrayBuffer>;

@@ -1,4 +1,5 @@
 import * as files from "../files/base";
+import { SearchResult } from "../files/base";
 export declare class DeviceDirectory extends files.Directory {
     readonly created: Date;
     readonly lastModified: Date;
@@ -13,5 +14,5 @@ export declare class DeviceDirectory extends files.Directory {
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File>;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;
-    search(query: string): Promise<files.File[]>;
+    search(query: string): Promise<SearchResult[]>;
 }
