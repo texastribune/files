@@ -4,7 +4,6 @@
 import {MemoryDirectory} from "../files/memory";
 import {FileBrowser} from "../ui/browser";
 import {stringToArrayBuffer} from "../utils";
-import {StateMixin} from "../files/mixins/state";
 import {Directory} from "../files/base";
 
 const dir1Name = 'dir1';
@@ -25,58 +24,32 @@ async function addTestFiles(rootDirectory : Directory){
   return [dir1FileObject, file1FileObject, file2FileObject];
 }
 
-class MockMutationObserver implements MutationObserver {
-  constructor(callback: MutationCallback){
-    // Do nothing
-  }
-
-  observe(target: Node, options?: MutationObserverInit){
-    // Do nothing
-  }
-
-  disconnect() {
-    // Do nothing
-  }
-
-  takeRecords(): MutationRecord[] {
-    return [];
-  }
-}
-
-global["MutationObserver"] = MockMutationObserver;
-
 
 describe('Test browser', () => {
-  let rootDirectory;
-  let table;
-  let browser;
+  let rootDirectory : Directory;
+  let browser : FileBrowser;
 
   beforeEach(() => {
     rootDirectory = new MemoryDirectory(null, 'root');
-    browser = new FileBrowser(rootDirectory,);
+    browser = document.createElement('file-browser') as FileBrowser;
+    browser.rootDirectory = rootDirectory;
   });
 
   test('Table has files', async () => {
     let fileObjects = await addTestFiles(rootDirectory);
-    await browser.setPath([]);
+    browser.path = [];
 
-    let rowData = {};
-    for (let row of browser.table.rows){
-      rowData[row.data.name] = row.data;
+    await new Promise((resolve, reject) => {
+      browser.addEventListener(FileBrowser.EVENT_FILES_CHANGE, resolve);
+    });
+
+    if (browser.shadowRoot === null) {
+      throw Error("browser does not have shanow root");
     }
-
-    expect(browser.table.rows.length).toEqual(2);
-    expect(rowData).toHaveProperty(dir1Name);
-    expect(rowData).toHaveProperty(file1Name);
-
-    await browser.setPath([dir1Name]);
-
-    rowData = {};
-    for (let row of browser.table.rows){
-        rowData[row.data.name] = row.data;
+    let table = browser.shadowRoot.querySelector('selectable-table');
+    if (table === null) {
+      throw Error("browser does not have table");
     }
-
-    expect(browser.table.rows.length).toEqual(1);
-    expect(rowData).toHaveProperty(file2Name);
+    console.log("TABLE", table);
   });
 });

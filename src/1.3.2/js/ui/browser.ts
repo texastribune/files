@@ -161,6 +161,11 @@ export class FileBrowser extends CustomElement {
   static dropdownMenuButtonClass = 'dropdown-menu button';
   static fileBrowserDialogClass = 'file-browser-dialog';
 
+  /**
+   * @event
+   */
+  static EVENT_FILES_CHANGE = 'change';
+
   private searchPending : boolean = false;  // For search debounce
   private messageRemovalDelay : number | null = null;
   private maxNumMove = 30;  // Maximum number of files that can be moved at once
@@ -271,6 +276,17 @@ export class FileBrowser extends CustomElement {
       this.refreshFiles();
     });
     this.refreshFiles();
+  }
+
+  get files() : File[] {
+    let files : File[] = [];
+    for (let row of this.table.flatChildren(FileTableRow)) {
+      let file = row.getFile();
+      if (file !== null){
+        files.push(file);
+      }
+    }
+    return files;
   }
 
   get path() : string[] {
@@ -591,6 +607,7 @@ export class FileBrowser extends CustomElement {
       tableRows.push(newRow);
     }
     this.table.rows = tableRows;
+    this.dispatchEvent(new Event(FileBrowser.EVENT_FILES_CHANGE));
   }
 
   showContextMenu(positionX : number, positionY : number){

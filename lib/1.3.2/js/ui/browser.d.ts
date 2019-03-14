@@ -28,6 +28,10 @@ export declare class FileBrowser extends CustomElement {
     static stateManagerContainerClass: string;
     static dropdownMenuButtonClass: string;
     static fileBrowserDialogClass: string;
+    /**
+     * @event
+     */
+    static EVENT_FILES_CHANGE: string;
     private searchPending;
     private messageRemovalDelay;
     private maxNumMove;
@@ -51,6 +55,7 @@ export declare class FileBrowser extends CustomElement {
     }): void;
     rootDirectory: Directory;
     currentDirectory: CachedProxyDirectory;
+    readonly files: File[];
     path: string[];
     readonly css: string | null;
     render(shadowRoot: ShadowRoot): void;

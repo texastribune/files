@@ -1,7 +1,8 @@
 import * as files from "./base";
-import {statSync, Stats, watch, FSWatcher} from "fs";
+import {statSync, Stats, watch, FSWatcher, existsSync} from "fs";
 import {promises as fs} from "fs";
 import * as path from 'path';
+import {FileAlreadyExistsError} from "./base";
 
 
 /**
@@ -160,6 +161,9 @@ export class NodeDirectory extends files.Directory {
       throw new Error(`File data must be ArrayBuffer not ${typeof fileData}.`)
     }
     let filePath = path.join(this.id, filename);
+    if (existsSync(filePath)){
+      throw new FileAlreadyExistsError(`file named ${name} already exists`);
+    }
     await fs.appendFile(filePath, new Buffer.from(fileData));
     let stat = await fs.stat(filePath);
     return new NodeFile(filePath, stat);
@@ -167,6 +171,9 @@ export class NodeDirectory extends files.Directory {
 
   async addDirectory(name : string) {
     let dirPath = path.join(this.id, name);
+    if (existsSync(dirPath)){
+      throw new FileAlreadyExistsError(`file named ${name} already exists`);
+    }
     await fs.mkdir(dirPath, null);
     let stat = await fs.stat(dirPath);
     return new NodeDirectory(dirPath, stat);

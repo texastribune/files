@@ -120,7 +120,7 @@ class Database {
 }
 
 interface UnSavedFileData {
-    parentId : string,
+    parentId : number | null,
     name : string,
     file : ArrayBuffer | null,
     mimeType : string,
@@ -129,12 +129,12 @@ interface UnSavedFileData {
 }
 
 interface FileData extends UnSavedFileData{
-    id: string
+    id: number
 }
 
 class FileStore extends Database {
     private readonly objectStoreName : string;
-    private readonly onFileChangeListeners : ((id : string) => void)[] = [];
+    private readonly onFileChangeListeners : Set<(id : number | null) => void> = new Set();
 
     constructor(databaseName : string, storeName : string) {
         super(databaseName);
@@ -171,6 +171,15 @@ class FileStore extends Database {
                         fileData.mimeType = 'application/json';
                         fileData.lastModified = fileData.created;
                     }
+                    if (fileData.parentId === 'fsRoot'){
+                        fileData.parentId = null;
+                    } else {
+                        try {
+                            fileData.parentId = parseInt(fileData.parentId);
+                        } catch (e) {
+                            fileData.parentId = null;
+                        }
+                    }
                     promises.push(
                         indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).put(fileData))
                     );
@@ -180,11 +189,11 @@ class FileStore extends Database {
         ]
     }
 
-    private async onChange(id : string){
+    private async onChange(id : number | null){
         for (let listener of this.onFileChangeListeners){
             listener(id);
         }
-        if (id !== LocalStorageRoot.id) {
+        if (id !== null) {
             try {
                 let fileData = await this.get(id);
                 await this.onChange(fileData.parentId);
@@ -194,11 +203,15 @@ class FileStore extends Database {
         }
     }
 
-    addOnFilesChangedListener(listener : (id : string) => void){
-        this.onFileChangeListeners.push(listener);
+    addOnFilesChangedListener(listener : (id : number | null) => void){
+        this.onFileChangeListeners.add(listener);
     }
 
-    async add(parentId : string, name : string, file? : ArrayBuffer | null, type? : string) : Promise<FileData> {
+    removeOnFilesChangedListener(listener : (id : number | null) => void){
+        this.onFileChangeListeners.delete(listener);
+    }
+
+    async add(parentId : number, name : string, file? : ArrayBuffer | null, type? : string) : Promise<FileData> {
         let now = new Date().toISOString();
         if (file === undefined){
             type = files.Directory.mimeType;
@@ -220,7 +233,7 @@ class FileStore extends Database {
         let fileData : FileData;
         try {
             let newId = await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).add(unSavedFileData));
-            fileData = Object.assign(unSavedFileData, {id: newId.toString()});
+            fileData = Object.assign(unSavedFileData, {id: newId});
         } catch (e) {
             if (e.name === "ConstraintError"){
                 throw new FileAlreadyExistsError(`file named ${unSavedFileData.name} already exists`);
@@ -232,26 +245,24 @@ class FileStore extends Database {
         return fileData;
     }
 
-    async get(id : string) : Promise<FileData> {
+    async get(id : number) : Promise<FileData> {
         let db = await this.getDB();
         let transaction = db.transaction(this.objectStoreName);
 
-        try {
-            return await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).get(parseInt(id)));
-        } catch (e) {
+        let fileData : FileData = await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).get(id));
+        if (fileData === undefined){
             throw new files.FileNotFoundError(`Could not find file with id ${id}.`);
         }
+        return fileData;
     }
 
-    async update(id : string, updateFields : Object) : Promise<FileData> {
+    async update(id : number, updateFields : Object) : Promise<FileData> {
         let db = await this.getDB();
         let transaction = db.transaction(this.objectStoreName, "readwrite");
 
         // Get file data from database
-        let fileData;
-        try {
-            fileData = await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).get(parseInt(id)));
-        } catch (e) {
+        let fileData : FileData = await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).get(id));
+        if (fileData === undefined){
             throw new files.FileNotFoundError(`Could not find file with id ${id}.`);
         }
 
@@ -271,21 +282,23 @@ class FileStore extends Database {
         return fileData;
     }
 
-    async delete(id : string) : Promise<void> {
+    async delete(id : number) : Promise<void> {
         let db = await this.getDB();
         let transaction = db.transaction(this.objectStoreName, "readwrite");
         let objectStore = transaction.objectStore(this.objectStoreName);
 
-        let existing : FileData;
+        let existing : FileData = await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).get(id));
+        if (existing === undefined){
+            throw new files.FileNotFoundError(`Could not find file with id ${id}.`);
+        }
         try {
-            existing = await indexedDbRequestToPromise(transaction.objectStore(this.objectStoreName).get(parseInt(id)));
-            await indexedDbRequestToPromise(objectStore.delete(parseInt(id)));
+            await indexedDbRequestToPromise(objectStore.delete(id));
         } catch (e) {
             throw new Error(`Could not delete file with id ${id}.`);
         }
 
         let childCursorRequest = objectStore.index('parentId').openCursor(id);
-        let children = await indexedDbCursorRequestToPromise(childCursorRequest);
+        let children : FileData[] = await indexedDbCursorRequestToPromise(childCursorRequest);
         for (let child of children){
             try {
                 await indexedDbRequestToPromise(objectStore.delete(child.id));
@@ -297,20 +310,20 @@ class FileStore extends Database {
         await this.onChange(existing.parentId);
     }
 
-    async copy(sourceId : string, targetParentId : string) {
+    async copy(sourceId : number, targetParentId : number) {
         let fileData = await this.get(sourceId);
         await this.add(targetParentId, fileData.name, fileData.file, fileData.mimeType);
     }
 
-    async move(sourceId : string, targetParentId : string) {
+    async move(sourceId : number, targetParentId : number) {
         await this.update(sourceId, {parentId: targetParentId});
     }
 
-    async search(id : string, query : string) {
+    async search(id : number, query : string) {
         throw new Error("Not implemented")
     }
 
-    async getChildren(id : string){
+    async getChildren(id : number){
         let db = await this.getDB();
         let transaction = db.transaction(this.objectStoreName);
         let childCursorRequest = transaction.objectStore(this.objectStoreName).index('parentId').openCursor(id);
@@ -337,6 +350,7 @@ class FileStore extends Database {
 export const database = new FileStore('db', 'files');
 
 
+
 /**
  * A storage class uses IndexedDB to store files locally in the browser.
  */
@@ -344,8 +358,9 @@ export class LocalStorageFile extends files.BasicFile {
     private _name : string;
     private _lastModified : Date;
     private _size : number;
+    private listenerMap : Map<(file: File) => void, (id : number | null) => void> = new Map();
 
-    public readonly id : string;
+    public readonly intId : number;
     public readonly created : Date;
     public readonly mimeType : string;
     public readonly url = null;
@@ -354,7 +369,7 @@ export class LocalStorageFile extends files.BasicFile {
 
     constructor(databaseData : FileData) {
         super();
-        this.id = databaseData.id.toString();
+        this.intId = databaseData.id;
         this._name = databaseData.name;
         this.created = new Date(databaseData.lastModified);
         this._lastModified = new Date(databaseData.created);
@@ -364,6 +379,10 @@ export class LocalStorageFile extends files.BasicFile {
         } else {
             this._size = 0;
         }
+    }
+
+    get id() : string {
+        return this.intId.toString();
     }
 
     get name() : string {
@@ -378,33 +397,55 @@ export class LocalStorageFile extends files.BasicFile {
         return this._size;
     }
 
+    addOnChangeListener(listener: (file: File) => void) {
+        let databaseListener = (id : number | null) => {
+            if (id === this.intId){
+                listener(this);
+            }
+        };
+        this.listenerMap.set(listener, databaseListener);
+        database.addOnFilesChangedListener(databaseListener);
+    }
+
+    removeOnChangeListener(listener: (file: File) => void) {
+        let databaseListener = this.listenerMap.get(listener);
+        if (databaseListener !== undefined){
+            database.removeOnFilesChangedListener(databaseListener);
+            this.listenerMap.delete(listener);
+        }
+    }
+
     async read(params? : Object) {
-        let fileData = await database.get(this.id);
+        let fileData = await database.get(this.intId);
         return fileData.file || new ArrayBuffer(0);
     }
 
     async write(data : ArrayBuffer) {
-        let fileData = await database.update(this.id, {file: data});
+        let fileData = await database.update(this.intId, {file: data});
         this._size = data.byteLength;
         this._lastModified = new Date(fileData.lastModified);
         return data;
     }
 
     async rename(newName : string) {
-        let fileData = await database.update(this.id, {name: newName});
+        let fileData = await database.update(this.intId, {name: newName});
         this._name = fileData.name;
     }
 
     async delete() {
-        await database.delete(this.id);
+        await database.delete(this.intId);
     }
 
     async copy(targetDirectory : files.Directory) {
-        await database.copy(this.id, targetDirectory.id);
+        if (targetDirectory instanceof LocalStorageDirectory){
+            await database.copy(this.intId, targetDirectory.intId);
+        }
     }
 
     async move(targetDirectory : files.Directory) {
-        await database.move(this.id, targetDirectory.id);
+        if (targetDirectory instanceof LocalStorageDirectory){
+            await database.move(this.intId, targetDirectory.intId);
+        }
     }
 }
 
@@ -414,8 +455,9 @@ export class LocalStorageFile extends files.BasicFile {
 export class LocalStorageDirectory extends files.Directory {
     private _name : string;
     private _lastModified : Date;
+    private listenerMap : Map<(file: File) => void, (id : number | null) => void> = new Map();
 
-    public readonly id : string;
+    public readonly intId : number;
     public readonly created : Date;
     public readonly icon = null;
     public extra = {};
@@ -423,10 +465,14 @@ export class LocalStorageDirectory extends files.Directory {
     constructor(databaseData : FileData) {
         super();
 
-        this.id = databaseData.id.toString();
+        this.intId = databaseData.id;
         this._name = databaseData.name;
         this.created = new Date(databaseData.lastModified);
         this._lastModified = new Date(databaseData.created);
+    }
+
+    get id() : string {
+        return this.intId.toString();
     }
 
     get name() : string {
@@ -437,18 +483,36 @@ export class LocalStorageDirectory extends files.Directory {
         return this._lastModified;
     }
 
+    addOnChangeListener(listener: (file: File) => void) {
+        let databaseListener = (id : number | null) => {
+            if (id === this.intId){
+                listener(this);
+            }
+        };
+        this.listenerMap.set(listener, databaseListener);
+        database.addOnFilesChangedListener(databaseListener);
+    }
+
+    removeOnChangeListener(listener: (file: File) => void) {
+        let databaseListener = this.listenerMap.get(listener);
+        if (databaseListener !== undefined){
+            database.removeOnFilesChangedListener(databaseListener);
+            this.listenerMap.delete(listener);
+        }
+    }
+
     async rename(newName : string) {
-        let fileData = await database.update(this.id, {name: newName});
+        let fileData = await database.update(this.intId, {name: newName});
         this._name = fileData.name;
     }
 
     async delete() {
-        await database.delete(this.id);
+        await database.delete(this.intId);
     }
 
     async getChildren() : Promise<files.File[]> {
         let children = [];
-        let childDataArray = await database.getChildren(this.id);
+        let childDataArray = await database.getChildren(this.intId);
         for (let childData of childDataArray){
             if (childData.file){
                 children.push(new LocalStorageFile(childData));
@@ -467,12 +531,12 @@ export class LocalStorageDirectory extends files.Directory {
             throw new Error("No filename given");
         }
         mimeType = mimeType || 'application/octet-stream';
-        let fileData = await database.add(this.id, name, file, mimeType);
+        let fileData = await database.add(this.intId, name, file, mimeType);
         return new LocalStorageFile(fileData);
     }
 
     async addDirectory(name : string) {
-        let fileData = await database.add(this.id, name, null, files.Directory.mimeType);
+        let fileData = await database.add(this.intId, name, null, files.Directory.mimeType);
         return new LocalStorageDirectory(fileData);
     }
 
@@ -487,8 +551,8 @@ export class LocalStorageRoot extends LocalStorageDirectory {
     constructor() {
         let now = new Date().toISOString();
         super({
-            id: LocalStorageRoot.id,
-            parentId: '',
+            id: 0,
+            parentId: null,
             file: null,
             name: 'root',
             created: now,

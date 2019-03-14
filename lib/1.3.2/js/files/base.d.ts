@@ -6,6 +6,7 @@ export declare class FileAlreadyExistsError extends Error {
 }
 export interface File {
     addOnChangeListener(listener: (file: File) => void): void;
+    removeOnChangeListener(listener: (file: File) => void): void;
     /**
       * A string id of the file unique between this file and all descendants/ancestors.
      */
@@ -91,6 +92,7 @@ export declare abstract class BasicFile implements File {
      */
     protected onChange(): void;
     addOnChangeListener(listener: (file: File) => void): void;
+    removeOnChangeListener(listener: (file: File) => void): void;
     readonly directory: boolean;
     abstract read(params?: Object): Promise<ArrayBuffer>;
     abstract write(data: ArrayBuffer): Promise<ArrayBuffer>;

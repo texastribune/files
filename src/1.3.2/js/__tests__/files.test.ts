@@ -6,7 +6,7 @@ import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer} from ".
 import IndexedDB from "fake-indexeddb/build";
 import {LocalStorageRoot, database} from "../files/local";
 import {VirtualDirectory} from "../files/virtual";
-import {BasicFile, Directory, File, FileAlreadyExistsError} from "../files/base";
+import {BasicFile, Directory, File, FileAlreadyExistsError, FileNotFoundError} from "../files/base";
 import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
 
@@ -112,7 +112,14 @@ function testStorage(rootDirectory : Directory) {
 
         expect(files[0].mimeType).toMatch('application/json'); // All directories should be json files
         expect(files[1].mimeType).toMatch('application/octet-stream'); // Fallback since not given in addFile
-        expect(files[2].mimeType).toMatch('text/plain'); // As was defined in addFile
+        if (rootDirectory instanceof NodeDirectory){
+            // Node.js file API does not have a way to store mime type
+            console.log("NodeDirectory does not preserve metdata");
+            expect(files[2].mimeType).toMatch('application/octet-stream');
+        } else {
+            // As was defined in addFile
+            expect(files[2].mimeType).toMatch('text/plain');
+        }
     });
 
     test('It can read files and directories', async () => {
@@ -148,7 +155,6 @@ function testStorage(rootDirectory : Directory) {
             return file1.id === file2.id && file1.name === file2.name && file1.directory === file2.directory;
         }
 
-        console.log("ROOT", rootChildFiles);
         expect(rootChildFiles.length).toEqual(2);
         expect(areFilesSame(rootChildFileMap[files[0].name], files[0])).toBeTruthy();
         expect(areFilesSame(rootChildFileMap[files[1].name], files[1])).toBeTruthy();
@@ -231,6 +237,20 @@ function testStorage(rootDirectory : Directory) {
 
         expect(dir1.id).toMatch(files[0].id);
         expect(file2.id).toMatch(files[2].id);
+
+        let caughtError = null;
+        await rootDirectory.getFile(["badname"])
+            .catch((error) => {
+                caughtError = error;
+            });
+        expect(caughtError).toBeInstanceOf(FileNotFoundError);
+
+        caughtError = null;
+        await rootDirectory.getFile([dir1Name, "badname"])
+            .catch((error) => {
+                caughtError = error;
+            });
+        expect(caughtError).toBeInstanceOf(FileNotFoundError);
     });
 
     test('change listener', async () => {
@@ -248,19 +268,23 @@ function testStorage(rootDirectory : Directory) {
             file2: 0,
         };
 
-        // add change listeners for each file that increment the count when called
-        dir1.addOnChangeListener((file) => {
+        let dir1Listener = (file : File) => {
             expect(file.id).toEqual(dir1.id);
             calls.dir1 ++;
-        });
-        file1.addOnChangeListener((file) => {
+        };
+        let file1Listener = (file : File) => {
             expect(file.id).toEqual(file1.id);
             calls.file1 ++;
-        });
-        file2.addOnChangeListener((file) => {
+        };
+        let file2Listener = (file : File) => {
             expect(file.id).toEqual(file2.id);
             calls.file2 ++;
-        });
+        };
+
+        // add change listeners for each file that increment the count when called
+        dir1.addOnChangeListener(dir1Listener);
+        file1.addOnChangeListener(file1Listener);
+        file2.addOnChangeListener(file2Listener);
 
         // write should trigger call change listener only on file1 because it has no parent directory
         await file1.write(stringToArrayBuffer("change"));
@@ -298,6 +322,22 @@ function testStorage(rootDirectory : Directory) {
         // delete should trigger call change listener on parent directory only
         await file2.delete();
         expect(calls.dir1).toBeGreaterThanOrEqual(1);
+        expect(calls.file1).toEqual(0);
+        expect(calls.file2).toEqual(0);
+
+        // reset counts
+        calls.dir1 = 0;
+        calls.file1 = 0;
+        calls.file2 = 0;
+
+        // If we remove listeners, no calls should happen
+        dir1.removeOnChangeListener(dir1Listener);
+        file1.removeOnChangeListener(file1Listener);
+        file2.removeOnChangeListener(file2Listener);
+
+        await file1.write(stringToArrayBuffer("change2"));
+        await dir1.rename("new name");
+        expect(calls.dir1).toBeGreaterThanOrEqual(0);
         expect(calls.file1).toEqual(0);
         expect(calls.file2).toEqual(0);
     });

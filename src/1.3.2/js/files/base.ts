@@ -17,6 +17,7 @@ export class FileAlreadyExistsError extends Error {
 
 export interface File {
   addOnChangeListener(listener : (file : File) => void): void;
+  removeOnChangeListener(listener : (file : File) => void): void;
 
   /**
     * A string id of the file unique between this file and all descendants/ancestors.
@@ -105,7 +106,7 @@ export interface File {
  * An object representing a file.
  */
 export abstract class BasicFile implements File {
-  private readonly onChangeListeners : ((file : File) => void)[] = [];
+  private readonly onChangeListeners : Set<(file : File) => void> = new Set();
 
   abstract readonly id : string;
   abstract readonly name : string;
@@ -127,7 +128,11 @@ export abstract class BasicFile implements File {
   }
 
   addOnChangeListener(listener : (file : File) => void) {
-    this.onChangeListeners.push(listener);
+    this.onChangeListeners.add(listener);
+  }
+
+  removeOnChangeListener(listener : (file : File) => void) {
+    this.onChangeListeners.delete(listener);
   }
 
   get directory() {

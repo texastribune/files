@@ -3,7 +3,7 @@
 
 
 import {MemoryDirectory} from "../files/memory";
-import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
+import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 import {Process} from "../processes/base";
 import {DeviceDirectory} from "../devices/base";
 import {ProcessDirectory} from "../processes/files";
@@ -108,14 +108,10 @@ describe('Test Process', () => {
     let err : files.File;
 
     beforeEach(async () => {
+        root = new TestFS();
         consoleDev = await root.getFile(['dev', 'console']);
         out = await root.addFile(new ArrayBuffer(0), 'out.txt', 'text/plain');
         err = await root.addFile(new ArrayBuffer(0), 'err.txt', 'text/plain');
-    });
-
-    afterEach(async () => {
-        await out.delete();
-        await err.delete();
     });
 
     test('System exit call writes to stdout', async () => {
@@ -140,7 +136,8 @@ describe('Test Process', () => {
         await root.addFile(stringToArrayBuffer(script), 'init.js', 'application/javascript');
         let process = new Process(null, root, ['init.js'], out, err);
         await onProcessExit(process);
-        let inProcessData = await out.readJSON();
+        let textArrayBuffer = await out.read();
+        let inProcessData = parseJsonArrayBuffer(textArrayBuffer);
         expect(inProcessData.length).toBe(1);
         expect(inProcessData[0].id).toMatch(process.id);
 

@@ -1,4 +1,5 @@
 import * as files from "./base";
+import { File } from "./base";
 declare class Database {
     private readonly name;
     private readyPromise;
@@ -16,7 +17,7 @@ declare class Database {
     clearAll(): Promise<void>;
 }
 interface UnSavedFileData {
-    parentId: string;
+    parentId: number | null;
     name: string;
     file: ArrayBuffer | null;
     mimeType: string;
@@ -24,7 +25,7 @@ interface UnSavedFileData {
     created: string;
 }
 interface FileData extends UnSavedFileData {
-    id: string;
+    id: number;
 }
 declare class FileStore extends Database {
     private readonly objectStoreName;
@@ -32,15 +33,16 @@ declare class FileStore extends Database {
     constructor(databaseName: string, storeName: string);
     readonly migrations: ((db: IDBDatabase, transaction: IDBTransaction) => Promise<void>)[];
     private onChange;
-    addOnFilesChangedListener(listener: (id: string) => void): void;
-    add(parentId: string, name: string, file?: ArrayBuffer | null, type?: string): Promise<FileData>;
-    get(id: string): Promise<FileData>;
-    update(id: string, updateFields: Object): Promise<FileData>;
-    delete(id: string): Promise<void>;
-    copy(sourceId: string, targetParentId: string): Promise<void>;
-    move(sourceId: string, targetParentId: string): Promise<void>;
-    search(id: string, query: string): Promise<void>;
-    getChildren(id: string): Promise<any[]>;
+    addOnFilesChangedListener(listener: (id: number | null) => void): void;
+    removeOnFilesChangedListener(listener: (id: number | null) => void): void;
+    add(parentId: number, name: string, file?: ArrayBuffer | null, type?: string): Promise<FileData>;
+    get(id: number): Promise<FileData>;
+    update(id: number, updateFields: Object): Promise<FileData>;
+    delete(id: number): Promise<void>;
+    copy(sourceId: number, targetParentId: number): Promise<void>;
+    move(sourceId: number, targetParentId: number): Promise<void>;
+    search(id: number, query: string): Promise<void>;
+    getChildren(id: number): Promise<any[]>;
     validate<T extends UnSavedFileData | FileData>(fileData: T): T;
 }
 export declare const database: FileStore;
@@ -51,16 +53,20 @@ export declare class LocalStorageFile extends files.BasicFile {
     private _name;
     private _lastModified;
     private _size;
-    readonly id: string;
+    private listenerMap;
+    readonly intId: number;
     readonly created: Date;
     readonly mimeType: string;
     readonly url: null;
     readonly icon: null;
     extra: {};
     constructor(databaseData: FileData);
+    readonly id: string;
     readonly name: string;
     readonly lastModified: Date;
     readonly size: number;
+    addOnChangeListener(listener: (file: File) => void): void;
+    removeOnChangeListener(listener: (file: File) => void): void;
     read(params?: Object): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
@@ -74,13 +80,17 @@ export declare class LocalStorageFile extends files.BasicFile {
 export declare class LocalStorageDirectory extends files.Directory {
     private _name;
     private _lastModified;
-    readonly id: string;
+    private listenerMap;
+    readonly intId: number;
     readonly created: Date;
     readonly icon: null;
     extra: {};
     constructor(databaseData: FileData);
+    readonly id: string;
     readonly name: string;
     readonly lastModified: Date;
+    addOnChangeListener(listener: (file: File) => void): void;
+    removeOnChangeListener(listener: (file: File) => void): void;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     getChildren(): Promise<files.File[]>;
