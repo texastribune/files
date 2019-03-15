@@ -10,7 +10,7 @@ export declare class NullFile extends BasicFile {
     readonly url: null;
     readonly mimeType: string;
     readonly size: number;
-    read(params?: Object): Promise<ArrayBuffer>;
+    read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;

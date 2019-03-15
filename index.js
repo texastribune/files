@@ -121,6 +121,7 @@ import {ProcessDirectory} from "./lib/1.3.2/js/processes/files";
 import {DeviceDirectory} from "./lib/1.3.2/js/devices/base";
 import {FileBrowser} from "./lib/1.3.2/js/ui/browser";
 import {VirtualDirectory} from "./lib/1.3.2/js/files/virtual";
+import {WebDavRoot} from "./lib/1.3.2/js/files/webdav";
 
 class InitFS extends MemoryDirectory {
   constructor(){
@@ -147,13 +148,13 @@ const init = `
 export const fs = new VirtualDirectory(new MemoryDirectory(null , 'root'));
 
 export async function createFS(){
-    let fs = new VirtualDirectory(new MemoryDirectory(null , 'root'));
-    let dev = await fs.addDirectory('dev');
-    dev.mount(new DeviceDirectory());
-    let proc = await fs.addDirectory('proc');
-    proc.mount(new ProcessDirectory());
-    await fs.addFile(stringToArrayBuffer(init), 'init.js', 'application/javascript');
-    let devConsole = await fs.getFile(['dev', 'console']);
-    new Process(null, fs, ['init.js'], devConsole, devConsole);
+    let fs = new VirtualDirectory(new WebDavRoot('http://localhost:8000/dav', ''));
+    // let dev = await fs.addDirectory('dev');
+    // dev.mount(new DeviceDirectory());
+    // let proc = await fs.addDirectory('proc');
+    // proc.mount(new ProcessDirectory());
+    // await fs.addFile(stringToArrayBuffer(init), 'init.js', 'application/javascript');
+    // let devConsole = await fs.getFile(['dev', 'console']);
+    // new Process(null, fs, ['init.js'], devConsole, devConsole);
     return fs;
 }

@@ -25,7 +25,8 @@
     "webpack-cli": "^3.1.2"
   },
   "dependencies": {
-    "elements": "git://github.com/tjb346/elements.git"
+    "elements": "git://github.com/tjb346/elements.git",
+    "webdav": "^2.6.0"
   },
   "jest": {
     "collectCoverageFrom": [

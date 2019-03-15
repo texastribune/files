@@ -44,7 +44,7 @@ export class MemoryFile extends files.BasicFile {
         return this.fileData.byteLength;
     }
 
-    async read(params : Object){
+    async read(){
         return this.fileData;
     }
 

@@ -16,7 +16,7 @@ export declare class ProxyFile extends files.BasicFile {
     readonly created: Date;
     readonly extra: Object;
     addOnChangeListener(listener: (file: files.File) => void): void;
-    read(params?: Object): Promise<ArrayBuffer>;
+    read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;

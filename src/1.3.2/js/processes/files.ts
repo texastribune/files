@@ -45,7 +45,7 @@ export class ProcessFile extends files.BasicFile {
         processes = processes.filter((file) => {return file !== this});
     }
 
-    read(params?: Object): Promise<ArrayBuffer> {
+    read(): Promise<ArrayBuffer> {
         throw new Error("Cannot rename process file");
     }
 

@@ -10,7 +10,7 @@ export declare function parseTextArrayBuffer(arrayBuffer: ArrayBuffer): string;
 /**
  * Convert a file containing JSON encoded data into a Javascript Object or Array.
  */
-export declare function parseJsonArrayBuffer(arrayBuffer: ArrayBuffer): Object;
+export declare function parseJsonArrayBuffer(arrayBuffer: ArrayBuffer): any;
 /**
  * Convert a file containing text data into a string.
  */

@@ -273,7 +273,7 @@ export class PhotoshelterImage extends files.BasicFile {
         this.api = api;
     }
 
-    async read(params?: Object): Promise<ArrayBuffer> {
+    async read(): Promise<ArrayBuffer> {
         return await this.api.getImageFile(this.id);
     }
 

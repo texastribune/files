@@ -72,7 +72,7 @@ abstract class AbstractEventFile extends AbstractElementFile {
     }
 
 
-    read(params?: Object): Promise<ArrayBuffer> {
+    read(): Promise<ArrayBuffer> {
         return new Promise((resolve, reject) => {
             this.readBuffer.push((event : Event) => {
                 resolve(this.getEventData(event));
@@ -172,7 +172,7 @@ class TextFile extends AbstractElementFile {
         return `data:,${encodeURIComponent(this.element.innerText)},`;
     }
 
-    async read(params?: Object) : Promise<ArrayBuffer>{
+    async read() : Promise<ArrayBuffer>{
         return stringToArrayBuffer(this.element.innerText)
     }
 
@@ -203,7 +203,7 @@ class ClassFile extends AbstractElementFile {
         return `data:,${encodeURIComponent(this.element.className)},`;
     }
 
-    async read(params?: Object) : Promise<ArrayBuffer> {
+    async read() : Promise<ArrayBuffer> {
         return stringToArrayBuffer(this.element.className)
     }
 

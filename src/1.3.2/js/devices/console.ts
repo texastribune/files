@@ -35,7 +35,7 @@ export class ConsoleFile extends files.BasicFile {
         return 0;
     }
 
-    async read(params?: Object) : Promise<ArrayBuffer>{
+    async read() : Promise<ArrayBuffer>{
         return new ArrayBuffer(0);
     }
 

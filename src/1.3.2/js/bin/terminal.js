@@ -1,4 +1,4 @@
-import {TerminalDialog} from "../ui/terminal.js";
+import {TerminalDialog} from "../ui/terminal";
 
 
 export default async function main() {

@@ -87,7 +87,7 @@ export declare class PhotoshelterImage extends files.BasicFile {
     extra: {};
     private readonly api;
     constructor(data: ImageData, api: PhotoshelterAPI);
-    read(params?: Object): Promise<ArrayBuffer>;
+    read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;

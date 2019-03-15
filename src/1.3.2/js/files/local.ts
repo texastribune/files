@@ -415,7 +415,7 @@ export class LocalStorageFile extends files.BasicFile {
         }
     }
 
-    async read(params? : Object) {
+    async read() {
         let fileData = await database.get(this.intId);
         return fileData.file || new ArrayBuffer(0);
     }

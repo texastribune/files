@@ -23,7 +23,7 @@ export declare class NodeFile extends files.BasicFile {
     copy(targetDirectory: files.Directory): Promise<void>;
     move(targetDirectory: files.Directory): Promise<void>;
     search(query: string): Promise<void>;
-    read(params?: Object): Promise<ArrayBuffer | SharedArrayBuffer>;
+    read(): Promise<ArrayBuffer | SharedArrayBuffer>;
     write(data: ArrayBuffer): Promise<Buffer>;
 }
 export declare class NodeDirectory extends files.Directory {

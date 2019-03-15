@@ -11,7 +11,7 @@ export declare class ProcessFile extends files.BasicFile {
     readonly size: number;
     readonly mimeType: string;
     delete(): Promise<void>;
-    read(params?: Object): Promise<ArrayBuffer>;
+    read(): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
 }

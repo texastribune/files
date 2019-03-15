@@ -67,7 +67,7 @@ export declare class LocalStorageFile extends files.BasicFile {
     readonly size: number;
     addOnChangeListener(listener: (file: File) => void): void;
     removeOnChangeListener(listener: (file: File) => void): void;
-    read(params?: Object): Promise<ArrayBuffer>;
+    read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;

@@ -13,7 +13,7 @@ export declare class MemoryFile extends files.BasicFile {
     protected onChange(): void;
     readonly url: string;
     readonly size: number;
-    read(params: Object): Promise<ArrayBuffer>;
+    read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;

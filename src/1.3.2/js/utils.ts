@@ -48,7 +48,7 @@ export function parseTextArrayBuffer(arrayBuffer : ArrayBuffer) : string {
 /**
  * Convert a file containing JSON encoded data into a Javascript Object or Array.
  */
-export function parseJsonArrayBuffer(arrayBuffer : ArrayBuffer) : Object {
+export function parseJsonArrayBuffer(arrayBuffer : ArrayBuffer) : any {
   let text = parseTextArrayBuffer(arrayBuffer);
   return JSON.parse(text);
 

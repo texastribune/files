@@ -72,7 +72,7 @@ export interface File {
   /**
    * Read the file.
    */
-  read(params? : Object) : Promise<ArrayBuffer>;
+  read() : Promise<ArrayBuffer>;
 
   /**
    * Update the data of the file. It will overwrite any existing data.
@@ -139,7 +139,7 @@ export abstract class BasicFile implements File {
     return false;
   }
 
-  abstract read(params? : Object) : Promise<ArrayBuffer>;
+  abstract read() : Promise<ArrayBuffer>;
   abstract write(data : ArrayBuffer) : Promise<ArrayBuffer>;
   abstract rename(newName : string) : Promise<void>;
   abstract delete() : Promise<void>;
@@ -147,22 +147,20 @@ export abstract class BasicFile implements File {
   /**
    * Read the file as a string.
    * @async
-   * @param {Object} [params={}] - Read parameters.
    * @returns {string} - File file data converted to a string.
    */
-  async readText(params : Object) {
-    let arrayBuffer = await this.read(params);
+  async readText() {
+    let arrayBuffer = await this.read();
     return parseTextArrayBuffer(arrayBuffer);
   }
 
   /**
    * Read the file as a json encoded string and convert to a Javascript Object.
    * @async
-   * @param {Object} [params={}] - Read parameters.
    * @returns {Object|Array} - File file data converted to a Javascript Object.
    */
-  async readJSON(params : Object) {
-    let arrayBuffer = await this.read(params);
+  async readJSON() {
+    let arrayBuffer = await this.read();
     return parseJsonArrayBuffer(arrayBuffer);
   }
 
@@ -193,19 +191,19 @@ export abstract class Directory extends BasicFile {
     return true;
   }
 
-  get mimeType() {
+  get mimeType() : string {
     return Directory.mimeType;
   }
 
-  get size() {
+  get size() : number {
     return 0;
   }
 
-  get url() {
+  get url() : string | null {
     return null;
   }
 
-  async read(params? : Object) {
+  async read() {
     let fileData = [];
     let children = await this.getChildren();
     for (let child of children) {

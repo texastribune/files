@@ -590,6 +590,7 @@ export class FileBrowser extends CustomElement {
         }
       } else {
         newRow.ondblclick = (event : MouseEvent) => {
+          console.log("DBOULE", fileObject.url);
           // go to url (if dataurl download)
           if (fileObject.url !== null) {
             if (fileObject.url.startsWith('data')){

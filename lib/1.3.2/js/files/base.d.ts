@@ -50,7 +50,7 @@ export interface File {
     /**
      * Read the file.
      */
-    read(params?: Object): Promise<ArrayBuffer>;
+    read(): Promise<ArrayBuffer>;
     /**
      * Update the data of the file. It will overwrite any existing data.
      */
@@ -94,24 +94,22 @@ export declare abstract class BasicFile implements File {
     addOnChangeListener(listener: (file: File) => void): void;
     removeOnChangeListener(listener: (file: File) => void): void;
     readonly directory: boolean;
-    abstract read(params?: Object): Promise<ArrayBuffer>;
+    abstract read(): Promise<ArrayBuffer>;
     abstract write(data: ArrayBuffer): Promise<ArrayBuffer>;
     abstract rename(newName: string): Promise<void>;
     abstract delete(): Promise<void>;
     /**
      * Read the file as a string.
      * @async
-     * @param {Object} [params={}] - Read parameters.
      * @returns {string} - File file data converted to a string.
      */
-    readText(params: Object): Promise<string>;
+    readText(): Promise<string>;
     /**
      * Read the file as a json encoded string and convert to a Javascript Object.
      * @async
-     * @param {Object} [params={}] - Read parameters.
      * @returns {Object|Array} - File file data converted to a Javascript Object.
      */
-    readJSON(params: Object): Promise<Object>;
+    readJSON(): Promise<any>;
     copy(targetDirectory: Directory): Promise<void>;
     move(targetDirectory: Directory): Promise<void>;
     toString(): string;
@@ -124,8 +122,8 @@ export declare abstract class Directory extends BasicFile {
     readonly directory: boolean;
     readonly mimeType: string;
     readonly size: number;
-    readonly url: null;
-    read(params?: Object): Promise<ArrayBuffer>;
+    readonly url: string | null;
+    read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     /**
      * Get the file object at the given path relative to this directory.

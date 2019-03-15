@@ -57,8 +57,8 @@ export class ProxyFile extends files.BasicFile {
     this.concreteFile.addOnChangeListener(listener);
   }
 
-  read(params? : Object) {
-    return this.concreteFile.read(params);
+  read() {
+    return this.concreteFile.read();
   }
 
   write(data : ArrayBuffer) {

@@ -81,7 +81,7 @@ export class NodeFile extends files.BasicFile {
     throw new Error("Not implemented")
   }
 
-  async read(params? : Object) {
+  async read() {
     let typedArray = await fs.readFile(this.id);
     return typedArray.buffer;
   }
