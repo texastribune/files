@@ -4,7 +4,7 @@ export declare class Message extends CustomElement {
     static className: string;
     static readonly observedAttributes: string[];
     readonly css: string;
-    message: any;
+    message: string;
     render(shadowRoot: ShadowRoot): void;
     updateAttributes(attributes: {
         [p: string]: string | null;

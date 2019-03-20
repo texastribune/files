@@ -4,7 +4,7 @@ import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from ".
 const REQUEST_TIMEOUT = 30;
 
 
-function getCookie(name : string) : string {
+function getCookie(name : string) : string | null {
   let parts = document.cookie.split(`${name}=`);
   if (parts.length > 1) {
     parts = parts[1].split(';');

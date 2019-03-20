@@ -4,6 +4,7 @@ import "elements/lib/table";
 import "elements/lib/dialog";
 import { Directory, File } from "../files/base";
 import { Data, Row } from "elements/lib/table";
+import { CachedProxyDirectory } from "../files/proxy";
 import { CustomElement } from "elements/lib/element";
 interface RowData {
     path: string[];
@@ -25,7 +26,6 @@ declare class FileTableRow extends Row {
  */
 export declare class FileBrowser extends CustomElement {
     static actionsContainerClass: string;
-    static tableContainerClass: string;
     static tableIconClass: string;
     static activeAjaxClass: string;
     static searchInputClass: string;
@@ -47,7 +47,7 @@ export declare class FileBrowser extends CustomElement {
     private readonly messagesContainer;
     private readonly menusContainer;
     private readonly searchContainer;
-    private readonly tableContainer;
+    private readonly tableBusyOverlay;
     private readonly breadCrumbs;
     private readonly table;
     private readonly fileContextMenu;
@@ -61,7 +61,7 @@ export declare class FileBrowser extends CustomElement {
         [p: string]: string | null;
     }): void;
     rootDirectory: Directory;
-    private currentDirectory;
+    protected currentDirectory: CachedProxyDirectory;
     readonly files: File[];
     path: string[];
     readonly css: string;
