@@ -1,4 +1,5 @@
 import {CustomElement} from "elements/lib/element";
+import {Dialog} from "elements/lib/dialog";
 
 export class Message extends CustomElement {
   private delay : number | null = null;
@@ -10,13 +11,14 @@ export class Message extends CustomElement {
     return ['delay'];
   }
 
-  get css() {
+  get css() : string {
     // language=CSS
-    return `
+    return super.css + `
       :host {
         --message-height: 24px;
         --success-color: #90ee90;
         --error-color: lightcoral;
+        --delete-button: url(${Dialog.DETETE_BUTTON_URL});
 
         display: inline-block;
         box-sizing: border-box;
@@ -34,8 +36,14 @@ export class Message extends CustomElement {
       }
 
       div {
+        float: right;
         width: var(--message-height);
         height: var(--message-height);
+        background-image: var(--delete-button);
+        background-size: calc(.75 * var(--message-height));
+        background-repeat: no-repeat;
+        background-position: center;
+        cursor: pointer;
       }
     `
   }
@@ -50,6 +58,7 @@ export class Message extends CustomElement {
 
   render(shadowRoot: ShadowRoot): void {
     super.render(shadowRoot);
+
     let slot = document.createElement('slot');
     shadowRoot.appendChild(slot);
 

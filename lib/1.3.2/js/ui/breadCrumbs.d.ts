@@ -11,7 +11,7 @@ export declare class BreadCrumbs extends CustomElement {
     updateAttributes(attributes: {
         [p: string]: string | null;
     }): void;
-    readonly css: string | null;
+    readonly css: string;
     readonly crumbs: Iterable<HTMLAnchorElement>;
     path: string[];
     render(shadowRoot: ShadowRoot): void;

@@ -4,7 +4,7 @@ import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from ".
 const REQUEST_TIMEOUT = 30;
 
 
-function getCookie(name : string) : string | null {
+function getCookie(name : string) : string {
   let parts = document.cookie.split(`${name}=`);
   if (parts.length > 1) {
     parts = parts[1].split(';');
@@ -43,7 +43,7 @@ interface FileData {
 }
 
 async function ajax(url : string, query? : {[name : string] : string}, data? : Blob | null, method? : 'GET' | 'POST' | 'PUT' | 'DELETE') : Promise<ArrayBuffer> {
-  console.log("URL", url);
+  console.log("URL", url, data);
   return await new Promise((resolve, reject) => {
     data = data || null;
     query = query || {};
@@ -142,7 +142,6 @@ class RemoteFile extends files.BasicFile {
     return this.fileData.size;
   }
 
-
   read(): Promise<ArrayBuffer> {
       return ajax(this.url, {}, null, 'GET');
   }
@@ -238,21 +237,22 @@ class RemoteDirectory extends files.Directory {
     await file.write(stringToArrayBuffer(this.id));
   }
 
-
   async search(query: string) : Promise<files.SearchResult[]> {
+    console.log("SEARCH", query);
     let file = await this.getFile([RemoteDirectory.searchFileName]);
-    let data = await file.read();
+    let data = await file.write(stringToArrayBuffer(query));
     let fileDataMap = parseJsonArrayBuffer(data);
     if (fileDataMap instanceof Array){
-      let files = [];
+      let results : files.SearchResult[] = [];
+      console.log("MAP", fileDataMap);
       for (let data of fileDataMap){
-        if (data.directory){
-          files.push(new RemoteDirectory(this, data));
+        if (data.file.directory){
+          results.push({path: data.path, file: new RemoteDirectory(this, data.file)});
         } else {
-          files.push(new RemoteFile(this, data));
+          results.push({path: data.path, file: new RemoteFile(this, data.file)});
         }
       }
-      return [];
+      return results;
     } else {
       throw new Error('search returned wrong data type');
     }

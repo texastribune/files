@@ -20,7 +20,7 @@ export class BreadCrumbs extends CustomElement {
   updateAttributes(attributes: { [p: string]: string | null }): void {
   }
 
-  get css(): string | null {
+  get css(): string {
     // language=CSS
     return super.css + `
       :host {

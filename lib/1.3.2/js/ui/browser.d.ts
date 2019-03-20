@@ -1,7 +1,14 @@
-import { File, Directory } from "../files/base";
-import { Row, Data } from "elements/lib/table";
-import { CachedProxyDirectory } from "../files/proxy";
+import "./breadCrumbs";
+import "./messages";
+import "elements/lib/table";
+import "elements/lib/dialog";
+import { Directory, File } from "../files/base";
+import { Data, Row } from "elements/lib/table";
 import { CustomElement } from "elements/lib/element";
+interface RowData {
+    path: string[];
+    file: File;
+}
 declare class FileTableRow extends Row {
     private file;
     private readonly folderIcon;
@@ -54,10 +61,10 @@ export declare class FileBrowser extends CustomElement {
         [p: string]: string | null;
     }): void;
     rootDirectory: Directory;
-    currentDirectory: CachedProxyDirectory;
+    private currentDirectory;
     readonly files: File[];
     path: string[];
-    readonly css: string | null;
+    readonly css: string;
     render(shadowRoot: ShadowRoot): void;
     loadingWrapper(promise: Promise<void>): Promise<void>;
     errorLoggingWrapper(promise: Promise<void>): Promise<void>;
@@ -70,7 +77,7 @@ export declare class FileBrowser extends CustomElement {
      * Translate the data for a AbstractFile to the data that will be in each table row for that file.
      */
     private fileObjectToTableRow;
-    setTableData(files: File[]): void;
+    setTableData(rowData: RowData[]): void;
     showContextMenu(positionX: number, positionY: number): void;
     getMenuItems(selectedFileRows: FileTableRow[]): HTMLDivElement[];
     addMessage(message: Error | string, isError?: boolean): void;

@@ -31,7 +31,7 @@ export declare class ProxyDirectory extends files.Directory {
     readonly id: string;
     readonly name: string;
     readonly directory: boolean;
-    readonly url: null;
+    readonly url: string | null;
     readonly icon: string | null;
     readonly lastModified: Date;
     readonly created: Date;
