@@ -1,5 +1,5 @@
 import {ProcessFile} from "./files";
-import {stringToArrayBuffer} from "../utils";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 import {File, Directory} from "../files/base";
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
@@ -85,7 +85,7 @@ export class Process extends ProcessFile {
     private readonly stderr : File;
     private readonly worker : Worker;
 
-    constructor(parentProcess : Process, workingDirectory : Directory, executablePathArray : string[], stdout : File, stderr : File){
+    constructor(parentProcess : Process | null, workingDirectory : Directory, executablePathArray : string[], stdout : File, stderr : File){
         super();
 
         this.parentProcess = parentProcess;
@@ -123,7 +123,10 @@ export class Process extends ProcessFile {
 
         this.workingDirectory.getFile(this.executablePath)
             .then((executableFile) => {
-                return executableFile.readText();
+                return executableFile.read();
+            })
+            .then((arrayBuffer) => {
+                return parseTextArrayBuffer(arrayBuffer)
             })
             .then((script) => {
                 return this.worker.postMessage(script);

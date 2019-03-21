@@ -65,17 +65,19 @@ async function ajax(url : string, query? : {[name : string] : string}, data? : B
             resolve(request.response);
           } else {
             let errorText = parseTextArrayBuffer(request.response);
-            let errorMessage = `${request.status} error: `;
+            let errorMessage = `${request.status} response`;
             if (contentType === 'application/json') {
               try {
                 let errorJson = JSON.parse(errorText);
                 for (let key in errorJson) {
-                  errorMessage += `${key} - ${errorJson[key]}. `;
+                  errorMessage += `: ${key} - ${errorJson[key]}. `;
                 }
                 reject(new Error(errorMessage));
               } catch (e) {
                 reject("Error parsing response.");
               }
+            } else if (contentType === 'text/html') {
+              reject(new Error(errorMessage));
             } else {
               errorMessage += errorText;
               reject(new Error(errorMessage));

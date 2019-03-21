@@ -28,6 +28,7 @@ declare class FileTableRow extends Row {
  */
 export declare class FileBrowser extends CustomElement {
     static actionsContainerClass: string;
+    static tableContainerClass: string;
     static tableIconClass: string;
     static activeAjaxClass: string;
     static searchInputClass: string;
@@ -50,6 +51,7 @@ export declare class FileBrowser extends CustomElement {
     private readonly messagesContainer;
     private readonly menusContainer;
     private readonly searchElement;
+    private readonly tableContainer;
     private readonly tableBusyOverlay;
     private readonly breadCrumbs;
     private readonly table;
@@ -80,6 +82,7 @@ export declare class FileBrowser extends CustomElement {
     setTableData(rowData: RowData[]): void;
     showContextMenu(positionX: number, positionY: number): void;
     getMenuItems(selectedFileRows: FileTableRow[]): HTMLDivElement[];
+    execute(path: string[]): void;
     addMessage(message: Error | string, isError?: boolean): void;
     clearMessages(): void;
     resetFiles(): Promise<void>;

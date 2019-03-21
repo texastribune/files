@@ -21,7 +21,7 @@ export declare class Process extends ProcessFile {
     private readonly stdout;
     private readonly stderr;
     private readonly worker;
-    constructor(parentProcess: Process, workingDirectory: Directory, executablePathArray: string[], stdout: File, stderr: File);
+    constructor(parentProcess: Process | null, workingDirectory: Directory, executablePathArray: string[], stdout: File, stderr: File);
     readonly name: string;
     fork(): Process;
     readonly systemCalls: syscallTable;
