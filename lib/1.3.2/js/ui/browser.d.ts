@@ -40,8 +40,10 @@ export declare class FileBrowser extends CustomElement {
      * @event
      */
     static EVENT_FILES_CHANGE: string;
-    private searchPending;
-    private messageRemovalDelay;
+    /**
+     * @event
+     */
+    static EVENT_SELECTED_FILES_CHANGE: string;
     private maxNumMove;
     private busy;
     private readonly actionsContainer;
@@ -63,6 +65,7 @@ export declare class FileBrowser extends CustomElement {
     rootDirectory: Directory;
     protected currentDirectory: CachedProxyDirectory;
     readonly files: File[];
+    readonly selectedFiles: File[];
     path: string[];
     readonly css: string;
     render(shadowRoot: ShadowRoot): void;
@@ -72,6 +75,7 @@ export declare class FileBrowser extends CustomElement {
     createMenus(): HTMLDivElement;
     handleDataTransfer(dataTransfer: DataTransfer): Promise<void>;
     onFileRowDoubleClick(fileRow: FileTableRow): void;
+    onCopy(event: ClipboardEvent): void;
     search(searchTerm: string): Promise<void>;
     setTableData(rowData: RowData[]): void;
     showContextMenu(positionX: number, positionY: number): void;

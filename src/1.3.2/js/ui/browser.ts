@@ -7,7 +7,7 @@ import "elements/lib/dialog";
 
 import {BreadCrumbs} from "./breadCrumbs";
 import {Message} from "./messages";
-import {Directory, File, FileNotFoundError, SearchResult} from "../files/base";
+import {Directory, File, FileNotFoundError} from "../files/base";
 import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath} from "../utils";
 import * as icons from './icons.js';
 import {parseConfigFile, updateConfigFile} from "./config";
@@ -182,8 +182,11 @@ export class FileBrowser extends CustomElement {
    */
   static EVENT_FILES_CHANGE = 'change';
 
-  private searchPending: boolean = false;  // For search debounce
-  private messageRemovalDelay: number | null = null;
+  /**
+   * @event
+   */
+  static EVENT_SELECTED_FILES_CHANGE = 'selected-change';
+
   private maxNumMove = 30;  // Maximum number of files that can be moved at once
   private busy: Promise<void>;
 
@@ -243,6 +246,12 @@ export class FileBrowser extends CustomElement {
 
 
     // Element events
+    document.oncopy = (event : ClipboardEvent) => {
+      if (this.table.selectedRows.length > 0){
+        this.onCopy(event);
+      }
+    };
+
     this.table.oncontextmenu = (event: MouseEvent) => {
       event.preventDefault();
       this.showContextMenu(event.pageX, event.pageY);
@@ -253,6 +262,11 @@ export class FileBrowser extends CustomElement {
         this.handleDataTransfer(event.dataTransfer);
       }
     };
+
+    this.table.addEventListener(Table.EVENT_SELECTION_CHANGED, () => {
+      let event = new Event(FileBrowser.EVENT_SELECTED_FILES_CHANGE);
+      this.dispatchEvent(event);
+    });
 
     this.ondblclick = (event : MouseEvent) => {
       // if a file row is double clicked
@@ -313,6 +327,19 @@ export class FileBrowser extends CustomElement {
     return files;
   }
 
+  get selectedFiles(): File[] {
+    let files: File[] = [];
+    for (let row of this.table.selectedRows) {
+      if (row instanceof FileTableRow){
+        let file = row.file;
+        if (file !== null) {
+          files.push(file);
+        }
+      }
+    }
+    return files;
+  }
+
   get path(): string[] {
     return this.currentDirectory.path.slice(1).map((directory: Directory) => {
       return directory.name;
@@ -346,10 +373,10 @@ export class FileBrowser extends CustomElement {
           --table-body-text-color: var(--body-text-color);
           --dialog-header-height: 28px;
           --dialog-header-background-color: var(--focus-item-color);
-          --dialog-header-text-color: black
+          --dialog-header-text-color: black;
           --table-background-color: var(--browser-background);
           
-          font-family: var(--browser-font, 'sans-sarif');
+          font-family: var(--browser-font, sans-serif);
         }
 
         .${FileBrowser.tableIconClass} {
@@ -615,6 +642,23 @@ export class FileBrowser extends CustomElement {
     }
   }
 
+  onCopy(event : ClipboardEvent){
+    event.preventDefault();
+
+    let uriList = "";
+    for (let row of this.table.selectedRows) {
+      if (row instanceof FileTableRow) {
+        let file = row.file;
+        if (file !== null && file.url !== null){
+          uriList += file.url + '\r\n';
+        }
+      }
+    }
+
+    console.log("COPY", uriList, event.composedPath());
+    event.clipboardData.setData('text/plain', uriList);
+  }
+
   async search(searchTerm: string) {
     this.clearMessages();
     if (searchTerm) {
@@ -673,19 +717,15 @@ export class FileBrowser extends CustomElement {
     if (selectedFileRows.length > 0) {
       // Add items that should exist only when there is one selected item.
       if (selectedFileRows.length === 1) {
-        const selectedRowData = selectedFileRows[0];
-        const selectedFile = selectedRowData.getFile();
+        const selectedRow = selectedFileRows[0];
+        const selectedFile = selectedRow.file;
 
         if (selectedFile !== null) {
           // Add an open button to navigate to the selected item.
           let openButton = document.createElement('div');
           openButton.innerText = 'Open';
           openButton.onclick = () => {
-            if (selectedFile.directory) {
-              this.path = this.path.concat([selectedFile.name]);
-            } else {
-              window.open(selectedFile.url || "");
-            }
+            this.onFileRowDoubleClick(selectedRow);
             this.fileContextMenu.visible = false;
           };
           menuItems.push(openButton);
@@ -694,13 +734,7 @@ export class FileBrowser extends CustomElement {
             let urlButton = document.createElement('div');
             urlButton.innerText = 'Copy Url';
             urlButton.onclick = () => {
-              let urlText = document.createElement('textarea');
-              // urlText.style.display = 'none';
-              urlButton.appendChild(urlText);
-              urlText.innerText = selectedFile.url || "";
-              urlText.select();
               document.execCommand('copy');
-              urlButton.removeChild(urlText);
             };
             menuItems.push(urlButton);
           }
@@ -727,7 +761,7 @@ export class FileBrowser extends CustomElement {
             runButton.onclick = () => {
               this.errorLoggingWrapper(
                 (async () => {
-                  await this.currentDirectory.execPath(selectedRowData.path);
+                  await this.currentDirectory.execPath(selectedRow.path);
                 })()
               );
             };
