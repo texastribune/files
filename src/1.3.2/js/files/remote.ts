@@ -131,7 +131,7 @@ class RemoteFile extends files.BasicFile {
   }
 
   get url() {
-    return 'http://localhost:8000' + this.fileData.url;
+    return this.fileData.url;
   }
 
   get icon() {

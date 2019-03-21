@@ -34,3 +34,7 @@ export declare function getOpt(...args: string[]): (string[] | {
  * Create an HTML element from an HTML string
  */
 export declare function createNode(htmlString: string): Element;
+/**
+ * Get the first element of a certain type in the event composedPath
+ */
+export declare function getFirstInPath<T extends HTMLElement>(event: Event, type: new () => T): T | null;

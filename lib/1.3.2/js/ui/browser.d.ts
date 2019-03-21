@@ -1,9 +1,10 @@
 import "./breadCrumbs";
 import "./messages";
+import "./search";
 import "elements/lib/table";
 import "elements/lib/dialog";
 import { Directory, File } from "../files/base";
-import { Data, Row } from "elements/lib/table";
+import { Row } from "elements/lib/table";
 import { CachedProxyDirectory } from "../files/proxy";
 import { CustomElement } from "elements/lib/element";
 interface RowData {
@@ -11,13 +12,14 @@ interface RowData {
     file: File;
 }
 declare class FileTableRow extends Row {
-    private file;
+    private _file;
+    private _path;
     private readonly folderIcon;
     private readonly documentIcon;
+    static hoverImageClass: string;
     constructor();
-    getFile(): File | null;
-    setFile(value: File): void;
-    createNameColumn(): Data;
+    file: File | null;
+    path: string[] | null;
 }
 /**
  * An element for browsing a file system.
@@ -31,9 +33,8 @@ export declare class FileBrowser extends CustomElement {
     static searchInputClass: string;
     static messageContainerClass: string;
     static menuContainerClass: string;
-    static searchContainerClass: string;
     static stateManagerContainerClass: string;
-    static dropdownMenuButtonClass: string;
+    static buttonClass: string;
     static fileBrowserDialogClass: string;
     /**
      * @event
@@ -46,7 +47,7 @@ export declare class FileBrowser extends CustomElement {
     private readonly actionsContainer;
     private readonly messagesContainer;
     private readonly menusContainer;
-    private readonly searchContainer;
+    private readonly searchElement;
     private readonly tableBusyOverlay;
     private readonly breadCrumbs;
     private readonly table;
@@ -54,7 +55,6 @@ export declare class FileBrowser extends CustomElement {
     private cachedCurrentDirectory;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
-    private readonly searchIcon;
     constructor();
     static readonly observedAttributes: never[];
     updateAttributes(attributes: {
@@ -69,19 +69,16 @@ export declare class FileBrowser extends CustomElement {
     loadingWrapper(promise: Promise<void>): Promise<void>;
     errorLoggingWrapper(promise: Promise<void>): Promise<void>;
     logAndLoadWrapper(promise: Promise<void>): Promise<void>;
-    createSearchElements(): HTMLDivElement;
     createMenus(): HTMLDivElement;
     handleDataTransfer(dataTransfer: DataTransfer): Promise<void>;
+    onFileRowDoubleClick(fileRow: FileTableRow): void;
     search(searchTerm: string): Promise<void>;
-    /**
-     * Translate the data for a AbstractFile to the data that will be in each table row for that file.
-     */
-    private fileObjectToTableRow;
     setTableData(rowData: RowData[]): void;
     showContextMenu(positionX: number, positionY: number): void;
     getMenuItems(selectedFileRows: FileTableRow[]): HTMLDivElement[];
     addMessage(message: Error | string, isError?: boolean): void;
     clearMessages(): void;
+    resetFiles(): Promise<void>;
     refreshFiles(): Promise<void>;
 }
 export declare class DialogBrowser extends FileBrowser {

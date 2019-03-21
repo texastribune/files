@@ -130,3 +130,15 @@ export function createNode(htmlString : string) : Element {
   }
   throw Error("string could not be converted to HTML element")
 }
+
+/**
+ * Get the first element of a certain type in the event composedPath
+ */
+export function getFirstInPath<T extends HTMLElement>(event : Event, type : new () => T) : T | null {
+  for (let element of event.composedPath()){
+    if (element instanceof type){
+      return element;
+    }
+  }
+  return null;
+}

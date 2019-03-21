@@ -1,13 +1,14 @@
 // import models to define custom elements
 import "./breadCrumbs";
 import "./messages";
+import "./search";
 import "elements/lib/table";
 import "elements/lib/dialog";
 
 import {BreadCrumbs} from "./breadCrumbs";
 import {Message} from "./messages";
 import {Directory, File, FileNotFoundError, SearchResult} from "../files/base";
-import {convertBytesToReadable, createNode, fileToArrayBuffer} from "../utils";
+import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath} from "../utils";
 import * as icons from './icons.js';
 import {parseConfigFile, updateConfigFile} from "./config";
 import {ConfirmDialog, Dialog} from "elements/lib/dialog";
@@ -15,6 +16,7 @@ import {Data, Header, Row, Table} from "elements/lib/table";
 import {MemoryDirectory} from "../files/memory";
 import {CachedProxyDirectory} from "../files/proxy";
 import {CustomElement} from "elements/lib/element";
+import {SearchBar} from "./search";
 
 interface RowData {
   path: string[],
@@ -22,9 +24,12 @@ interface RowData {
 }
 
 class FileTableRow extends Row {
-  private file: File | null = null;
+  private _file: File | null = null;
+  private _path: string[] | null = null;
   private readonly folderIcon: Element;
   private readonly documentIcon: Element;
+
+  static hoverImageClass = 'hover-image';
 
   constructor() {
     super();
@@ -36,27 +41,73 @@ class FileTableRow extends Row {
     this.documentIcon.classList.add(FileBrowser.tableIconClass);
   }
 
-  getFile(): File | null {
-    return this.file
+  get file(): File | null {
+    return this._file
   }
 
-  setFile(value: File) {
-    this.file = value;
-
+  set file(value: File | null) {
     let idColumn = document.createElement('table-data') as Data;
-    let nameColumn = this.createNameColumn();
+    let nameColumn = document.createElement('table-data') as Data;
     let sizeColumn = document.createElement('table-data') as Data;
     let lastModifiedColumn = document.createElement('table-data') as Data;
     let createdColumn = document.createElement('table-data') as Data;
     let typeColumn = document.createElement('table-data') as Data;
 
-    this.hidden = this.file.name.startsWith('.');
+    this._file = value;
+    if (this._file !== null){
+      this.hidden = this._file.name.startsWith('.');
 
-    idColumn.innerText = value.id;
-    sizeColumn.innerText = convertBytesToReadable(value.size);
-    lastModifiedColumn.innerText = new Date(value.lastModified).toLocaleString();
-    createdColumn.innerText = new Date(value.created).toLocaleString();
-    typeColumn.innerText = value.mimeType;
+      idColumn.innerText = this._file.id;
+      sizeColumn.innerText = convertBytesToReadable(this._file.size);
+      lastModifiedColumn.innerText = new Date(this._file.lastModified).toLocaleString();
+      createdColumn.innerText = new Date(this._file.created).toLocaleString();
+      typeColumn.innerText =this._file.mimeType;
+
+      // Name column
+      if (this._file.icon !== null) {
+        let img = document.createElement('img');
+        img.width = 22;
+        img.height = 22;
+        img.ondragstart = () => {
+          return false
+        };
+        img.classList.add(FileBrowser.tableIconClass);
+
+        nameColumn.appendChild(img);
+
+        if (this._file.directory) {
+          img.src = this._file.icon;
+
+        } else {
+          img.src = this._file.icon;
+
+          // Create expanded image
+          let expandedImg = document.createElement('img');
+          expandedImg.className = FileTableRow.hoverImageClass;
+          expandedImg.style.display = 'none';
+
+          img.onmouseover = (event) => {
+            if (this._file !== null && this._file.url !== null) {
+              console.log("URL", this._file.url);
+              expandedImg.src = this._file.url;
+            }
+            expandedImg.style.display = 'inline-block';
+          };
+          img.onmouseout = () => {
+            expandedImg.style.display = 'none';
+          };
+
+          nameColumn.appendChild(expandedImg);
+        }
+      } else if (this._file instanceof Directory) {
+        nameColumn.appendChild(this.folderIcon);
+      } else {
+        nameColumn.appendChild(this.documentIcon);
+      }
+
+      let text = document.createTextNode(this._file.name);
+      nameColumn.appendChild(text);
+    }
 
     this.removeChildren();
     this.appendChildren([
@@ -69,54 +120,12 @@ class FileTableRow extends Row {
     ]);
   }
 
-  createNameColumn(): Data {
-    let column = document.createElement('table-data') as Data;
-    if (this.file !== null) {
-      if (this.file.icon !== null) {
-        let img = document.createElement('img');
-        img.width = 22;
-        img.height = 22;
-        img.ondragstart = () => {
-          return false
-        };
-        img.classList.add(FileBrowser.tableIconClass);
+  get path() : string[] | null {
+    return this._path;
+  }
 
-        column.appendChild(img);
-
-        if (this.file.directory) {
-          img.src = this.file.icon;
-
-        } else {
-          img.src = this.file.icon;
-
-          // Create expanded image
-          let expandedImg = document.createElement('img');
-          expandedImg.className = 'hover-image';
-          expandedImg.style.display = 'none';
-
-          img.onmouseover = (event) => {
-            if (this.file !== null && this.file.url !== null) {
-              expandedImg.src = this.file.url;
-            }
-            expandedImg.style.display = 'inline-block';
-          };
-          img.onmouseout = () => {
-            expandedImg.style.display = 'none';
-          };
-
-          column.appendChild(expandedImg);
-        }
-      } else if (this.file instanceof Directory) {
-        column.appendChild(this.folderIcon);
-      } else {
-        column.appendChild(this.documentIcon);
-      }
-
-      let text = document.createTextNode(this.file.name);
-      column.appendChild(text);
-    }
-
-    return column;
+  set path(value : string[] | null) {
+    this._path = value;
   }
 }
 
@@ -124,7 +133,6 @@ class FileTableHeader extends Header {
   constructor() {
     super();
   }
-
 
   refresh(): void {
     super.refresh();
@@ -165,9 +173,8 @@ export class FileBrowser extends CustomElement {
   static searchInputClass = 'file-search-input';
   static messageContainerClass = 'file-message-container';
   static menuContainerClass = 'file-menu-container';
-  static searchContainerClass = 'file-search-container';
   static stateManagerContainerClass = 'file-breadcrumbs-container';
-  static dropdownMenuButtonClass = 'dropdown-menu button';
+  static buttonClass = 'dropdown-menu button';
   static fileBrowserDialogClass = 'file-browser-dialog';
 
   /**
@@ -183,7 +190,7 @@ export class FileBrowser extends CustomElement {
   private readonly actionsContainer: HTMLDivElement;
   private readonly messagesContainer: HTMLDivElement;
   private readonly menusContainer: HTMLDivElement;
-  private readonly searchContainer: HTMLDivElement;
+  private readonly searchElement: SearchBar;
   private readonly tableBusyOverlay: HTMLDivElement;
   private readonly breadCrumbs: BreadCrumbs;
 
@@ -193,8 +200,6 @@ export class FileBrowser extends CustomElement {
 
   private readonly dropdownMenuIcon: Element;
   private readonly carrotIcon: Element;
-  private readonly searchIcon: Element;
-
 
   constructor() {
     super();
@@ -210,9 +215,6 @@ export class FileBrowser extends CustomElement {
     this.carrotIcon.classList.add(FileBrowser.tableIconClass);
     this.carrotIcon.classList.add('small');
 
-    this.searchIcon = createNode(icons.searchIcon);
-    this.searchIcon.classList.add(FileBrowser.tableIconClass);
-
     // Context menu
     this.fileContextMenu = document.createElement('base-dialog') as Dialog;
     this.fileContextMenu.name = "Settings";
@@ -225,7 +227,7 @@ export class FileBrowser extends CustomElement {
     this.messagesContainer.className = FileBrowser.messageContainerClass;
 
     this.menusContainer = this.createMenus();
-    this.searchContainer = this.createSearchElements();
+    this.searchElement = document.createElement('search-bar') as SearchBar;
 
     this.tableBusyOverlay = document.createElement('div');
     this.table.appendChild(this.tableBusyOverlay);
@@ -234,8 +236,13 @@ export class FileBrowser extends CustomElement {
     this.actionsContainer.appendChild(this.breadCrumbs);
     this.actionsContainer.appendChild(this.messagesContainer);
     this.actionsContainer.appendChild(this.menusContainer);
-    this.actionsContainer.appendChild(this.searchContainer);
+    this.actionsContainer.appendChild(this.searchElement);
 
+    let tableHeader = document.createElement('file-header') as FileTableHeader;
+    this.table.appendChild(tableHeader);
+
+
+    // Element events
     this.table.oncontextmenu = (event: MouseEvent) => {
       event.preventDefault();
       this.showContextMenu(event.pageX, event.pageY);
@@ -247,14 +254,23 @@ export class FileBrowser extends CustomElement {
       }
     };
 
-    let tableHeader = document.createElement('file-header') as FileTableHeader;
-    this.table.appendChild(tableHeader);
+    this.ondblclick = (event : MouseEvent) => {
+      // if a file row is double clicked
+      let fileRow = getFirstInPath(event, FileTableRow);
+      if (fileRow !== null){
+        this.onFileRowDoubleClick(fileRow);
+      }
+    };
 
+    this.searchElement.addEventListener(SearchBar.EVENT_SEARCH_CHANGE, () => {
+      this.search(this.searchElement.value);
+    });
 
     this.breadCrumbs.addEventListener(BreadCrumbs.EVENT_PATH_CHANGE, (event: Event) => {
       this.path = this.breadCrumbs.path;
     });
 
+    // Set initial directory
     this.busy = Promise.resolve();
     this.currentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
   }
@@ -289,7 +305,7 @@ export class FileBrowser extends CustomElement {
   get files(): File[] {
     let files: File[] = [];
     for (let row of this.table.flatChildren(FileTableRow)) {
-      let file = row.getFile();
+      let file = row.file;
       if (file !== null) {
         files.push(file);
       }
@@ -319,52 +335,75 @@ export class FileBrowser extends CustomElement {
     // language=CSS
     return super.css + `
         :host {
-          --icon-color: #5c6873;
-          --action-icon-color: #5c6873;
-          --icon-size: 22px;
-          --icon-size-small: 12px;
-          --icon-size-large: 32px;
+          --top-row-height: 30px;
+          
+          --focus-item-color: #c0d5e8;
+          
+          --message-height: 24px;
+          --search-height: var(--top-row-height);
+          --search-icon-size: var(--icon-size);
+          --search-icon-color: var(--icon-color);
+          --table-body-text-color: var(--body-text-color);
+          --dialog-header-height: 28px;
+          --dialog-header-background-color: var(--focus-item-color);
+          --dialog-header-text-color: black
+          --table-background-color: var(--browser-background);
+          
+          font-family: var(--browser-font, 'sans-sarif');
         }
 
         .${FileBrowser.tableIconClass} {
           display: inline-block;
-          width: var(--icon-size);
-          height: var(--icon-size);
+          width: var(--icon-size, 22px);
+          height: var(--icon-size, 22px);
           vertical-align: middle;
           margin: 5px;
-          fill: var(--icon-color);
+          fill: var(--icon-color, black);
+        }
+        
+        .${FileBrowser.actionsContainerClass} .${FileBrowser.tableIconClass} {
+          fill: var(--action-icon-color, black);
         }
 
         .${FileBrowser.tableIconClass}.small {
-          width: var(--icon-size-small);
-          height: var(--icon-size-small);
+          width: var(--icon-size-small, 12px);
+          height: var(--icon-size-small, 12px);
         }
 
         .${FileBrowser.tableIconClass}.large {
-          width: var(--icon-size-large);
-          height: var(--icon-size-large);
+          width: var(--icon-size-large, 32px);
+          height: var(--icon-size-large, 32px);
+        }
+        
+        .${FileBrowser.buttonClass} {
+          position: relative;
+          display: inline-block;
+          box-sizing: border-box;
+          padding: 0;
+          text-align: center;
+          min-width: var(--button-min-width);
+          overflow: hidden;
+          text-transform: uppercase;
+          border-radius: 4px;
+          outline-color: #ccc;
+          background-color: var(--button-color);
+          height: var(--button-height);
+          line-height: var(--button-height);
+        }
+        
+        .${FileBrowser.buttonClass}:hover {
+            background-color: var(--button-hover-color);
         }
 
         selectable-table {
           position: relative;
           float: left;
           width: 100%;
-          background: var(--table-background-color);
         }
 
         selectable-table.dialog-item {
           /*If inside dialog, make smaller*/
           height: 300px;
-        }
-
-        selectable-table .hover-image {
-          position: absolute;
-          top: calc(2 * var(--table-row-height));
-          max-height: calc(100% - 3 * var(--table-row-height));
-          z-index: 99999;
-          background-color: white;
-          border: 1px solid black;
-          box-shadow: var(--browser-shadow);
         }
         
         selectable-table > div {
@@ -392,7 +431,17 @@ export class FileBrowser extends CustomElement {
           background-size: 50px 50px;
         }
         
-        .${FileBrowser.searchContainerClass} {
+        selectable-table .${FileTableRow.hoverImageClass} {
+          position: absolute;
+          top: calc(2 * var(--table-row-height));
+          max-height: calc(100% - 3 * var(--table-row-height));
+          z-index: 99999;
+          background-color: white;
+          border: 1px solid black;
+          box-shadow: var(--browser-shadow);
+        }
+        
+        search-bar {
             float: right;
         }
         
@@ -446,40 +495,13 @@ export class FileBrowser extends CustomElement {
     return this.loadingWrapper(this.errorLoggingWrapper(promise));
   }
 
-
   // Element Builders
-
-  createSearchElements() {
-    let searchInput = document.createElement('input');
-    searchInput.className = FileBrowser.searchInputClass;
-    searchInput.placeholder = "Search";
-    searchInput.oninput = () => {
-      // Wait 300 milliseconds to debounce and then search. Toggle searchPending.
-      if (!this.searchPending) {
-        this.searchPending = true;
-        setTimeout(() => {
-          this.search(searchInput.value);
-          this.searchPending = false;
-        }, 500);
-      }
-    };
-    searchInput.onkeyup = (event) => {
-      if (!this.searchPending && event.key === 'Enter') {
-        this.search(searchInput.value);
-      }
-    };
-    let searchContainer = document.createElement('div');
-    searchContainer.className = FileBrowser.searchContainerClass;
-    searchContainer.appendChild(this.searchIcon);
-    searchContainer.appendChild(searchInput);
-    return searchContainer;
-  }
 
   createMenus() {
     let menusContainer = document.createElement('div');
     menusContainer.className = FileBrowser.menuContainerClass;
     let contextMenuButton = document.createElement('div');
-    contextMenuButton.className = FileBrowser.dropdownMenuButtonClass;
+    contextMenuButton.className = FileBrowser.buttonClass;
     contextMenuButton.appendChild(this.dropdownMenuIcon.cloneNode(true));
     contextMenuButton.appendChild(this.carrotIcon.cloneNode(true));
     contextMenuButton.onclick = (event) => {
@@ -569,66 +591,56 @@ export class FileBrowser extends CustomElement {
     }
   }
 
-  async search(searchTerm: string) {
-    this.clearMessages();
-    if (searchTerm) {
-      await this.loadingWrapper(this.currentDirectory.search(searchTerm).then((searchResults: SearchResult[]) => {
-        this.setTableData(searchResults);
-        let readablePath = this.path.join('/');
-        this.addMessage(
-          `${searchResults.length} search results for "${searchTerm}" in ${readablePath}.`
-        );
-      }));
-    } else {
-      await this.loadingWrapper(this.currentDirectory.getChildren().then((children) => {
-        this.setTableData(children);
-      }));
-    }
-  }
-
-  /**
-   * Translate the data for a AbstractFile to the data that will be in each table row for that file.
-   */
-  private fileObjectToTableRow(rowData: RowData): FileTableRow {
-    let path = rowData.path;
-    let fileObject = rowData.file;
-    let tableRow = document.createElement('file-row') as FileTableRow;
-    tableRow.setFile(fileObject);
-    tableRow.hidden = fileObject.name.startsWith('.');
-    if (fileObject.directory) {
-      tableRow.addDragoverAction(() => {
-        this.path = path;
-      });
-
-      tableRow.ondblclick = (event: MouseEvent) => {
-        // Goto directory
-        this.path = path;
-      };
-    } else {
-      tableRow.ondblclick = (event: MouseEvent) => {
-        console.log("DBOULE", fileObject.url);
-        // go to url (if dataurl download)
-        if (fileObject.url !== null) {
-          if (fileObject.url.startsWith('data')) {
+  onFileRowDoubleClick(fileRow : FileTableRow){
+    let file = fileRow.file;
+    let path = fileRow.path;
+    if (file !== null) {
+      if (file instanceof Directory) {
+        if (path !== null){
+          this.path = path;
+        }
+      } else {
+        if (file.url !== null) {
+          if (file.url.startsWith('data')) {
             // Download if its a data url.
             let link = document.createElement('a');
-            link.href = fileObject.url || "";
-            link.setAttribute('download', fileObject.name);
+            link.href = file.url || "";
+            link.setAttribute('download', file.name);
             link.click();
           } else {
-            window.open(fileObject.url);
+            window.open(file.url);
           }
         }
       }
     }
-    return tableRow;
+  }
+
+  async search(searchTerm: string) {
+    this.clearMessages();
+    if (searchTerm) {
+      await this.loadingWrapper(
+        (async () => {
+          let searchResults = await this.currentDirectory.search(searchTerm);
+          let readablePath = this.path.join('/');
+          this.addMessage(
+            `${searchResults.length} search results for "${searchTerm}" in ${readablePath}.`
+          );
+          await this.setTableData(searchResults);
+        })()
+      );
+    } else {
+      await this.loadingWrapper(this.resetFiles());
+    }
   }
 
   setTableData(rowData: RowData[]) {
     console.log("RDATA", rowData);
     let tableRows: Row[] = [];
     for (let data of rowData) {
-      tableRows.push(this.fileObjectToTableRow(data));
+      let tableRow = document.createElement('file-row') as FileTableRow;
+      tableRow.file = data.file;
+      tableRow.path = data.path;
+      tableRows.push(tableRow);
     }
     this.table.rows = tableRows;
     this.dispatchEvent(new Event(FileBrowser.EVENT_FILES_CHANGE));
@@ -911,10 +923,9 @@ export class FileBrowser extends CustomElement {
     }
   }
 
-  refreshFiles() : Promise<void> {
+  resetFiles() : Promise<void> {
     this.busy = (async () => {
       await this.busy;
-      this.currentDirectory.clearCache();
       let children = await this.currentDirectory.getChildren();
       let rowData: RowData[] = children.map((child) => {
         return {
@@ -925,6 +936,11 @@ export class FileBrowser extends CustomElement {
       await this.setTableData(rowData);
     })();
     return this.busy;
+  }
+
+  refreshFiles() : Promise<void> {
+    this.currentDirectory.clearCache();
+    return this.resetFiles();
   }
 }
 
