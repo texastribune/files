@@ -684,7 +684,7 @@ export class FileBrowser extends CustomElement {
         }
       }
     }
-    
+
     event.clipboardData.setData('text/plain', uriList);
   }
 
