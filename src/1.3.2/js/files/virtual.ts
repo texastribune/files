@@ -1,22 +1,22 @@
 import {ProxyDirectory} from "./proxy";
 import * as files from "./base";
 
-export class VirtualDirectory extends ProxyDirectory {
+class VirtualDirectory extends ProxyDirectory {
   private readonly mounts : {[id : string] : files.Directory};
 
-  constructor(concreteDirectory : files.Directory, mounts? : {[id : string] : files.Directory}){
+  constructor(concreteDirectory : files.Directory, mounts : {[id : string] : files.Directory}){
     super(concreteDirectory);
 
-    this.mounts = mounts || {};
+    this.mounts = mounts;
   }
 
-  async getChildren(){
+  async getChildren() : Promise<files.File[]> {
     let children = await super.getChildren();
     let virtualChildren = [];
     for (let child of children){
       let mounted = this.mounts[child.id];
       if (mounted !== undefined){
-        virtualChildren.push(new VirtualDirectory(mounted));
+        virtualChildren.push(new MountedDirectory(mounted, child.name));
       } else {
         if (child instanceof files.Directory){
           virtualChildren.push(new VirtualDirectory(child, this.mounts));
@@ -36,5 +36,26 @@ export class VirtualDirectory extends ProxyDirectory {
 
   mount(file : files.Directory){
     this.mounts[this.id] = file;
+  }
+}
+
+
+class MountedDirectory extends VirtualDirectory {
+  private readonly mountPointName : string;
+
+  constructor(concreteDirectory : files.Directory, name : string){
+    super(concreteDirectory, {});
+
+    this.mountPointName = name;
+  }
+
+  get name() : string {
+    return this.mountPointName;
+  }
+}
+
+export class VirtualFS extends MountedDirectory {
+  constructor(concreteDirectory : files.Directory){
+    super(concreteDirectory, concreteDirectory.name);
   }
 }

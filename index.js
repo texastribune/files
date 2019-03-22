@@ -120,7 +120,7 @@ import {stringToArrayBuffer} from "./lib/1.3.2/js/utils";
 import {ProcessDirectory} from "./lib/1.3.2/js/processes/files";
 import {DeviceDirectory} from "./lib/1.3.2/js/devices/base";
 import {FileBrowser} from "./lib/1.3.2/js/ui/browser";
-import {VirtualDirectory} from "./lib/1.3.2/js/files/virtual";
+import {VirtualFS} from "./lib/1.3.2/js/files/virtual";
 import {RemoteFS} from "./lib/1.3.2/js/files/remote";
 
 class InitFS extends MemoryDirectory {
@@ -145,10 +145,10 @@ const init = `
   console.log("YAS");
 `;
 
-export const fs = new VirtualDirectory(new MemoryDirectory(null , 'root'));
-
 export async function createFS(){
-    let fs = new VirtualDirectory(new RemoteFS('/files/mediafiles/directory/'));
+    let fs = new VirtualFS(new MemoryDirectory(null, "root"));
+    let files = await fs.addDirectory("Files");
+    files.mount(new RemoteFS('/files/mediafiles/directory/'));
     // let dev = await fs.addDirectory('dev');
     // dev.mount(new DeviceDirectory());
     // let proc = await fs.addDirectory('proc');

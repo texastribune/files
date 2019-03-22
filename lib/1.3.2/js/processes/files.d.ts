@@ -26,7 +26,7 @@ export declare class ProcessDirectory extends files.Directory {
     getChildren(): Promise<ProcessFile[]>;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;
-    search(query: string): Promise<File[]>;
+    search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
 }

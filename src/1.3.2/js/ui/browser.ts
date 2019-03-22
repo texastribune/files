@@ -192,6 +192,7 @@ export class FileBrowser extends CustomElement {
 
   private maxNumMove = 30;  // Maximum number of files that can be moved at once
   private busy: Promise<void>;
+  private activePromises : Set<Promise<void>> = new Set();
 
   private readonly actionsContainer: HTMLDivElement;
   private readonly messagesContainer: HTMLDivElement;
@@ -239,8 +240,8 @@ export class FileBrowser extends CustomElement {
     this.tableContainer = document.createElement('div');
     this.tableContainer.className = FileBrowser.tableContainerClass;
     this.tableBusyOverlay = document.createElement('div');
-    this.tableContainer.appendChild(this.tableBusyOverlay);
     this.tableContainer.appendChild(this.table);
+    this.tableContainer.appendChild(this.tableBusyOverlay);
 
     // Add action elements
     this.actionsContainer.appendChild(this.breadCrumbs);
@@ -321,6 +322,7 @@ export class FileBrowser extends CustomElement {
       this.logAndLoadWrapper(this.refreshFiles());
     });
     this.logAndLoadWrapper(this.refreshFiles());
+    this.breadCrumbs.path = this.path;
   }
 
   get files(): File[] {
@@ -334,35 +336,41 @@ export class FileBrowser extends CustomElement {
     return files;
   }
 
+  get selectedFileRows() : FileTableRow[] {
+    return this.table.selectedRows.filter((row) => {
+      return row instanceof FileTableRow;
+    }) as FileTableRow[];
+  }
+
   get selectedFiles(): File[] {
     let files: File[] = [];
-    for (let row of this.table.selectedRows) {
-      if (row instanceof FileTableRow){
-        let file = row.file;
-        if (file !== null) {
-          files.push(file);
-        }
+    for (let row of this.selectedFileRows) {
+      let file = row.file;
+      if (file !== null) {
+        files.push(file);
       }
     }
     return files;
   }
 
   get path(): string[] {
-    return this.currentDirectory.path.slice(1).map((directory: Directory) => {
+    return this.currentDirectory.path.map((directory: Directory) => {
       return directory.name;
     });
   }
 
   set path(path: string[]) {
-    this.currentDirectory.root.getFile(path)
-      .then((newDirectory) => {
-        if (newDirectory instanceof CachedProxyDirectory) {
-          this.currentDirectory = newDirectory;
-        } else {
-          throw new FileNotFoundError("file must be a directory");
-        }
-        this.breadCrumbs.path = path;
-      });
+    this.logAndLoadWrapper(
+      this.currentDirectory.root.getFile(path.slice(1))
+        .then((newDirectory) => {
+          if (newDirectory instanceof CachedProxyDirectory) {
+            this.currentDirectory = newDirectory;
+          } else {
+            throw new FileNotFoundError("file must be a directory");
+          }
+        })
+    );
+
   }
 
   get css(): string {
@@ -465,9 +473,10 @@ export class FileBrowser extends CustomElement {
           display: block;
         }
         
-        selectable-table.${Table.dragOverClass} > div {          
+        selectable-table.${Table.dragOverClass} + div {          
           background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAhVJREFUeJzt3bEKhDAQQEH1//9Zy2vkqYgXkZk6xcLmkTLTBAAAAAAAAAD8zKMH+IB19AAH7PiGZfQA8GYCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCPOFs+tjU8D/nbr7XhAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAhX/kln39v/j7fjG7wgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAAAAAAAAAAAJy0AdBdBGYni5DTAAAAAElFTkSuQmCC);
           display: block;
+          pointer-events: none; /*prevent interfering with drag&drop*/
         }
         
         selectable-table .${FileTableRow.hoverImageClass} {
@@ -508,11 +517,15 @@ export class FileBrowser extends CustomElement {
 
   async loadingWrapper(promise: Promise<void>): Promise<void> {
     // Add loading class to element while waiting on the async call.
+    this.activePromises.add(promise);
     this.tableContainer.classList.add(FileBrowser.activeAjaxClass);
     try {
       return await promise;
     } finally {
-      this.tableContainer.classList.remove(FileBrowser.activeAjaxClass);
+      this.activePromises.delete(promise);
+      if (this.activePromises.size === 0){
+        this.tableContainer.classList.remove(FileBrowser.activeAjaxClass);
+      }
     }
   }
 
@@ -577,11 +590,18 @@ export class FileBrowser extends CustomElement {
           let uri = uriList[i];
           if (!uri.startsWith("#")) {
             let splitUri = uri.split('/');
+            let name : string = 'unknown';
             if (splitUri.length > 0 && splitUri[splitUri.length - 1].length < 255) {
-              promises.push(this.currentDirectory.addFile(uri, splitUri[splitUri.length - 1]));
-            } else {
-              promises.push(this.currentDirectory.addFile(uri, 'unknown'));
+              name = splitUri[splitUri.length - 1];
             }
+            promises.push(
+              (async () => {
+                let response = await fetch(uri);
+                let blob = await response.blob();
+                let buffer = await fileToArrayBuffer(blob);
+                return this.currentDirectory.addFile(buffer, name, blob.type);
+              })()
+            );
           }
         }
       }
@@ -664,8 +684,7 @@ export class FileBrowser extends CustomElement {
         }
       }
     }
-
-    console.log("COPY", uriList, event.composedPath());
+    
     event.clipboardData.setData('text/plain', uriList);
   }
 
@@ -702,13 +721,7 @@ export class FileBrowser extends CustomElement {
   showContextMenu(positionX: number, positionY: number) {
     // Add the items to the context menu
     this.fileContextMenu.removeChildren();
-    let selectedFileRows: FileTableRow[] = [];
-    for (let row of this.table.selectedRows) {
-      if (row instanceof FileTableRow) {
-        selectedFileRows.push(row);
-      }
-    }
-    this.fileContextMenu.appendChildren(this.getMenuItems(selectedFileRows));
+    this.fileContextMenu.appendChildren(this.getMenuItems());
 
     // Move the context menu to the click position
     this.fileContextMenu.position = {x: positionX, y: positionY};
@@ -717,8 +730,11 @@ export class FileBrowser extends CustomElement {
     this.fileContextMenu.visible = true;
   }
 
-  getMenuItems(selectedFileRows: FileTableRow[]) {
+  getMenuItems() {
     let menuItems = [];
+
+    let selectedFileRows = this.selectedFileRows;
+    let selectedFiles = this.selectedFiles;
 
     // Add items that should exist only when there is selected data.
     if (selectedFileRows.length > 0) {
@@ -762,7 +778,7 @@ export class FileBrowser extends CustomElement {
           };
           menuItems.push(renameButton);
 
-          if (selectedFile.mimeType === 'application/javascript') {
+          if (selectedFile.mimeType === 'application/javascript' || selectedFile.mimeType === 'text/javascript') {
             let runButton = document.createElement('div');
             runButton.innerText = 'Run';
             runButton.onclick = () => {
@@ -790,29 +806,23 @@ export class FileBrowser extends CustomElement {
         };
         let removeText = document.createElement('div');
         let names = [];
-        for (let fileRow of selectedFileRows) {
-          let file = fileRow.getFile();
-          if (file !== null) {
-            names.push(file.name);
-          }
+        for (let file of selectedFiles) {
+          names.push(file.name);
         }
         removeText.innerText = `Are you sure you want to remove ${names.join(', ')}?`;
         let promises: Promise<void>[] = [];
-        deleteDialog.onConfirmed = () => {
+        deleteDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
           this.logAndLoadWrapper(
             (async () => {
-              for (let row of selectedFileRows) {
-                let file = row.getFile();
-                if (file !== null) {
-                  promises.push(file.delete());
-                }
+              for (let file of selectedFiles) {
+                promises.push(file.delete());
               }
               this.fileContextMenu.visible = false;
               await Promise.all(promises);
               await this.currentDirectory.clearCache();
             })()
           );
-        };
+        });
         deleteDialog.appendChild(removeText);
         deleteDialog.visible = true;
       };
@@ -836,28 +846,28 @@ export class FileBrowser extends CustomElement {
 
           moveBrowser.table.selectMultiple = false;
           moveDialog.name = "Move Files";
-          moveDialog.classList.add(this.fileBrowserDialogClass);
           moveDialog.confirmationText = "Select";
-          moveDialog.onConfirmed = () => {
+          moveDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
             this.logAndLoadWrapper(
               (async () => {
-                let path = moveBrowser.currentDirectory.path;
-                if (moveBrowser.table.selectedRows.length === 1) {
-                  let selectedName = moveBrowser.table.selectedData.values().next().value.name;
-                  path.push(selectedName);
+                let target : Directory;
+                let moveSelection =  moveBrowser.selectedFiles;
+                let first = moveSelection[0];
+                if (moveSelection.length === 1 && first instanceof Directory) {
+                  target = first;
+                } else {
+                  target = moveBrowser.currentDirectory
                 }
 
                 let movePromises = [];
-                for (let rowData of selectedFileRows) {
-                  let fileObject = await moveBrowser.currentDirectory.getFile(rowData.path);
-                  movePromises.push(moveBrowser.currentDirectory.move(path, fileObject).then(() => {
-                  }));
+                for (let file of selectedFiles) {
+                  movePromises.push(file.move(target));
                 }
                 await Promise.all(movePromises);
                 await this.refreshFiles();
               })()
             );
-          };
+          });
 
           this.fileContextMenu.appendChild(moveDialog);
           moveDialog.addEventListener(Dialog.EVENT_CLOSED, () => {
@@ -885,7 +895,7 @@ export class FileBrowser extends CustomElement {
       fileInput.type = 'file';
       fileInputDiv.appendChild(fileInputLabel);
       fileInputDiv.appendChild(fileInput);
-      fileDialog.onConfirmed = () => {
+      fileDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
         let promises = [];
         if (fileInput.files !== null) {
           for (let file of fileInput.files) {
@@ -900,7 +910,7 @@ export class FileBrowser extends CustomElement {
 
         this.logAndLoadWrapper(Promise.all(promises).then(() => {
         }));
-      };
+      });
 
       fileDialog.appendChild(fileInputDiv);
       this.fileContextMenu.appendChild(fileDialog);

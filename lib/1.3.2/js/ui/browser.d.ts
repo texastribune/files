@@ -47,6 +47,7 @@ export declare class FileBrowser extends CustomElement {
     static EVENT_SELECTED_FILES_CHANGE: string;
     private maxNumMove;
     private busy;
+    private activePromises;
     private readonly actionsContainer;
     private readonly messagesContainer;
     private readonly menusContainer;
@@ -67,6 +68,7 @@ export declare class FileBrowser extends CustomElement {
     rootDirectory: Directory;
     protected currentDirectory: CachedProxyDirectory;
     readonly files: File[];
+    readonly selectedFileRows: FileTableRow[];
     readonly selectedFiles: File[];
     path: string[];
     readonly css: string;
@@ -81,7 +83,7 @@ export declare class FileBrowser extends CustomElement {
     search(searchTerm: string): Promise<void>;
     setTableData(rowData: RowData[]): void;
     showContextMenu(positionX: number, positionY: number): void;
-    getMenuItems(selectedFileRows: FileTableRow[]): HTMLDivElement[];
+    getMenuItems(): HTMLDivElement[];
     execute(path: string[]): void;
     addMessage(message: Error | string, isError?: boolean): void;
     clearMessages(): void;

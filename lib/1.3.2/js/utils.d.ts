@@ -18,7 +18,7 @@ export declare function arrayBufferToDataUrl(arrayBuffer: ArrayBuffer, mimeType:
 /**
  * Convert a file containing text data into a string.
  */
-export declare function fileToArrayBuffer(file: File): Promise<ArrayBuffer>;
+export declare function fileToArrayBuffer(file: File | Blob): Promise<ArrayBuffer>;
 /**
  * Convert string to an ArrayBuffer.
  */

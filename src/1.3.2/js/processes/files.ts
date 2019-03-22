@@ -40,8 +40,6 @@ export class ProcessFile extends files.BasicFile {
     }
 
     async delete() {
-        console.log("DELETE");
-        console.trace();
         processes = processes.filter((file) => {return file !== this});
     }
 
@@ -92,8 +90,8 @@ export class ProcessDirectory extends files.Directory {
         throw new Error("Cannot rename process directory");
     }
 
-    search(query: string): Promise<File[]> {
-        return undefined;
+    search(query: string): Promise<files.SearchResult[]> {
+        throw new Error("Cannot search process directory");
     }
 
     async addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File> {

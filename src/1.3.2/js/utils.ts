@@ -69,7 +69,7 @@ export function arrayBufferToDataUrl(arrayBuffer : ArrayBuffer, mimeType : strin
 /**
  * Convert a file containing text data into a string.
  */
-export function fileToArrayBuffer(file : File) : Promise<ArrayBuffer> {
+export function fileToArrayBuffer(file : File | Blob) : Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
     let fileReader = new FileReader();
     fileReader.onload = () => {
