@@ -963,6 +963,7 @@ export class FileBrowser extends CustomElement {
 
   addMessage(message: Error | string, isError?: boolean) {
     console.log(message);
+    console.trace();
     let errorMessage = document.createElement('user-message') as Message;
     if (message instanceof Error || isError) {
       errorMessage.setAttribute('error', "");
@@ -979,12 +980,14 @@ export class FileBrowser extends CustomElement {
 
   resetFiles() : Promise<void> {
     this.busy = (async () => {
-      await this.busy;
+      try {
+        await this.busy;
+      } catch (e) {}
       let children = await this.currentDirectory.getChildren();
       let rowData: RowData[] = children.map((child) => {
         return {
           path: this.path.concat([child.name]),
-          file: child
+          file: child,
         }
       });
       await this.setTableData(rowData);
@@ -993,6 +996,7 @@ export class FileBrowser extends CustomElement {
   }
 
   refreshFiles() : Promise<void> {
+    console.log(this.currentDirectory);
     this.currentDirectory.clearCache();
     return this.resetFiles();
   }
