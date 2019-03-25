@@ -239,13 +239,14 @@ export class CachedProxyDirectory extends ChangeEventProxyDirectory {
 
   async getChildren() {
     if (this.cachedChildren === null){
-      this.cachedChildren = [];
+      let newChildren = [];
       for (let child of await super.getChildren()){
         if (child instanceof files.Directory){
           child = new CachedProxyDirectory(child, this);
         }
-        this.cachedChildren.push(child);
+        newChildren.push(child);
       }
+      this.cachedChildren = newChildren;
     }
     return this.cachedChildren.slice();
   }

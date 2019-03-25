@@ -18,8 +18,10 @@ declare class FileTableRow extends Row {
     private readonly documentIcon;
     static hoverImageClass: string;
     constructor();
+    readonly css: string;
     file: File | null;
     path: string[] | null;
+    handleDragStart(event: DragEvent): void;
 }
 /**
  * An element for browsing a file system.
@@ -37,6 +39,7 @@ export declare class FileBrowser extends CustomElement {
     static stateManagerContainerClass: string;
     static buttonClass: string;
     static fileBrowserDialogClass: string;
+    static dataTransferType: string;
     /**
      * @event
      */
@@ -97,18 +100,19 @@ export declare class DialogBrowser extends FileBrowser {
     constructor(currentDirectory: any, table: any, dialog: any);
     readonly dialog: any;
 }
-export declare let ConfigFileMixin: (currentDirectoryClass: any) => {
-    new (...args: any[]): {
-        [x: string]: any;
-        config: any;
-        setupTable(): void;
-        addLocalConfigFile(): Promise<void>;
-        addLocalConfig(newConfig: any): Promise<void>;
-        getConfig(): Promise<{}>;
-    };
-    [x: string]: any;
-    readonly localConfigPath: string[];
-    readonly sharedConfigPath: string[];
-    readonly configPaths: string[][];
-};
+interface BrowserConfig {
+    visibleColumns: string[] | null;
+    defaultSortColumn: string | null;
+}
+export declare class ConfigurableFileBrowser extends FileBrowser {
+    static localConfigPath: string[];
+    static sharedConfigPath: string[];
+    constructor();
+    static readonly configPaths: string[][];
+    config: BrowserConfig;
+    setupTable(): void;
+    addLocalConfigFile(): File;
+    addLocalConfig(newConfig: BrowserConfig): Promise<void>;
+    getConfig(): Promise<BrowserConfig>;
+}
 export {};

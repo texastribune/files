@@ -165,7 +165,7 @@ export abstract class BasicFile implements File {
   }
 
   async copy(targetDirectory : Directory) {
-    await targetDirectory.write(await this.read());
+    await targetDirectory.addFile(await this.read(), this.name, this.mimeType);
   }
 
   async move(targetDirectory : Directory) {
@@ -226,6 +226,13 @@ export abstract class Directory extends BasicFile {
 
   async write(data : ArrayBuffer) : Promise<ArrayBuffer>{
     throw new Error("Cannot write to a directory.");
+  }
+
+  async copy(targetDirectory : Directory) {
+    let copy = await targetDirectory.addDirectory(this.name);
+    for (let child of await this.getChildren()){
+      await child.copy(copy);
+    }
   }
 
   /**

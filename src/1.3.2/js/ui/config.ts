@@ -1,12 +1,14 @@
 import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 
+export type ConfigData = {[name : string] : string};
+
 /**
  * Create an object with configuration data from a configuration file.
  * @param {ArrayBuffer} data - The configuration file data.
  * @returns {Object} - The configuration data Object for that file.
  */
-export function parseConfigFile(data){
-  let config = {};
+export function parseConfigFile(data : ArrayBuffer) : ConfigData {
+  let config : ConfigData = {};
   try {
     let configText = parseTextArrayBuffer(data);
     let lines = configText.split('\n');
@@ -28,9 +30,9 @@ export function parseConfigFile(data){
  * @param {ArrayBuffer} [data] - The existing configuration file. If not given, a new file is created.
  * @returns {ArrayBuffer} - Blob with the new configuration data.
  */
-export async function updateConfigFile(newConfig, data) {
+export async function updateConfigFile(newConfig : ConfigData, data? : ArrayBuffer) {
   let config;
-  if (data){
+  if (data !== undefined){
     config = parseConfigFile(data);
   } else {
     config = {};
@@ -39,7 +41,9 @@ export async function updateConfigFile(newConfig, data) {
   Object.assign(config, newConfig);
   let configText = "";
   for (let configName in config) {
-    configText += `${configName}=${config[configName]}\n`;
+    if (config.hasOwnProperty(configName)){
+      configText += `${configName}=${config[configName]}\n`;
+    }
   }
 
   return stringToArrayBuffer(configText);

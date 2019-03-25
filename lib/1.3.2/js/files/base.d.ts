@@ -125,6 +125,7 @@ export declare abstract class Directory extends BasicFile {
     readonly url: string | null;
     read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
+    copy(targetDirectory: Directory): Promise<void>;
     /**
      * Get the file object at the given path relative to this directory.
      * @returns {Promise<File>} - The file object located at the given path.

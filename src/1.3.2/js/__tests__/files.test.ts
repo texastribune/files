@@ -5,7 +5,7 @@ import {MemoryDirectory} from "../files/memory";
 import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer} from "../utils";
 import IndexedDB from "fake-indexeddb/build";
 import {LocalStorageRoot, database} from "../files/local";
-import {VirtualDirectory} from "../files/virtual";
+import {VirtualFS} from "../files/virtual";
 import {BasicFile, Directory, File, FileAlreadyExistsError, FileNotFoundError} from "../files/base";
 import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
@@ -253,6 +253,25 @@ function testStorage(rootDirectory : Directory) {
         expect(caughtError).toBeInstanceOf(FileNotFoundError);
     });
 
+    test('move method', async () => {
+        let files = await addTestFiles();
+
+        let file2 = await rootDirectory.getFile([dir1Name, file2Name]);
+
+        await file2.move(rootDirectory);
+        let movedFile2 = await rootDirectory.getFile([file2Name]);
+        let data = await movedFile2.read();
+        // expect(await parseTextArrayBuffer(data)).toEqual(file2String);
+        // console.log("TEST", parseTextArrayBuffer(data));
+
+        let caughtError = null;
+        await rootDirectory.getFile([dir1Name, file2Name])
+          .catch((error) => {
+              caughtError = error;
+          });
+        expect(caughtError).toBeInstanceOf(FileNotFoundError);
+    });
+
     test('change listener', async () => {
         // Expect change listeners to be called at least once for each file change.
         // Can be called more than once
@@ -369,7 +388,7 @@ describe('Test local file storage', () => {
 
 describe('Test virtual file storage', () => {
     let rootMounted = new MemoryDirectory(null, 'mounted');
-    let storage = new VirtualDirectory(rootMounted);
+    let storage = new VirtualFS(rootMounted);
 
     testStorage(storage);
 });

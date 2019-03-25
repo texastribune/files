@@ -8,9 +8,9 @@ import "elements/lib/dialog";
 import {BreadCrumbs} from "./breadCrumbs";
 import {Message} from "./messages";
 import {Directory, File, FileNotFoundError} from "../files/base";
-import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath} from "../utils";
+import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath, stringToArrayBuffer} from "../utils";
 import * as icons from './icons.js';
-import {parseConfigFile, updateConfigFile} from "./config";
+import {ConfigData, parseConfigFile, updateConfigFile} from "./config";
 import {ConfirmDialog, Dialog} from "elements/lib/dialog";
 import {Data, Header, Row, Table} from "elements/lib/table";
 import {MemoryDirectory} from "../files/memory";
@@ -20,10 +20,12 @@ import {SearchBar} from "./search";
 import {Process} from "../processes/base";
 import {ConsoleFile} from "../devices/console";
 
+
 interface RowData {
   path: string[],
   file: File,
 }
+
 
 class FileTableRow extends Row {
   private _file: File | null = null;
@@ -41,6 +43,20 @@ class FileTableRow extends Row {
 
     this.documentIcon = createNode(icons.documentIcon);
     this.documentIcon.classList.add(FileBrowser.tableIconClass);
+  }
+
+  get css(): string {
+    // language=CSS
+    return super.css + `
+        :host(.${FileTableRow.pendingActionClass}) {
+            animation-name: pending-action;
+            animation-delay: 1s;
+            animation-duration: 2s;
+        }
+        @keyframes pending-action {
+            to {background-color: var(--table-selected-item-color, #5d91e5)}
+        }
+    `;
   }
 
   get file(): File | null {
@@ -129,6 +145,15 @@ class FileTableRow extends Row {
   set path(value : string[] | null) {
     this._path = value;
   }
+
+  handleDragStart(event: DragEvent): void {
+    super.handleDragStart(event);
+
+    if (event.dataTransfer !== null && this._path !== null){
+      event.dataTransfer.setData(FileBrowser.dataTransferType, JSON.stringify(this._path));
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
 }
 
 class FileTableHeader extends Header {
@@ -179,6 +204,8 @@ export class FileBrowser extends CustomElement {
   static stateManagerContainerClass = 'file-breadcrumbs-container';
   static buttonClass = 'dropdown-menu button';
   static fileBrowserDialogClass = 'file-browser-dialog';
+
+  static dataTransferType = 'text/table-rows';
 
   /**
    * @event
@@ -610,41 +637,30 @@ export class FileBrowser extends CustomElement {
     this.logAndLoadWrapper(Promise.all(promises).then(() => {
     }));
 
-    let rowsText = dataTransfer.getData(Table.dataTransferType);
-    if (rowsText) {
-      let rows = JSON.parse(rowsText);
-      let names = [];
-      let rowsToMove = [];
-      for (let rowData of rows) {
-        names.push(rowData.name);
-      }
-      if (rowsToMove.length > this.maxNumMove) {
-        alert(`Cannot move more than ${this.maxNumMove} items.`);
-      } else if (rowsToMove.length > 0) {
-        let moveConfirmDialog = document.createElement('confirm-dialog') as ConfirmDialog;
-        moveConfirmDialog.name = "Confirm Move";
-        moveConfirmDialog.onClose = () => {
-          moveConfirmDialog.remove();
+    let pathText = dataTransfer.getData(FileBrowser.dataTransferType);
+    if (pathText) {
+      let path : string[] = JSON.parse(pathText).slice(1);
+      let moveConfirmDialog = document.createElement('confirm-dialog') as ConfirmDialog;
+      moveConfirmDialog.name = "Confirm Move";
+      moveConfirmDialog.onClose = () => {
+        moveConfirmDialog.remove();
+      };
+      let confirmText = document.createElement('div');
+      confirmText.innerText = `Are you sure you want to move /${path.join('/')}?`;
+      moveConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
+        // Make sure object isn't already in this directory, and if not move it here.
+        let moveFile = async (path: string[]) => {
+          let fileObject = await this.rootDirectory.getFile(path);
+          await fileObject.move(this.currentDirectory);
         };
-        let confirmText = document.createElement('div');
-        confirmText.innerText = `Are you sure you want to move ${names.join(', ')}?`;
-        moveConfirmDialog.onConfirmed = () => {
-          let promises = [];
-          for (let rowData of rows) {
-            // Make sure object isn't already in this directory, and if not move it here.
-            let moveFile = async (rowData: Directory) => {
-              let fileObject = await this.currentDirectory.getFile(rowData.path);
-              return await this.currentDirectory.move(fileObject);
-            };
-            promises.push(moveFile(rowData));
-          }
-          this.logAndLoadWrapper(Promise.all(promises).then(() => {
-          }));
-          this.fileContextMenu.visible = false;
-        };
-        moveConfirmDialog.appendChild(confirmText);
-        moveConfirmDialog.visible = true;
-      }
+        this.logAndLoadWrapper(moveFile(path));
+
+        this.fileContextMenu.visible = false;
+      });
+      moveConfirmDialog.appendChild(confirmText);
+      document.body.appendChild(moveConfirmDialog);
+      moveConfirmDialog.visible = true;
+      moveConfirmDialog.center();
     }
   }
 
@@ -712,6 +728,13 @@ export class FileBrowser extends CustomElement {
       let tableRow = document.createElement('file-row') as FileTableRow;
       tableRow.file = data.file;
       tableRow.path = data.path;
+      if (data.file instanceof Directory){
+        tableRow.addDragoverAction(() => {
+          if (data.path !== null){
+            this.path = data.path;
+          }
+        })
+      }
       tableRows.push(tableRow);
     }
     this.table.rows = tableRows;
@@ -996,7 +1019,6 @@ export class FileBrowser extends CustomElement {
   }
 
   refreshFiles() : Promise<void> {
-    console.log(this.currentDirectory);
     this.currentDirectory.clearCache();
     return this.resetFiles();
   }
@@ -1024,155 +1046,159 @@ export class DialogBrowser extends FileBrowser {
   }
 }
 
-export let ConfigFileMixin = (currentDirectoryClass) => {
-  return class extends currentDirectoryClass {
-    constructor(...args) {
-      super(...args);
+interface BrowserConfig {
+  visibleColumns : string[] | null,
+  defaultSortColumn : string | null,
+}
 
-      this.logAndLoadWrapper(this.getConfig()
-        .then((config) => {
-          try {
-            this.config = config;
-          } catch (e) {
-            console.log(`Error setting browser config: ${e}`);
-          }
-        }));
-    }
+export class ConfigurableFileBrowser extends FileBrowser {
+  static localConfigPath = ['.config', 'browser'];
+  static sharedConfigPath = ['Files', '.config', 'browser'];
 
-    static get localConfigPath() {
-      return ['.config', 'browser'];
-    }
+  constructor() {
+    super();
 
-    static get sharedConfigPath() {
-      return ['Files', '.config', 'browser'];
-    }
-
-    static get configPaths() {
-      return [
-        this.sharedConfigPath,
-        this.localConfigPath
-      ];
-    }
-
-    set config(configObject) {
-      let visibleColumns = configObject['visibleColumns'];
-      if (visibleColumns) {
-        let visibleColumnsArray = visibleColumns.split(',');
-        for (let column of this.table.columns) {
-          column.visible = visibleColumnsArray.includes(column.name);
-        }
-      }
-
-      let defualtSortColumn = configObject['defaultSortColumn'];
-      if (defualtSortColumn) {
-        let reverse = false;
-        if (defualtSortColumn.startsWith('-')) {
-          reverse = true;
-          defualtSortColumn = defualtSortColumn.slice(1)
-        }
-        for (let column of this.table.columns) {
-          if (column.name === defualtSortColumn) {
-            let func;
-            if (column.sortCompare && reverse) {
-              func = (...args) => {
-                return -column.sortCompare(...args);
-              }
-            } else {
-              func = column.sortCompare;
-            }
-            this.table.defaultSortFunc = func;
-            this.setTableData(Object.values(this.currentDirectory.data)); // Refresh data to resort with default sort
-          }
-        }
-      }
-    }
-
-    setupTable() {
-      super.setupTable();
-      if (this.table) {
-        for (let column of this.table.columns) {
-          let existing = column.onVisibilityChange;
-          column.onVisibilityChange = (vis) => {
-            existing(vis);
-            let visibleColumnNames = [];
-            for (let column of this.table.columns) {
-              if (column.visible) {
-                visibleColumnNames.push(column.name);
-              }
-            }
-            this.addLocalConfig({visibleColumns: visibleColumnNames.join(',')})
-              .then()
-              .catch((error) => {
-                console.log(`Error adding config: ${error}`)
-              });
-          }
-        }
-      }
-    }
-
-    async addLocalConfigFile() {
-      let path = this.constructor.localConfigPath.slice();
-      let name = path.pop();
-      let checked = [];
-
-      while (path.length > 0) {
-        checked.push(path.shift());
+    this.logAndLoadWrapper(this.getConfig()
+      .then((config) => {
         try {
-          await this.currentDirectory.getFile(checked);
-        } catch (error) {
-          if (error instanceof FileNotFoundError) {
-            await this.currentDirectory.addDirectory(checked.slice(0, checked.length - 1), checked[checked.length - 1]);
-          } else {
-            throw error;
-          }
+          this.config = config;
+        } catch (e) {
+          console.log(`Error setting browser config: ${e}`);
         }
+      }));
+  }
+
+  static get configPaths() {
+    return [
+      this.sharedConfigPath,
+      this.localConfigPath
+    ];
+  }
+
+  set config(configObject : BrowserConfig) {
+    let visibleColumns = configObject.visibleColumns;
+    if (visibleColumns !== null) {
+      for (let column of this.table.columns) {
+        column.visible = visibleColumns.includes(column.name);
       }
-      await this.currentDirectory.addFile(checked, new File([""], name, {type: 'text/plain'}), name);
     }
 
-    async addLocalConfig(newConfig) {
-      let dataBuffer;
+    let defualtSortColumn = configObject.defaultSortColumn;
+    if (defualtSortColumn) {
+      let reverse = false;
+      if (defualtSortColumn.startsWith('-')) {
+        reverse = true;
+        defualtSortColumn = defualtSortColumn.slice(1)
+      }
+      for (let column of this.table.columns) {
+        if (column.name === defualtSortColumn) {
+          let func;
+          if (column.sortCompare && reverse) {
+            func = (...args) => {
+              return -column.sortCompare(...args);
+            }
+          } else {
+            func = column.sortCompare;
+          }
+          this.table.defaultSortFunc = func;
+          this.setTableData(Object.values(this.currentDirectory.data)); // Refresh data to resort with default sort
+        }
+      }
+    }
+  }
+
+  setupTable() {
+    super.setupTable();
+    if (this.table) {
+      for (let column of this.table.columns) {
+        let existing = column.onVisibilityChange;
+        column.onVisibilityChange = (vis) => {
+          existing(vis);
+          let visibleColumnNames : string[] = [];
+          for (let column of this.table.columns) {
+            if (column.visible) {
+              visibleColumnNames.push(column.name);
+            }
+          }
+          this.addLocalConfig({visibleColumns: visibleColumnNames})
+            .then()
+            .catch((error) => {
+              console.log(`Error adding config: ${error}`)
+            });
+        }
+      }
+    }
+  }
+
+  async addLocalConfigFile() : File {
+    let path = ConfigurableFileBrowser.localConfigPath.slice();
+    let directory = this.rootDirectory;
+    let configFileName = path.pop();
+    if (configFileName === undefined) {
+      throw new Error('config file path must have a name');
+    }
+    let nextName = path.shift();
+
+    while (nextName !== undefined) {
       try {
-        let configFileObject = await this.currentDirectory.getFile(this.constructor.localConfigPath);
-        let oldDataBuffer = await configFileObject.read();
-        dataBuffer = updateConfigFile(newConfig, oldDataBuffer);
+        let nextFile = await directory.getFile([nextName]);
+        if (nextFile instanceof Directory){
+          directory = nextFile;
+        } else {
+          throw Error(`file named ${nextName} already exists`);
+        }
       } catch (error) {
         if (error instanceof FileNotFoundError) {
-          await this.currentDirectory.waitOn(this.addLocalConfigFile.bind(this))();
+          directory = await directory.addDirectory(nextName);
+        } else {
+          throw error;
         }
-        dataBuffer = updateConfigFile({});
       }
+    }
 
+    return await directory.addFile(stringToArrayBuffer(""), configFileName, 'text/plain');
+  }
+
+  async addLocalConfig(newConfig : BrowserConfig) {
+    let dataBuffer;
+    let configFileObject : File;
+    try {
+      configFileObject = await this.rootDirectory.getFile(ConfigurableFileBrowser.localConfigPath);
+      let oldDataBuffer = await configFileObject.read();
+      dataBuffer = await updateConfigFile(newConfig, oldDataBuffer);
+      await configFileObject.write(dataBuffer);
+    } catch (error) {
+      if (error instanceof FileNotFoundError) {
+        configFileObject = await this.addLocalConfigFile();
+        dataBuffer = await updateConfigFile(newConfig);
+        await configFileObject.write(dataBuffer);
+      }
+    }
+  }
+
+  async getConfig() : Promise<BrowserConfig> {
+    let config : ConfigData = {};
+    let configPath = ConfigurableFileBrowser.configPaths.slice();
+    let currentPath = configPath.shift();
+    while (currentPath !== undefined) {
+      let currentConfig;
       try {
-        await this.currentDirectory.write(this.constructor.localConfigPath, dataBuffer);
-      } catch (e) {
-        if (e instanceof FileNotFoundError) {
-          await this.currentDirectory.write(this.constructor.localConfigPath, dataBuffer);
-        }
+        let configFileObject = await this.rootDirectory.getFile(currentPath);
+        let data = await configFileObject.read();
+        currentConfig = parseConfigFile(data);
+      } catch (error) {
+        console.log(`Could not get config file at /${currentPath.join('/')}: ${error}`);
+        currentConfig = {};
       }
+      Object.assign(config, currentConfig);
+      currentPath = configPath.shift();
     }
-
-    async getConfig() {
-      let config = {};
-      let configPath = this.constructor.configPaths.slice();
-      let configFile = null;
-      while (configFile === null && configPath.length > 0) {
-        let path = configPath.shift();
-        let localConfig;
-        try {
-          let configFileObject = await this.currentDirectory.getFile(path);
-          let data = await configFileObject.read();
-          localConfig = parseConfigFile(data);
-        } catch (error) {
-          console.log(`Could not get config file at /${path.join('/')}: ${error}`);
-          localConfig = {};
-        }
-        Object.assign(config, localConfig);
-      }
-      return config;
-    }
-  };
-};
+    return {
+      visibleColumns: (config.visibleColumns || "").split(','),
+      defaultSortColumn: config.defaultSortColumn || null,
+    };
+  }
+}
 
 customElements.define('file-browser', FileBrowser);
 customElements.define('file-row', FileTableRow);
