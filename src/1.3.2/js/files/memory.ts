@@ -60,6 +60,9 @@ export class MemoryFile extends files.BasicFile {
     }
 
     async rename(newName : string){
+        if (this.parent.nameExists(newName)){
+            throw new FileAlreadyExistsError(`name ${newName} already exists`);
+        }
         this.name = newName;
         this.lastModified = new Date();
         this.onChange();
@@ -117,7 +120,7 @@ export class MemoryDirectory extends files.Directory {
     }
 
     async rename(newName : string){
-        if (this.nameExists(newName)){
+        if (this.parent !== null && this.parent.nameExists(newName)){
             throw new FileAlreadyExistsError(`name ${newName} already exists`);
         }
         this.name = newName;
@@ -143,7 +146,7 @@ export class MemoryDirectory extends files.Directory {
         return results;
     }
 
-    private nameExists(name : string){
+    nameExists(name : string){
         let names = this.children.reduce((names, file) => {
             names.add(file.name);
             return names;

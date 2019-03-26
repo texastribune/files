@@ -49,6 +49,7 @@ export declare class FileBrowser extends CustomElement {
      */
     static EVENT_SELECTED_FILES_CHANGE: string;
     private maxNumMove;
+    private maxNumCopy;
     private busy;
     private activePromises;
     private readonly actionsContainer;
@@ -80,9 +81,13 @@ export declare class FileBrowser extends CustomElement {
     errorLoggingWrapper(promise: Promise<void>): Promise<void>;
     logAndLoadWrapper(promise: Promise<void>): Promise<void>;
     createMenus(): HTMLDivElement;
-    handleDataTransfer(dataTransfer: DataTransfer): Promise<void>;
+    private copyUrl;
+    private moveFiles;
+    private copyFiles;
+    handleDataTransfer(dataTransfer: DataTransfer): void;
     onFileRowDoubleClick(fileRow: FileTableRow): void;
-    onCopy(event: ClipboardEvent): void;
+    onCutOrCopy(event: ClipboardEvent): void;
+    onPaste(event: ClipboardEvent): void;
     search(searchTerm: string): Promise<void>;
     setTableData(rowData: RowData[]): void;
     showContextMenu(positionX: number, positionY: number): void;

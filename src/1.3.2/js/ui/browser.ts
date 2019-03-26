@@ -150,7 +150,11 @@ class FileTableRow extends Row {
     super.handleDragStart(event);
 
     if (event.dataTransfer !== null && this._path !== null){
-      event.dataTransfer.setData(FileBrowser.dataTransferType, JSON.stringify(this._path));
+      let dataTransfer : FileDataTransfer = {
+        move: [this._path],
+        copy: [],
+      };
+      event.dataTransfer.setData(FileBrowser.dataTransferType, JSON.stringify(dataTransfer));
       event.dataTransfer.dropEffect = 'move';
     }
   }
@@ -187,6 +191,30 @@ class FileTableHeader extends Header {
 }
 
 
+interface FileDataTransfer {
+  move : string[][]  // list of paths
+  copy : string[][]  // list of paths
+}
+
+function isFileTransfer(object : any) : object is FileDataTransfer {
+  function validArrayOfPaths(array : any[]){
+    for (let path of array){
+      if (!(path instanceof Array)){
+        return false;
+      }
+      for (let segment in path){
+        if (typeof segment !== "string"){
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  return object.move instanceof Array && object.copy instanceof Array &&
+    validArrayOfPaths(object.copy) && validArrayOfPaths(object.move);
+}
+
 /**
  * An element for browsing a file system.
  * @param {Directory} currentDirectory - The root directory of the browser.
@@ -218,6 +246,7 @@ export class FileBrowser extends CustomElement {
   static EVENT_SELECTED_FILES_CHANGE = 'selected-change';
 
   private maxNumMove = 30;  // Maximum number of files that can be moved at once
+  private maxNumCopy = 30;  // Maximum number of files that can be copied at once
   private busy: Promise<void>;
   private activePromises : Set<Promise<void>> = new Set();
 
@@ -241,6 +270,7 @@ export class FileBrowser extends CustomElement {
 
     // Sub elements
     this.table = document.createElement('selectable-table') as Table;
+    this.table.setAttribute('select-multiple', "");
     this.breadCrumbs = document.createElement('bread-crumbs') as BreadCrumbs;
 
     this.dropdownMenuIcon = createNode(icons.dropdownMenuIcon);
@@ -281,11 +311,21 @@ export class FileBrowser extends CustomElement {
 
 
     // Element events
-    document.oncopy = (event : ClipboardEvent) => {
+    document.addEventListener('copy', (event : ClipboardEvent) => {
       if (this.table.selectedRows.length > 0){
-        this.onCopy(event);
+        this.onCutOrCopy(event);
       }
-    };
+    });
+
+    document.addEventListener('cut', (event : ClipboardEvent) => {
+      if (this.table.selectedRows.length > 0){
+        this.onCutOrCopy(event);
+      }
+    });
+
+    this.addEventListener('paste', (event : ClipboardEvent) => {
+      this.onPaste(event);
+    });
 
     this.table.oncontextmenu = (event: MouseEvent) => {
       event.preventDefault();
@@ -594,7 +634,76 @@ export class FileBrowser extends CustomElement {
 
   // Actions
 
-  async handleDataTransfer(dataTransfer: DataTransfer) {
+  private async copyUrl(url : string) : Promise<File> {
+    let response = await fetch(url);
+    let blob = await response.blob();
+    let buffer = await fileToArrayBuffer(blob);
+    return this.currentDirectory.addFile(buffer, name, blob.type);
+  }
+
+  private moveFiles(files : File[]) {
+    if (files.length > this.maxNumMove){
+      throw new Error(`cannot move more than ${this.maxNumMove} items.`);
+    }
+
+    let moveConfirmDialog = document.createElement('confirm-dialog') as ConfirmDialog;
+    moveConfirmDialog.name = "Confirm Move";
+    moveConfirmDialog.onClose = () => {
+      moveConfirmDialog.remove();
+    };
+    let confirmText = document.createElement('div');
+    let fileNames = files.map((file) => {
+      return file.name;
+    });
+    confirmText.innerText = `Are you sure you want to move ${fileNames.join(', ')}?`;
+    moveConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
+      // Make sure object isn't already in this directory, and if not move it here.
+      let movePromises : Promise<void>[] = [];
+      for (let file of files){
+        movePromises.push(file.move(this.currentDirectory));
+      }
+      this.logAndLoadWrapper(Promise.all(movePromises).then(() => {}));
+
+      this.fileContextMenu.visible = false;
+    });
+    moveConfirmDialog.appendChild(confirmText);
+    document.body.appendChild(moveConfirmDialog);
+    moveConfirmDialog.visible = true;
+    moveConfirmDialog.center();
+  }
+
+  private copyFiles(files : File[]) {
+    if (files.length > this.maxNumCopy){
+      throw new Error(`cannot move more than ${this.maxNumCopy} items.`);
+    }
+
+    let moveConfirmDialog = document.createElement('confirm-dialog') as ConfirmDialog;
+    moveConfirmDialog.name = "Confirm Copy";
+    moveConfirmDialog.onClose = () => {
+      moveConfirmDialog.remove();
+    };
+    let confirmText = document.createElement('div');
+    let fileNames = files.map((file) => {
+      return file.name;
+    });
+    confirmText.innerText = `Are you sure you want to copy ${fileNames.join(', ')}?`;
+    moveConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
+      // Make sure object isn't already in this directory, and if not move it here.
+      let movePromises : Promise<void>[] = [];
+      for (let file of files){
+        movePromises.push(file.copy(this.currentDirectory));
+      }
+      this.logAndLoadWrapper(Promise.all(movePromises).then(() => {}));
+
+      this.fileContextMenu.visible = false;
+    });
+    moveConfirmDialog.appendChild(confirmText);
+    document.body.appendChild(moveConfirmDialog);
+    moveConfirmDialog.visible = true;
+    moveConfirmDialog.center();
+  }
+
+  handleDataTransfer(dataTransfer: DataTransfer) {
     // Called when item/items are dragged and dropped on the table
     this.clearMessages();
 
@@ -621,46 +730,46 @@ export class FileBrowser extends CustomElement {
             if (splitUri.length > 0 && splitUri[splitUri.length - 1].length < 255) {
               name = splitUri[splitUri.length - 1];
             }
-            promises.push(
-              (async () => {
-                let response = await fetch(uri);
-                let blob = await response.blob();
-                let buffer = await fileToArrayBuffer(blob);
-                return this.currentDirectory.addFile(buffer, name, blob.type);
-              })()
-            );
+            promises.push(this.copyUrl(uri));
           }
         }
       }
     }
 
-    this.logAndLoadWrapper(Promise.all(promises).then(() => {
-    }));
+    this.logAndLoadWrapper(Promise.all(promises).then(() => {}));
 
-    let pathText = dataTransfer.getData(FileBrowser.dataTransferType);
-    if (pathText) {
-      let path : string[] = JSON.parse(pathText).slice(1);
-      let moveConfirmDialog = document.createElement('confirm-dialog') as ConfirmDialog;
-      moveConfirmDialog.name = "Confirm Move";
-      moveConfirmDialog.onClose = () => {
-        moveConfirmDialog.remove();
+    let pathsJson = dataTransfer.getData(FileBrowser.dataTransferType);
+    if (pathsJson) {
+      let dataTransfer : FileDataTransfer = JSON.parse(pathsJson);
+      if (!isFileTransfer(dataTransfer)){
+        console.log(pathsJson);
+        this.addMessage('invalid data', true);
+        return;
+      }
+
+      let getFiles = (paths : string[][]) : Promise<File>[] => {
+        let filePromises : Promise<File>[] = [];
+        for (let path of paths){
+          if (path.length > 0 && path[0] === this.currentDirectory.root.name){
+            filePromises.push(this.currentDirectory.root.getFile(path.slice(1)));
+          }
+        }
+        return filePromises;
       };
-      let confirmText = document.createElement('div');
-      confirmText.innerText = `Are you sure you want to move /${path.join('/')}?`;
-      moveConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
-        // Make sure object isn't already in this directory, and if not move it here.
-        let moveFile = async (path: string[]) => {
-          let fileObject = await this.rootDirectory.getFile(path);
-          await fileObject.move(this.currentDirectory);
-        };
-        this.logAndLoadWrapper(moveFile(path));
 
-        this.fileContextMenu.visible = false;
-      });
-      moveConfirmDialog.appendChild(confirmText);
-      document.body.appendChild(moveConfirmDialog);
-      moveConfirmDialog.visible = true;
-      moveConfirmDialog.center();
+      if (dataTransfer.move.length > 0){
+        Promise.all(getFiles(dataTransfer.move))
+          .then((files) => {
+            this.moveFiles(files);
+          });
+      }
+
+      if (dataTransfer.copy.length > 0){
+        Promise.all(getFiles(dataTransfer.copy))
+          .then((files) => {
+            this.copyFiles(files);
+          });
+      }
     }
   }
 
@@ -688,20 +797,40 @@ export class FileBrowser extends CustomElement {
     }
   }
 
-  onCopy(event : ClipboardEvent){
+  onCutOrCopy(event : ClipboardEvent){
     event.preventDefault();
 
-    let uriList = "";
+    let urlList = "";
+    let paths : string[][] = [];
     for (let row of this.table.selectedRows) {
       if (row instanceof FileTableRow) {
         let file = row.file;
+        let path = row.path;
         if (file !== null && file.url !== null){
-          uriList += file.url + '\r\n';
+          urlList += file.url + '\r\n';
+        }
+        if (path !== null){
+          paths.push(path);
         }
       }
     }
 
-    event.clipboardData.setData('text/plain', uriList);
+    event.clipboardData.setData('text/plain', urlList);
+
+    let dataTransfer : FileDataTransfer = {
+      move: [],
+      copy: [],
+    };
+    if (event.type === 'copy'){
+      dataTransfer.copy = dataTransfer.copy.concat(paths);
+    } else if (event.type == 'cut') {
+      dataTransfer.move = dataTransfer.move.concat(paths);
+    }
+    event.clipboardData.setData(FileBrowser.dataTransferType, JSON.stringify(dataTransfer));
+  }
+
+  onPaste(event : ClipboardEvent){
+    this.handleDataTransfer(event.clipboardData);
   }
 
   async search(searchTerm: string) {

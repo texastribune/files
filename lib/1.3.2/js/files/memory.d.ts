@@ -37,7 +37,7 @@ export declare class MemoryDirectory extends files.Directory {
     rename(newName: string): Promise<void>;
     getChildren(): Promise<files.File[]>;
     search(query: string): Promise<files.SearchResult[]>;
-    private nameExists;
+    nameExists(name: string): boolean;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<MemoryFile>;
     addDirectory(name: string): Promise<MemoryDirectory>;
     addChild(memoryFile: MemoryFile | MemoryDirectory): void;
