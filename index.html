@@ -16,12 +16,16 @@
         <!--<div class="icon" data-name="Browser" data-icon="folderIcon" data-command="browser"></div>-->
         <!--<div class="icon" data-name="Terminal" data-icon="folderIcon" data-command="terminal"></div>-->
 
+        <file-browser id="browser" select-mulitple>
+            <file-browser-context-menu name="Settings"></file-browser-context-menu>
+        </file-browser>
 
 
         <script type="module">
             console.log("WINDOW", window, systemx);
             // console.log("INIT" , systemx.start());
-            let browser = document.createElement('file-browser');
+            let browser = document.getElementById('browser');
+
             systemx.createFS()
                 .then((fs) => {
                     browser.rootDirectory = fs;

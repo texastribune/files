@@ -1,11 +1,11 @@
 import "./breadCrumbs";
 import "./messages";
 import "./search";
-import "./contextMenu";
 import "elements/lib/table";
 import "elements/lib/dialog";
+import { BreadCrumbs } from "./breadCrumbs";
 import { Directory, File } from "../files/base";
-import { Row } from "elements/lib/table";
+import { Header, Row, Table } from "elements/lib/table";
 import { CachedProxyDirectory } from "../files/proxy";
 import { CustomElement } from "elements/lib/element";
 interface RowData {
@@ -24,6 +24,10 @@ export declare class FileTableRow extends Row {
     path: string[] | null;
     handleDragStart(event: DragEvent): void;
 }
+declare class FileTableHeader extends Header {
+    constructor();
+    render(shadowRoot: ShadowRoot): void;
+}
 /**
  * An element for browsing a file system.
  * @param {Directory} currentDirectory - The root directory of the browser.
@@ -41,6 +45,7 @@ export declare class FileBrowser extends CustomElement {
     static buttonClass: string;
     static fileBrowserDialogClass: string;
     static dataTransferType: string;
+    static selectMultipleAttribute: string;
     /**
      * @event
      */
@@ -61,15 +66,11 @@ export declare class FileBrowser extends CustomElement {
     private readonly tableBusyOverlay;
     private readonly breadCrumbs;
     private readonly table;
-    private readonly fileContextMenu;
     private cachedCurrentDirectory;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
     constructor();
-    static readonly observedAttributes: never[];
-    updateAttributes(attributes: {
-        [p: string]: string | null;
-    }): void;
+    static readonly observedAttributes: string[];
     rootDirectory: Directory;
     readonly currentDirectory: Directory;
     protected setCurrentDirectory(value: CachedProxyDirectory): void;
@@ -77,12 +78,15 @@ export declare class FileBrowser extends CustomElement {
     readonly selectedFileRows: FileTableRow[];
     readonly selectedFiles: File[];
     path: string[];
+    selectMultiple: boolean;
     readonly css: string;
+    updateAttributes(attributes: {
+        [p: string]: string | null;
+    }): void;
     render(shadowRoot: ShadowRoot): void;
     loadingWrapper(promise: Promise<void>): Promise<void>;
     errorLoggingWrapper(promise: Promise<void>): Promise<void>;
     logAndLoadWrapper(promise: Promise<void>): Promise<void>;
-    createMenus(): HTMLDivElement;
     private copyUrl;
     private moveFiles;
     private copyFiles;
@@ -90,8 +94,12 @@ export declare class FileBrowser extends CustomElement {
     onFileRowDoubleClick(fileRow: FileTableRow): void;
     onCutOrCopy(event: ClipboardEvent): void;
     onPaste(event: ClipboardEvent): void;
+    protected getNewTable(): Table;
+    protected getNewBreadCrumbs(): BreadCrumbs;
+    protected getNewFileTableHeader(): FileTableHeader;
+    protected getNewFileTableRow(): FileTableRow;
+    protected setTableData(rowData: RowData[]): void;
     search(searchTerm: string): Promise<void>;
-    setTableData(rowData: RowData[]): void;
     showContextMenu(positionX: number, positionY: number): void;
     execute(path: string[]): void;
     addMessage(message: Error | string, isError?: boolean): void;

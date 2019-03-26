@@ -2,7 +2,6 @@
 import "./breadCrumbs";
 import "./messages";
 import "./search";
-import "./contextMenu";
 import "elements/lib/table";
 import "elements/lib/dialog";
 
@@ -12,7 +11,7 @@ import {Directory, File, FileNotFoundError} from "../files/base";
 import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath, stringToArrayBuffer} from "../utils";
 import * as icons from './icons.js';
 import {ConfigData, parseConfigFile, updateConfigFile} from "./config";
-import {ConfirmDialog, Dialog} from "elements/lib/dialog";
+import {ConfirmDialog} from "elements/lib/dialog";
 import {Data, Header, Row, Table} from "elements/lib/table";
 import {MemoryDirectory} from "../files/memory";
 import {CachedProxyDirectory} from "../files/proxy";
@@ -167,8 +166,9 @@ class FileTableHeader extends Header {
     super();
   }
 
-  refresh(): void {
-    super.refresh();
+  render(shadowRoot : ShadowRoot): void {
+    super.render(shadowRoot);
+
     let idColumn = document.createElement('table-data') as Data;
     let nameColumn = document.createElement('table-data') as Data;
     let sizeColumn = document.createElement('table-data') as Data;
@@ -183,12 +183,15 @@ class FileTableHeader extends Header {
     createdColumn.innerText = "Created";
     typeColumn.innerText = "Type";
 
-    this.appendChild(idColumn);
-    this.appendChild(nameColumn);
-    this.appendChild(sizeColumn);
-    this.appendChild(lastModifiedColumn);
-    this.appendChild(createdColumn);
-    this.appendChild(typeColumn);
+    this.removeChildren();
+    this.appendChildren([
+      idColumn,
+      nameColumn,
+      sizeColumn,
+      lastModifiedColumn,
+      createdColumn,
+      typeColumn,
+    ]);
   }
 }
 
@@ -237,6 +240,8 @@ export class FileBrowser extends CustomElement {
 
   static dataTransferType = 'text/table-rows';
 
+  static selectMultipleAttribute = 'select-multiple';
+
   /**
    * @event
    */
@@ -260,7 +265,6 @@ export class FileBrowser extends CustomElement {
   private readonly tableBusyOverlay: HTMLDivElement;
   private readonly breadCrumbs: BreadCrumbs;
   private readonly table: Table;
-  private readonly fileContextMenu: ContextMenu;
 
   private cachedCurrentDirectory: CachedProxyDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
 
@@ -271,9 +275,9 @@ export class FileBrowser extends CustomElement {
     super();
 
     // Sub elements
-    this.table = document.createElement('selectable-table') as Table;
+    this.table = this.getNewTable();
     this.table.setAttribute('select-multiple', "");
-    this.breadCrumbs = document.createElement('bread-crumbs') as BreadCrumbs;
+    this.breadCrumbs = this.getNewBreadCrumbs();
 
     this.dropdownMenuIcon = createNode(icons.dropdownMenuIcon);
     this.dropdownMenuIcon.classList.add(FileBrowser.tableIconClass);
@@ -282,10 +286,6 @@ export class FileBrowser extends CustomElement {
     this.carrotIcon.classList.add(FileBrowser.tableIconClass);
     this.carrotIcon.classList.add('small');
 
-    // Context menu
-    this.fileContextMenu = document.createElement('file-browser-context-menu') as ContextMenu;
-    this.fileContextMenu.name = "Settings";
-
     // Actions container
     this.actionsContainer = document.createElement('div');
     this.actionsContainer.className = FileBrowser.actionsContainerClass;
@@ -293,9 +293,24 @@ export class FileBrowser extends CustomElement {
     this.messagesContainer = document.createElement('div');
     this.messagesContainer.className = FileBrowser.messageContainerClass;
 
-    this.menusContainer = this.createMenus();
+    this.menusContainer = document.createElement('div');
+    this.menusContainer.className = FileBrowser.menuContainerClass;
+    let contextMenuButton = document.createElement('div');
+    contextMenuButton.className = FileBrowser.buttonClass;
+    contextMenuButton.appendChild(this.dropdownMenuIcon.cloneNode(true));
+    contextMenuButton.appendChild(this.carrotIcon.cloneNode(true));
+    contextMenuButton.onclick = (event) => {
+      event.stopPropagation();
+      let rect = contextMenuButton.getBoundingClientRect();
+      let scrollLeft = document.documentElement.scrollLeft;
+      let scrollTop = document.documentElement.scrollTop;
+      this.showContextMenu(rect.left + scrollLeft, rect.bottom + scrollTop);
+    };
+    this.menusContainer.appendChild(contextMenuButton);
+
     this.searchElement = document.createElement('search-bar') as SearchBar;
 
+    // Table
     this.tableContainer = document.createElement('div');
     this.tableContainer.className = FileBrowser.tableContainerClass;
     this.tableBusyOverlay = document.createElement('div');
@@ -308,7 +323,7 @@ export class FileBrowser extends CustomElement {
     this.actionsContainer.appendChild(this.menusContainer);
     this.actionsContainer.appendChild(this.searchElement);
 
-    let tableHeader = document.createElement('file-header') as FileTableHeader;
+    let tableHeader = this.getNewFileTableHeader();
     this.table.appendChild(tableHeader);
 
     // Element events
@@ -327,11 +342,6 @@ export class FileBrowser extends CustomElement {
     this.addEventListener('paste', (event : ClipboardEvent) => {
       this.onPaste(event);
     });
-
-    // this.table.oncontextmenu = (event: MouseEvent) => {
-    //   event.preventDefault();
-    //   this.showContextMenu(event.pageX, event.pageY);
-    // };
 
     this.table.ondrop = (event: DragEvent) => {
       if (event.dataTransfer !== null) {
@@ -365,6 +375,8 @@ export class FileBrowser extends CustomElement {
       let dialogs = this.flatChildren(ContextMenu);
       if (dialogs.length > 0){
         event.preventDefault();
+        event.stopPropagation();
+
         for (let dialog of dialogs){
           dialog.position = {x: event.pageX, y: event.pageY};
           dialog.velocity = {x: 0, y: 0};
@@ -379,10 +391,7 @@ export class FileBrowser extends CustomElement {
   }
 
   static get observedAttributes() {
-    return [];
-  }
-
-  updateAttributes(attributes: { [p: string]: string | null }): void {
+    return [FileBrowser.selectMultipleAttribute];
   }
 
   get rootDirectory(): Directory {
@@ -452,6 +461,18 @@ export class FileBrowser extends CustomElement {
         })
     );
 
+  }
+
+  get selectMultiple() : boolean{
+    return this.getAttribute(FileBrowser.selectMultipleAttribute) !== null;
+  }
+
+  set selectMultiple(value : boolean){
+    if (value){
+      this.setAttribute(FileBrowser.selectMultipleAttribute, "");
+    } else {
+      this.removeAttribute(FileBrowser.selectMultipleAttribute);
+    }
   }
 
   get css(): string {
@@ -580,6 +601,10 @@ export class FileBrowser extends CustomElement {
     `;
   }
 
+  updateAttributes(attributes: { [p: string]: string | null }): void {
+    this.table.selectMultiple = this.selectMultiple;  // Sync select multiple
+  }
+
   render(shadowRoot: ShadowRoot): void {
     super.render(shadowRoot);
     shadowRoot.appendChild(this.breadCrumbs);
@@ -588,7 +613,6 @@ export class FileBrowser extends CustomElement {
 
     let slot = document.createElement('slot');
     shadowRoot.appendChild(slot);
-    this.appendChild(this.fileContextMenu);
   }
 
 // Wrapper utilities
@@ -622,26 +646,6 @@ export class FileBrowser extends CustomElement {
     // Combine the actions in loadingWrapper and errorLoggingWrapper.
     // WARNING this will prevent and return value and error propagation.
     return this.loadingWrapper(this.errorLoggingWrapper(promise));
-  }
-
-  // Element Builders
-
-  createMenus() {
-    let menusContainer = document.createElement('div');
-    menusContainer.className = FileBrowser.menuContainerClass;
-    let contextMenuButton = document.createElement('div');
-    contextMenuButton.className = FileBrowser.buttonClass;
-    contextMenuButton.appendChild(this.dropdownMenuIcon.cloneNode(true));
-    contextMenuButton.appendChild(this.carrotIcon.cloneNode(true));
-    contextMenuButton.onclick = (event) => {
-      event.stopPropagation();
-      let rect = contextMenuButton.getBoundingClientRect();
-      let scrollLeft = document.documentElement.scrollLeft;
-      let scrollTop = document.documentElement.scrollTop;
-      this.showContextMenu(rect.left + scrollLeft, rect.bottom + scrollTop);
-    };
-    menusContainer.appendChild(contextMenuButton);
-    return menusContainer;
   }
 
   // Actions
@@ -759,24 +763,31 @@ export class FileBrowser extends CustomElement {
         let filePromises : Promise<File>[] = [];
         for (let path of paths){
           if (path.length > 0 && path[0] === this.rootDirectory.name){
+            // make sure path relative to root directory
             filePromises.push(this.rootDirectory.getFile(path.slice(1)));
+          } else {
+            throw new Error(`invalid path`);
           }
         }
         return filePromises;
       };
 
       if (dataTransfer.move.length > 0){
-        Promise.all(getFiles(dataTransfer.move))
-          .then((files) => {
-            this.moveFiles(files);
-          });
+        this.logAndLoadWrapper(
+          Promise.all(getFiles(dataTransfer.move))
+            .then((files) => {
+              this.moveFiles(files);
+            })
+        );
       }
 
       if (dataTransfer.copy.length > 0){
-        Promise.all(getFiles(dataTransfer.copy))
-          .then((files) => {
-            this.copyFiles(files);
-          });
+        this.logAndLoadWrapper(
+          Promise.all(getFiles(dataTransfer.copy))
+            .then((files) => {
+              this.copyFiles(files);
+            })
+        )
       }
     }
   }
@@ -841,6 +852,47 @@ export class FileBrowser extends CustomElement {
     this.handleDataTransfer(event.clipboardData);
   }
 
+  // Default element creation
+
+  protected getNewTable() : Table {
+    return document.createElement('selectable-table') as Table;
+  }
+
+  protected getNewBreadCrumbs() : BreadCrumbs {
+    return document.createElement('bread-crumbs') as BreadCrumbs;
+  }
+
+  protected getNewFileTableHeader() : FileTableHeader {
+    return document.createElement('file-header') as FileTableHeader;
+  }
+
+  protected getNewFileTableRow() : FileTableRow {
+    return document.createElement('file-row') as FileTableRow;
+  }
+
+
+  // Utility functions
+
+
+  protected setTableData(rowData: RowData[]) {
+    let tableRows: Row[] = [];
+    for (let data of rowData) {
+      let tableRow : FileTableRow = this.getNewFileTableRow();
+      tableRow.file = data.file;
+      tableRow.path = data.path;
+      if (data.file instanceof Directory){
+        tableRow.addDragoverAction(() => {
+          if (data.path !== null){
+            this.path = data.path;
+          }
+        })
+      }
+      tableRows.push(tableRow);
+    }
+    this.table.rows = tableRows;
+    this.dispatchEvent(new Event(FileBrowser.EVENT_FILES_CHANGE));
+  }
+
   async search(searchTerm: string) {
     this.clearMessages();
     if (searchTerm) {
@@ -859,25 +911,6 @@ export class FileBrowser extends CustomElement {
     }
   }
 
-  setTableData(rowData: RowData[]) {
-    let tableRows: Row[] = [];
-    for (let data of rowData) {
-      let tableRow = document.createElement('file-row') as FileTableRow;
-      tableRow.file = data.file;
-      tableRow.path = data.path;
-      if (data.file instanceof Directory){
-        tableRow.addDragoverAction(() => {
-          if (data.path !== null){
-            this.path = data.path;
-          }
-        })
-      }
-      tableRows.push(tableRow);
-    }
-    this.table.rows = tableRows;
-    this.dispatchEvent(new Event(FileBrowser.EVENT_FILES_CHANGE));
-  }
-
   showContextMenu(positionX: number, positionY: number) {
     // Move the context menu to the click position
     let event = new MouseEvent("contextmenu", {
@@ -894,7 +927,12 @@ export class FileBrowser extends CustomElement {
 
   execute(path : string[]){
     let console = new ConsoleFile();
-    new Process(null, this.rootDirectory, path, console, console);
+    if (path.length > 0 && path[0] === this.rootDirectory.name){
+      // make sure path relative to root directory
+      new Process(null, this.rootDirectory, path.slice(1), console, console);
+    } else {
+      throw new Error(`invalid path`);
+    }
   }
 
   addMessage(message: Error | string, isError?: boolean) {

@@ -4,6 +4,12 @@ import {fileToArrayBuffer} from "../utils";
 import {FileBrowser, FileTableRow} from "./browser";
 
 
+const executableMimeTypes : string[] = [
+  'application/javascript',
+  'application/x-javascript',
+  'text/javascript',
+];
+
 export class ContextMenu extends Dialog {
   constructor(){
     super();
@@ -49,9 +55,9 @@ export class ContextMenu extends Dialog {
 
           items.push(this.createRenameButton(browser, selectedFile));
 
-          if (selectedFile.mimeType === 'application/javascript' || selectedFile.mimeType === 'text/javascript') {
+          if (executableMimeTypes.includes(selectedFile.mimeType)) {
             if (selectedPath !== null){
-              items.push(this.createRunButton(browser, selectedPath);
+              items.push(this.createRunButton(browser, selectedPath));
             }
           }
         }
@@ -109,7 +115,11 @@ export class ContextMenu extends Dialog {
     let runButton = document.createElement('div');
     runButton.innerText = 'Run';
     runButton.onclick = () => {
-      browser.execute(path);
+      try {
+        browser.execute(path);
+      } catch (e) {
+        browser.addMessage(e);
+      }
     };
     return runButton;
   }

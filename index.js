@@ -113,13 +113,15 @@
 // // export default setupFileSystem;
 // //
 
+// import to define custom elements
+import  "./lib/1.3.2/js/ui/browser";
+import "./lib/1.3.2/js/ui/contextMenu";
 
 import {MemoryDirectory} from "./lib/1.3.2/js/files/memory";
 import {Process} from "./lib/1.3.2/js/processes/base";
 import {stringToArrayBuffer} from "./lib/1.3.2/js/utils";
 import {ProcessDirectory} from "./lib/1.3.2/js/processes/files";
 import {DeviceDirectory} from "./lib/1.3.2/js/devices/base";
-import {FileBrowser} from "./lib/1.3.2/js/ui/browser";
 import {VirtualFS} from "./lib/1.3.2/js/files/virtual";
 import {RemoteFS} from "./lib/1.3.2/js/files/remote";
 
