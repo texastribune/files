@@ -1,6 +1,7 @@
 import "./breadCrumbs";
 import "./messages";
 import "./search";
+import "./contextMenu";
 import "elements/lib/table";
 import "elements/lib/dialog";
 import { Directory, File } from "../files/base";
@@ -11,7 +12,7 @@ interface RowData {
     path: string[];
     file: File;
 }
-declare class FileTableRow extends Row {
+export declare class FileTableRow extends Row {
     private _file;
     private _path;
     private readonly folderIcon;
@@ -70,7 +71,8 @@ export declare class FileBrowser extends CustomElement {
         [p: string]: string | null;
     }): void;
     rootDirectory: Directory;
-    protected currentDirectory: CachedProxyDirectory;
+    readonly currentDirectory: Directory;
+    protected setCurrentDirectory(value: CachedProxyDirectory): void;
     readonly files: File[];
     readonly selectedFileRows: FileTableRow[];
     readonly selectedFiles: File[];
@@ -91,7 +93,6 @@ export declare class FileBrowser extends CustomElement {
     search(searchTerm: string): Promise<void>;
     setTableData(rowData: RowData[]): void;
     showContextMenu(positionX: number, positionY: number): void;
-    getMenuItems(): HTMLDivElement[];
     execute(path: string[]): void;
     addMessage(message: Error | string, isError?: boolean): void;
     clearMessages(): void;

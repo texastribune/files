@@ -2,6 +2,7 @@
 import "./breadCrumbs";
 import "./messages";
 import "./search";
+import "./contextMenu";
 import "elements/lib/table";
 import "elements/lib/dialog";
 
@@ -19,6 +20,7 @@ import {CustomElement} from "elements/lib/element";
 import {SearchBar} from "./search";
 import {Process} from "../processes/base";
 import {ConsoleFile} from "../devices/console";
+import {ContextMenu} from "./contextMenu";
 
 
 interface RowData {
@@ -27,7 +29,7 @@ interface RowData {
 }
 
 
-class FileTableRow extends Row {
+export class FileTableRow extends Row {
   private _file: File | null = null;
   private _path: string[] | null = null;
   private readonly folderIcon: Element;
@@ -258,7 +260,7 @@ export class FileBrowser extends CustomElement {
   private readonly tableBusyOverlay: HTMLDivElement;
   private readonly breadCrumbs: BreadCrumbs;
   private readonly table: Table;
-  private readonly fileContextMenu: Dialog;
+  private readonly fileContextMenu: ContextMenu;
 
   private cachedCurrentDirectory: CachedProxyDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
 
@@ -281,7 +283,7 @@ export class FileBrowser extends CustomElement {
     this.carrotIcon.classList.add('small');
 
     // Context menu
-    this.fileContextMenu = document.createElement('base-dialog') as Dialog;
+    this.fileContextMenu = document.createElement('file-browser-context-menu') as ContextMenu;
     this.fileContextMenu.name = "Settings";
 
     // Actions container
@@ -309,7 +311,6 @@ export class FileBrowser extends CustomElement {
     let tableHeader = document.createElement('file-header') as FileTableHeader;
     this.table.appendChild(tableHeader);
 
-
     // Element events
     document.addEventListener('copy', (event : ClipboardEvent) => {
       if (this.table.selectedRows.length > 0){
@@ -327,10 +328,10 @@ export class FileBrowser extends CustomElement {
       this.onPaste(event);
     });
 
-    this.table.oncontextmenu = (event: MouseEvent) => {
-      event.preventDefault();
-      this.showContextMenu(event.pageX, event.pageY);
-    };
+    // this.table.oncontextmenu = (event: MouseEvent) => {
+    //   event.preventDefault();
+    //   this.showContextMenu(event.pageX, event.pageY);
+    // };
 
     this.table.ondrop = (event: DragEvent) => {
       if (event.dataTransfer !== null) {
@@ -359,9 +360,22 @@ export class FileBrowser extends CustomElement {
       this.path = this.breadCrumbs.path;
     });
 
+    this.oncontextmenu = (event : MouseEvent) => {
+      // allow for adding ContextMenu elements as children. These will function as context menus.
+      let dialogs = this.flatChildren(ContextMenu);
+      if (dialogs.length > 0){
+        event.preventDefault();
+        for (let dialog of dialogs){
+          dialog.position = {x: event.pageX, y: event.pageY};
+          dialog.velocity = {x: 0, y: 0};
+          dialog.visible = true;
+        }
+      }
+    };
+
     // Set initial directory
     this.busy = Promise.resolve();
-    this.currentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
+    this.setCurrentDirectory(new CachedProxyDirectory(new MemoryDirectory(null, 'root')));
   }
 
   static get observedAttributes() {
@@ -372,18 +386,18 @@ export class FileBrowser extends CustomElement {
   }
 
   get rootDirectory(): Directory {
-    return this.currentDirectory.root;
+    return this.cachedCurrentDirectory.root;
   }
 
   set rootDirectory(value: Directory) {
-    this.currentDirectory = new CachedProxyDirectory(value);
+    this.setCurrentDirectory(new CachedProxyDirectory(value));
   }
 
-  protected get currentDirectory(): CachedProxyDirectory {
+  get currentDirectory(): Directory {
     return this.cachedCurrentDirectory;
   }
 
-  protected set currentDirectory(value: CachedProxyDirectory) {
+  protected setCurrentDirectory(value: CachedProxyDirectory) {
     this.cachedCurrentDirectory = value;
     this.cachedCurrentDirectory.addOnChangeListener(() => {
       this.logAndLoadWrapper(this.refreshFiles());
@@ -421,17 +435,17 @@ export class FileBrowser extends CustomElement {
   }
 
   get path(): string[] {
-    return this.currentDirectory.path.map((directory: Directory) => {
+    return this.cachedCurrentDirectory.path.map((directory: Directory) => {
       return directory.name;
     });
   }
 
   set path(path: string[]) {
     this.logAndLoadWrapper(
-      this.currentDirectory.root.getFile(path.slice(1))
+      this.cachedCurrentDirectory.root.getFile(path.slice(1))
         .then((newDirectory) => {
           if (newDirectory instanceof CachedProxyDirectory) {
-            this.currentDirectory = newDirectory;
+            this.setCurrentDirectory(newDirectory);
           } else {
             throw new FileNotFoundError("file must be a directory");
           }
@@ -563,11 +577,6 @@ export class FileBrowser extends CustomElement {
         .${FileBrowser.menuContainerClass} {
             float: left;
         }
-        
-        base-dialog > * {
-            margin: 5px;
-            cursor: pointer;
-        }
     `;
   }
 
@@ -576,7 +585,10 @@ export class FileBrowser extends CustomElement {
     shadowRoot.appendChild(this.breadCrumbs);
     shadowRoot.appendChild(this.actionsContainer);
     shadowRoot.appendChild(this.tableContainer);
-    shadowRoot.appendChild(this.fileContextMenu);
+
+    let slot = document.createElement('slot');
+    shadowRoot.appendChild(slot);
+    this.appendChild(this.fileContextMenu);
   }
 
 // Wrapper utilities
@@ -663,8 +675,6 @@ export class FileBrowser extends CustomElement {
         movePromises.push(file.move(this.currentDirectory));
       }
       this.logAndLoadWrapper(Promise.all(movePromises).then(() => {}));
-
-      this.fileContextMenu.visible = false;
     });
     moveConfirmDialog.appendChild(confirmText);
     document.body.appendChild(moveConfirmDialog);
@@ -677,30 +687,28 @@ export class FileBrowser extends CustomElement {
       throw new Error(`cannot move more than ${this.maxNumCopy} items.`);
     }
 
-    let moveConfirmDialog = document.createElement('confirm-dialog') as ConfirmDialog;
-    moveConfirmDialog.name = "Confirm Copy";
-    moveConfirmDialog.onClose = () => {
-      moveConfirmDialog.remove();
+    let copyConfirmDialog = document.createElement('confirm-dialog') as ConfirmDialog;
+    copyConfirmDialog.name = "Confirm Copy";
+    copyConfirmDialog.onClose = () => {
+      copyConfirmDialog.remove();
     };
     let confirmText = document.createElement('div');
     let fileNames = files.map((file) => {
       return file.name;
     });
     confirmText.innerText = `Are you sure you want to copy ${fileNames.join(', ')}?`;
-    moveConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
+    copyConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
       // Make sure object isn't already in this directory, and if not move it here.
       let movePromises : Promise<void>[] = [];
       for (let file of files){
         movePromises.push(file.copy(this.currentDirectory));
       }
       this.logAndLoadWrapper(Promise.all(movePromises).then(() => {}));
-
-      this.fileContextMenu.visible = false;
     });
-    moveConfirmDialog.appendChild(confirmText);
-    document.body.appendChild(moveConfirmDialog);
-    moveConfirmDialog.visible = true;
-    moveConfirmDialog.center();
+    copyConfirmDialog.appendChild(confirmText);
+    document.body.appendChild(copyConfirmDialog);
+    copyConfirmDialog.visible = true;
+    copyConfirmDialog.center();
   }
 
   handleDataTransfer(dataTransfer: DataTransfer) {
@@ -750,8 +758,8 @@ export class FileBrowser extends CustomElement {
       let getFiles = (paths : string[][]) : Promise<File>[] => {
         let filePromises : Promise<File>[] = [];
         for (let path of paths){
-          if (path.length > 0 && path[0] === this.currentDirectory.root.name){
-            filePromises.push(this.currentDirectory.root.getFile(path.slice(1)));
+          if (path.length > 0 && path[0] === this.rootDirectory.name){
+            filePromises.push(this.rootDirectory.getFile(path.slice(1)));
           }
         }
         return filePromises;
@@ -871,241 +879,17 @@ export class FileBrowser extends CustomElement {
   }
 
   showContextMenu(positionX: number, positionY: number) {
-    // Add the items to the context menu
-    this.fileContextMenu.removeChildren();
-    this.fileContextMenu.appendChildren(this.getMenuItems());
-
     // Move the context menu to the click position
-    this.fileContextMenu.position = {x: positionX, y: positionY};
-    this.fileContextMenu.velocity = {x: 0, y: 0};
-
-    this.fileContextMenu.visible = true;
-  }
-
-  getMenuItems() {
-    let menuItems = [];
-
-    let selectedFileRows = this.selectedFileRows;
-    let selectedFiles = this.selectedFiles;
-
-    // Add items that should exist only when there is selected data.
-    if (selectedFileRows.length > 0) {
-      // Add items that should exist only when there is one selected item.
-      if (selectedFileRows.length === 1) {
-        const selectedRow = selectedFileRows[0];
-        const selectedFile = selectedRow.file;
-
-        if (selectedFile !== null) {
-          // Add an open button to navigate to the selected item.
-          let openButton = document.createElement('div');
-          openButton.innerText = 'Open';
-          openButton.onclick = () => {
-            this.onFileRowDoubleClick(selectedRow);
-            this.fileContextMenu.visible = false;
-          };
-          menuItems.push(openButton);
-
-          if (selectedFile.url) {
-            let urlButton = document.createElement('div');
-            urlButton.innerText = 'Copy Url';
-            urlButton.onclick = () => {
-              document.execCommand('copy');
-            };
-            menuItems.push(urlButton);
-          }
-
-          let renameButton = document.createElement('div');
-          renameButton.innerText = 'Rename';
-          renameButton.onclick = () => {
-            this.logAndLoadWrapper(
-              (async () => {
-                let newName = prompt("New Name");
-                if (newName !== null) {
-                  this.fileContextMenu.visible = false;
-                  await selectedFile.rename(newName);
-                  await this.refreshFiles();
-                }
-              })()
-            );
-          };
-          menuItems.push(renameButton);
-
-          if (selectedFile.mimeType === 'application/javascript' || selectedFile.mimeType === 'text/javascript') {
-            let runButton = document.createElement('div');
-            runButton.innerText = 'Run';
-            runButton.onclick = () => {
-              if (selectedRow.path !== null){
-                this.execute(selectedRow.path);
-              }
-            };
-            menuItems.push(runButton);
-          }
-        }
-      }
-
-      // Add a delete button that when clicked will delete open another dialog
-      // to confirm deletion which from there will delete all selected items.
-      let deleteButton = document.createElement('div');
-      deleteButton.innerText = 'Delete';
-      deleteButton.onclick = (event: MouseEvent) => {
-        event.preventDefault();
-        event.stopPropagation(); // Prevent from closing new dialog immediately
-
-        let deleteDialog = document.createElement('confirm-dialog') as ConfirmDialog;
-        this.fileContextMenu.appendChild(deleteDialog);
-        deleteDialog.onClose = () => {
-          deleteDialog.remove();
-        };
-        let removeText = document.createElement('div');
-        let names = [];
-        for (let file of selectedFiles) {
-          names.push(file.name);
-        }
-        removeText.innerText = `Are you sure you want to remove ${names.join(', ')}?`;
-        let promises: Promise<void>[] = [];
-        deleteDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
-          this.logAndLoadWrapper(
-            (async () => {
-              for (let file of selectedFiles) {
-                promises.push(file.delete());
-              }
-              this.fileContextMenu.visible = false;
-              await Promise.all(promises);
-              await this.currentDirectory.clearCache();
-            })()
-          );
-        });
-        deleteDialog.appendChild(removeText);
-        deleteDialog.visible = true;
-      };
-      menuItems.push(deleteButton);
-
-      // Add a move button that when clicked which opens a new menu with a nested file browser
-      // copied from this file browser to get the target path. The selected files will get moved
-      // to the target when selected.
-      if (selectedFileRows.length <= 30) {
-        let moveButton = document.createElement('div');
-        moveButton.innerText = 'Move';
-        moveButton.onclick = (event) => {
-          // Prevent from closing dialog immediately due to outside click
-          event.preventDefault();
-          event.stopPropagation();
-
-
-          let moveBrowser = document.createElement('file-browser') as FileBrowser;
-          moveBrowser.rootDirectory = this.rootDirectory;
-          let moveDialog = document.createElement('confirm-dialog') as ConfirmDialog;
-
-          moveBrowser.table.selectMultiple = false;
-          moveDialog.name = "Move Files";
-          moveDialog.confirmationText = "Select";
-          moveDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
-            this.logAndLoadWrapper(
-              (async () => {
-                let target : Directory;
-                let moveSelection =  moveBrowser.selectedFiles;
-                let first = moveSelection[0];
-                if (moveSelection.length === 1 && first instanceof Directory) {
-                  target = first;
-                } else {
-                  target = moveBrowser.currentDirectory
-                }
-
-                let movePromises = [];
-                for (let file of selectedFiles) {
-                  movePromises.push(file.move(target));
-                }
-                await Promise.all(movePromises);
-                await this.refreshFiles();
-              })()
-            );
-          });
-
-          this.fileContextMenu.appendChild(moveDialog);
-          moveDialog.addEventListener(Dialog.EVENT_CLOSED, () => {
-            this.fileContextMenu.removeChild(moveDialog);
-          });
-          moveDialog.visible = true;
-        };
-        menuItems.push(moveButton);
-      }
-    }
-
-    let addFileButton = document.createElement('div');
-    addFileButton.innerText = 'Add File';
-    addFileButton.onclick = (event) => {
-      event.preventDefault();
-      event.stopPropagation(); // Prevent from closing new dialog immediately
-
-      let fileDialog = document.createElement('confirm-dialog') as ConfirmDialog;
-      fileDialog.name = 'Add File';
-      fileDialog.confirmationText = 'Add';
-      let fileInputDiv = document.createElement('div');
-      let fileInputLabel = document.createElement('span');
-      fileInputLabel.innerText = 'File';
-      let fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInputDiv.appendChild(fileInputLabel);
-      fileInputDiv.appendChild(fileInput);
-      fileDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
-        let promises = [];
-        if (fileInput.files !== null) {
-          for (let file of fileInput.files) {
-            promises.push(fileToArrayBuffer(file).then((buffer) => {
-                return this.currentDirectory.addFile(buffer, file.name, file.type);
-              })
-            )
-          }
-        }
-
-        this.fileContextMenu.visible = false;
-
-        this.logAndLoadWrapper(Promise.all(promises).then(() => {
-        }));
-      });
-
-      fileDialog.appendChild(fileInputDiv);
-      this.fileContextMenu.appendChild(fileDialog);
-      fileDialog.visible = true;
-    };
-    menuItems.push(addFileButton);
-
-    let addDirectoryButton = document.createElement('div');
-    addDirectoryButton.innerText = 'Add Directory';
-    addDirectoryButton.onclick = () => {
-      let name = prompt("Directory Name");
-      if (name !== null) {
-        this.logAndLoadWrapper(this.currentDirectory.addDirectory(name).then(() => {
-        }));
-      }
-      this.fileContextMenu.visible = false;
-    };
-    menuItems.push(addDirectoryButton);
-
-    let showHiddenDiv = document.createElement('div');
-    let showHiddenLabel = document.createElement('span');
-    let showHiddenCheckbox = document.createElement('input');
-    showHiddenCheckbox.type = 'checkbox';
-    showHiddenCheckbox.checked = this.table.showHidden;
-    showHiddenLabel.innerText = 'Show Hidden';
-    showHiddenCheckbox.onchange = () => {
-      this.table.showHidden = showHiddenCheckbox.checked;
-    };
-    showHiddenDiv.appendChild(showHiddenLabel);
-    showHiddenDiv.appendChild(showHiddenCheckbox);
-    menuItems.push(showHiddenDiv);
-
-    let visibleColumnsButton = document.createElement('div');
-    visibleColumnsButton.innerText = 'Visible Columns';
-    visibleColumnsButton.onclick = (event) => {
-      event.preventDefault();
-      event.stopPropagation(); // Prevent from closing new dialog immediately
-
-      this.table.visibleColumnsDialog.visible = true;
-    };
-    menuItems.push(visibleColumnsButton);
-
-    return menuItems;
+    let event = new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: false,
+      view: window,
+      button: 2,
+      buttons: 0,
+      clientX: positionX,
+      clientY: positionY
+    });
+    this.dispatchEvent(event);
   }
 
   execute(path : string[]){
@@ -1148,7 +932,7 @@ export class FileBrowser extends CustomElement {
   }
 
   refreshFiles() : Promise<void> {
-    this.currentDirectory.clearCache();
+    this.cachedCurrentDirectory.clearCache();
     return this.resetFiles();
   }
 }
@@ -1230,7 +1014,7 @@ export class ConfigurableFileBrowser extends FileBrowser {
             func = column.sortCompare;
           }
           this.table.defaultSortFunc = func;
-          this.setTableData(Object.values(this.currentDirectory.data)); // Refresh data to resort with default sort
+          this.setTableData(Object.values(this.getCurrentDirectory().data)); // Refresh data to resort with default sort
         }
       }
     }

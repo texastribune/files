@@ -1,5 +1,4 @@
 import {CustomElement} from "elements/lib/element";
-import {DroppableMixin} from "elements/lib/draggable"
 
 export class BreadCrumbs extends CustomElement {
   private startCharacter : string = '|';
