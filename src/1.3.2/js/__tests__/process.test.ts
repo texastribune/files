@@ -115,6 +115,7 @@ describe('Test Process', () => {
     });
 
     test('System exit call writes to stdout', async () => {
+        // language=JavaScript
         let script = `
             await system.exit("text text");
         `;
@@ -128,9 +129,10 @@ describe('Test Process', () => {
     });
 
     test('In process directory until exit', async () => {
+        // language=JavaScript
         let script = `
             let fd = await system.open(["proc"]);
-            let procDirText = await system.readText(fd);
+            let procDirText = new TextDecoder().decode(new Uint8Array(await system.read(fd));
             await system.exit(procDirText);
         `;
         await root.addFile(stringToArrayBuffer(script), 'init.js', 'application/javascript');
@@ -146,7 +148,44 @@ describe('Test Process', () => {
         expect(postProcessData.length).toBe(0);
     });
 
+    test('get file descriptor', async () => {
+        // language=JavaScript
+        let script = `            
+            let fd = await system.open(["test.txt"]);
+            console.log("FD", fd);
+            await system.exit(fd.toString());
+        `;
+        await root.addFile(stringToArrayBuffer(script), 'init.js', 'application/javascript');
+        await root.addFile(stringToArrayBuffer("text"), 'test.txt', 'text/plain');
+        let process = new Process(null, root, ['init.js'], out, err);
+        await onProcessExit(process);
+        let textArrayBuffer = await out.read();
+        let text = parseTextArrayBuffer(textArrayBuffer);
+        console.log("text", text, parseTextArrayBuffer(await consoleDev.read()), parseTextArrayBuffer(await err.read()));
+        expect(Number.parseInt(text)).toBeGreaterThan(0);
+    });
+
+    test('read system call', async () => {
+        // language=JavaScript
+        let script = `
+            let fd = await system.open(["test.txt"]);
+            let data = await system.read(fd);
+            let numArray = new Uint8Array(data);
+            let str = String.fromCharCode.apply(null, numArray);
+            await system.exit(str);
+            
+        `;
+        await root.addFile(stringToArrayBuffer(script), 'init.js', 'application/javascript');
+        await root.addFile(stringToArrayBuffer("text"), 'test.txt', 'text/plain');
+        let process = new Process(null, root, ['init.js'], out, err);
+        await onProcessExit(process);
+        let textArrayBuffer = await out.read();
+        let text = parseTextArrayBuffer(textArrayBuffer);
+        expect(text).toMatch('text');
+    });
+
     test('Write system call', async () => {
+        // language=JavaScript
         let script = `
             let buf = Uint8Array.from([..."text"].map(ch => ch.charCodeAt(0))).buffer;
             let fd = await system.open(["test.txt"]);

@@ -303,9 +303,10 @@ export class FileBrowser extends CustomElement {
     contextMenuButton.onclick = (event) => {
       event.stopPropagation();
       let rect = contextMenuButton.getBoundingClientRect();
-      let scrollLeft = document.documentElement.scrollLeft;
-      let scrollTop = document.documentElement.scrollTop;
-      this.showContextMenu(rect.left + scrollLeft, rect.bottom + scrollTop);
+      this.showContextMenu(
+          rect.left - document.documentElement.scrollLeft,
+          rect.bottom -  document.documentElement.scrollTop,
+      );
     };
     this.menusContainer.appendChild(contextMenuButton);
 
@@ -379,7 +380,7 @@ export class FileBrowser extends CustomElement {
         event.stopPropagation();
 
         for (let dialog of dialogs){
-          dialog.position = {x: event.pageX - document.documentElement.scrollLeft, y: event.pageY - document.documentElement.scrollTop};
+          dialog.position = {x: event.pageX - window.pageXOffset, y: event.pageY - window.pageYOffset};
           dialog.velocity = {x: 0, y: 0};
           dialog.visible = true;
         }

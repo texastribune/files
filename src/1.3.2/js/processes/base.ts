@@ -161,7 +161,8 @@ export class Process extends ProcessFile {
                 // Right now executes script as function with FileSystem bound as "this". In an ideal world
                 // with dynamic imports would import as a module and could use relative paths.
                 let file = await this.workingDirectory.getFile(pathArray);
-                let scriptString = await file.readText();
+                let fileData = await file.read();
+                let scriptString =  parseTextArrayBuffer(fileData);
                 try {
                     let func = new AsyncFunction(`${scriptString};return ${variableName};`);
                     return await func.bind(this)();
