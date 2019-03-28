@@ -270,7 +270,8 @@ export class ContextMenu extends Dialog {
     visibleColumnsButton.onclick = (event) => {
       event.preventDefault();
 
-      browser.visibleColumnsDialog.visible = true;
+      let rect = this.getBoundingClientRect();
+      browser.showVisibleColumnsDialog(rect.right, rect.bottom);
     };
     return visibleColumnsButton;
   }

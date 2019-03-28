@@ -46,6 +46,7 @@ export declare class FileBrowser extends CustomElement {
     static fileBrowserDialogClass: string;
     static dataTransferType: string;
     static selectMultipleAttribute: string;
+    static showHiddenAttribute: string;
     /**
      * @event
      */
@@ -79,6 +80,7 @@ export declare class FileBrowser extends CustomElement {
     readonly selectedFiles: File[];
     path: string[];
     selectMultiple: boolean;
+    showHidden: boolean;
     readonly css: string;
     updateAttributes(attributes: {
         [p: string]: string | null;
@@ -100,6 +102,7 @@ export declare class FileBrowser extends CustomElement {
     protected getNewFileTableRow(): FileTableRow;
     protected setTableData(rowData: RowData[]): void;
     search(searchTerm: string): Promise<void>;
+    showVisibleColumnsDialog(positionX: number, positionY: number): void;
     showContextMenu(positionX: number, positionY: number): void;
     execute(path: string[]): void;
     addMessage(message: Error | string, isError?: boolean): void;

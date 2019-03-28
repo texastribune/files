@@ -241,6 +241,7 @@ export class FileBrowser extends CustomElement {
   static dataTransferType = 'text/table-rows';
 
   static selectMultipleAttribute = 'select-multiple';
+  static showHiddenAttribute = 'show-hidden';
 
   /**
    * @event
@@ -391,7 +392,7 @@ export class FileBrowser extends CustomElement {
   }
 
   static get observedAttributes() {
-    return [FileBrowser.selectMultipleAttribute];
+    return [FileBrowser.selectMultipleAttribute, FileBrowser.showHiddenAttribute];
   }
 
   get rootDirectory(): Directory {
@@ -472,6 +473,18 @@ export class FileBrowser extends CustomElement {
       this.setAttribute(FileBrowser.selectMultipleAttribute, "");
     } else {
       this.removeAttribute(FileBrowser.selectMultipleAttribute);
+    }
+  }
+
+  get showHidden() : boolean{
+    return this.getAttribute(FileBrowser.showHiddenAttribute) !== null;
+  }
+
+  set showHidden(value : boolean){
+    if (value){
+      this.setAttribute(FileBrowser.showHiddenAttribute, "");
+    } else {
+      this.removeAttribute(FileBrowser.showHiddenAttribute);
     }
   }
 
@@ -602,7 +615,8 @@ export class FileBrowser extends CustomElement {
   }
 
   updateAttributes(attributes: { [p: string]: string | null }): void {
-    this.table.selectMultiple = this.selectMultiple;  // Sync select multiple
+    this.table.selectMultiple = this.selectMultiple;  // Sync table attribute
+    this.table.showHidden = this.showHidden;  // Sync table attribute
   }
 
   render(shadowRoot: ShadowRoot): void {
@@ -909,6 +923,10 @@ export class FileBrowser extends CustomElement {
     } else {
       await this.logAndLoadWrapper(this.resetFiles());
     }
+  }
+
+  showVisibleColumnsDialog(positionX: number, positionY: number){
+    this.table.showVisibleColumnsDialog(positionX, positionY);
   }
 
   showContextMenu(positionX: number, positionY: number) {
