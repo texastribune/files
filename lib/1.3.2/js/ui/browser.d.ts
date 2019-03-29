@@ -1,6 +1,7 @@
 import "./breadCrumbs";
 import "./messages";
 import "./search";
+import "./contextMenu";
 import "elements/lib/table";
 import "elements/lib/dialog";
 import { BreadCrumbs } from "./breadCrumbs";

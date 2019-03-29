@@ -1,7 +1,8 @@
-// import models to define custom elements
+// import modules to define custom elements
 import "./breadCrumbs";
 import "./messages";
 import "./search";
+import "./contextMenu";
 import "elements/lib/table";
 import "elements/lib/dialog";
 

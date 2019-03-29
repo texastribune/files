@@ -131,7 +131,7 @@ class InitFS extends MemoryDirectory {
 
     this._extraChildren = [
         new DeviceDirectory(),
-        new ProcessDirectory()
+        new ProcessDirectory(),
     ];
   }
 

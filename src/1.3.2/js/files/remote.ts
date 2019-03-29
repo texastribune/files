@@ -203,7 +203,7 @@ class RemoteDirectory extends files.Directory {
   }
 
   get url() {
-    return 'http://localhost:8000' + this.fileData.url;
+    return this.fileData.url;
   }
 
   get icon() {
@@ -240,13 +240,11 @@ class RemoteDirectory extends files.Directory {
   }
 
   async search(query: string) : Promise<files.SearchResult[]> {
-    console.log("SEARCH", query);
     let file = await this.getFile([RemoteDirectory.searchFileName]);
     let data = await file.write(stringToArrayBuffer(query));
     let fileDataMap = parseJsonArrayBuffer(data);
     if (fileDataMap instanceof Array){
       let results : files.SearchResult[] = [];
-      console.log("MAP", fileDataMap);
       for (let data of fileDataMap){
         if (data.file.directory){
           results.push({path: data.path, file: new RemoteDirectory(this, data.file)});
