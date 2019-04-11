@@ -1,4 +1,5 @@
 import * as files from "./base";
+import { Directory } from "./base";
 interface FileData {
     id: string;
     name: string;
@@ -6,15 +7,16 @@ interface FileData {
     mimeType: string;
     lastModified: string;
     created: string;
-    url: string;
+    url: string | null;
     icon: string | null;
     size: number;
 }
 declare class RemoteFile extends files.BasicFile {
     private readonly parent;
     private readonly fileData;
+    private readonly apiUrl;
     readonly extra: {};
-    constructor(parent: RemoteDirectory, fileData: FileData);
+    constructor(parent: RemoteDirectory, fileData: FileData, apiUrl: URL);
     readonly id: string;
     readonly name: string;
     readonly mimeType: string;
@@ -27,18 +29,22 @@ declare class RemoteFile extends files.BasicFile {
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
+    copy(targetDirectory: Directory): Promise<void>;
+    move(targetDirectory: Directory): Promise<void>;
 }
 declare class RemoteDirectory extends files.Directory {
     static addDirectoryName: string;
     static addFileName: string;
     static renameFileName: string;
     static deleteFileName: string;
+    static copyFileName: string;
     static moveFileName: string;
     static searchFileName: string;
     private readonly parent;
     private readonly fileData;
+    private readonly apiUrl;
     readonly extra: {};
-    constructor(parent: RemoteDirectory | null, fileData: FileData);
+    constructor(parent: RemoteDirectory | null, fileData: FileData, apiUrl: URL);
     readonly id: string;
     readonly name: string;
     readonly lastModified: Date;
@@ -49,12 +55,14 @@ declare class RemoteDirectory extends files.Directory {
     read(): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
+    copy(targetDirectory: Directory): Promise<void>;
+    move(targetDirectory: Directory): Promise<void>;
     search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<RemoteFile>;
     addDirectory(name: string): Promise<RemoteDirectory>;
     getChildren(): Promise<files.File[]>;
 }
 export declare class RemoteFS extends RemoteDirectory {
-    constructor(url: string);
+    constructor(apiUrl: URL | string);
 }
 export {};

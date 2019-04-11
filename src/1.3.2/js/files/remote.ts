@@ -1,5 +1,6 @@
 import * as files from "./base";
 import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
+import {Directory} from "./base";
 
 const REQUEST_TIMEOUT = 30;
 
@@ -37,7 +38,7 @@ interface FileData {
   mimeType: string;
   lastModified: string;
   created: string;
-  url: string;
+  url: string | null;
   icon: string | null;
   size: number;
 }
@@ -104,12 +105,14 @@ async function ajax(url : string, query? : {[name : string] : string}, data? : B
 class RemoteFile extends files.BasicFile {
   private readonly parent : RemoteDirectory;
   private readonly fileData : FileData;
+  private readonly apiUrl : URL;
   public readonly extra = {};
 
-  constructor(parent : RemoteDirectory, fileData : FileData) {
+  constructor(parent : RemoteDirectory, fileData : FileData, apiUrl : URL) {
     super();
     this.parent = parent;
     this.fileData = fileData;
+    this.apiUrl = apiUrl;
   }
 
   get id() {
@@ -132,8 +135,8 @@ class RemoteFile extends files.BasicFile {
     return new Date(this.fileData.created);
   }
 
-  get url() {
-    return this.fileData.url;
+  get url() : string {
+    return this.fileData.url || this.apiUrl.toString() + this.id;
   }
 
   get icon() {
@@ -145,7 +148,7 @@ class RemoteFile extends files.BasicFile {
   }
 
   read(): Promise<ArrayBuffer> {
-      return ajax(this.url, {}, null, 'GET');
+    return ajax(this.url, {}, null, 'GET');
   }
 
   async write(data : ArrayBuffer) : Promise<ArrayBuffer> {
@@ -155,15 +158,34 @@ class RemoteFile extends files.BasicFile {
   async rename(newName : string) {
     let data = new FormData;
     data.append('id', this.id);
-    data.append('to', newName);
+    data.append('name', newName);
 
     let file = await this.parent.getFile([RemoteDirectory.renameFileName]);
-    await file.write(data);
+    await file.write(stringToArrayBuffer(JSON.stringify({
+      id: this.id,
+      name: newName,
+    })));
   }
 
   async delete() {
     let file = await this.parent.getFile([RemoteDirectory.deleteFileName]);
     await file.write(stringToArrayBuffer(this.id));
+  }
+
+  async copy(targetDirectory : Directory) {
+    if (targetDirectory instanceof RemoteDirectory){
+      let file = await targetDirectory.getFile([RemoteDirectory.copyFileName]);
+      await file.write(stringToArrayBuffer(this.id));
+    }
+    await super.copy(targetDirectory);
+  }
+
+  async move(targetDirectory : Directory) {
+    if (targetDirectory instanceof RemoteDirectory){
+      let file = await targetDirectory.getFile([RemoteDirectory.moveFileName]);
+      await file.write(stringToArrayBuffer(this.id));
+    }
+    await super.move(targetDirectory);
   }
 }
 
@@ -173,17 +195,20 @@ class RemoteDirectory extends files.Directory {
   static addFileName = '.add';
   static renameFileName = '.rename';
   static deleteFileName = '.delete';
+  static copyFileName = '.copy';
   static moveFileName = '.move';
   static searchFileName = '.search';
 
   private readonly parent : RemoteDirectory | null;
   private readonly fileData : FileData;
+  private readonly apiUrl : URL;
   public readonly extra = {};
 
-  constructor(parent : RemoteDirectory | null, fileData : FileData){
+  constructor(parent : RemoteDirectory | null, fileData : FileData, apiUrl : URL){
     super();
     this.parent = parent;
     this.fileData = fileData;
+    this.apiUrl = apiUrl;
   }
 
   get id() {
@@ -202,8 +227,8 @@ class RemoteDirectory extends files.Directory {
     return new Date(this.fileData.created);
   }
 
-  get url() {
-    return this.fileData.url;
+  get url() : string {
+    return this.fileData.url || this.apiUrl.toString() + this.id;
   }
 
   get icon() {
@@ -213,21 +238,25 @@ class RemoteDirectory extends files.Directory {
   get size() {
     return this.fileData.size;
   }
+
   read(): Promise<ArrayBuffer> {
     return ajax(this.url, {}, null, 'GET');
   }
 
-  async rename(newName : string) : Promise<void> {
-    let data = new FormData;
-    data.append('id', this.id);
-    data.append('to', newName);
-
+  async rename(newName : string) {
     if (this.parent == null){
       throw new Error('cannot rename root directory');
     }
 
+    let data = new FormData;
+    data.append('id', this.id);
+    data.append('name', newName);
+
     let file = await this.parent.getFile([RemoteDirectory.renameFileName]);
-    await file.write(data);
+    await file.write(stringToArrayBuffer(JSON.stringify({
+      id: this.id,
+      name: newName,
+    })));
   }
 
   async delete() : Promise<void> {
@@ -239,6 +268,22 @@ class RemoteDirectory extends files.Directory {
     await file.write(stringToArrayBuffer(this.id));
   }
 
+  async copy(targetDirectory : Directory) {
+    if (targetDirectory instanceof RemoteDirectory){
+      let file = await targetDirectory.getFile([RemoteDirectory.copyFileName]);
+      await file.write(stringToArrayBuffer(this.id));
+    }
+    await super.copy(targetDirectory);
+  }
+
+  async move(targetDirectory : Directory) {
+    if (targetDirectory instanceof RemoteDirectory){
+      let file = await targetDirectory.getFile([RemoteDirectory.moveFileName]);
+      await file.write(stringToArrayBuffer(this.id));
+    }
+    await super.move(targetDirectory);
+  }
+
   async search(query: string) : Promise<files.SearchResult[]> {
     let file = await this.getFile([RemoteDirectory.searchFileName]);
     let data = await file.write(stringToArrayBuffer(query));
@@ -247,9 +292,9 @@ class RemoteDirectory extends files.Directory {
       let results : files.SearchResult[] = [];
       for (let data of fileDataMap){
         if (data.file.directory){
-          results.push({path: data.path, file: new RemoteDirectory(this, data.file)});
+          results.push({path: data.path, file: new RemoteDirectory(this, data.file, this.apiUrl)});
         } else {
-          results.push({path: data.path, file: new RemoteFile(this, data.file)});
+          results.push({path: data.path, file: new RemoteFile(this, data.file, this.apiUrl)});
         }
       }
       return results;
@@ -267,13 +312,13 @@ class RemoteDirectory extends files.Directory {
 
     let file = await this.getFile([RemoteDirectory.addFileName]);
     let newData = await file.write(data);
-    return new RemoteFile(this, parseJsonArrayBuffer(newData));
+    return new RemoteFile(this, parseJsonArrayBuffer(newData), this.apiUrl);
   }
 
   async addDirectory(name : string) : Promise<RemoteDirectory> {
     let file = await this.getFile([RemoteDirectory.addDirectoryName]);
     let newData = await file.write(stringToArrayBuffer(name));
-    return new RemoteDirectory(this, parseJsonArrayBuffer(newData));
+    return new RemoteDirectory(this, parseJsonArrayBuffer(newData), this.apiUrl);
   }
 
   async getChildren() : Promise<files.File[]> {
@@ -286,9 +331,9 @@ class RemoteDirectory extends files.Directory {
         let fileData : FileData = fileDataMap[name];
         fileData.name = name;
         if (fileData.directory){
-          files.push(new RemoteDirectory(this, fileData));
+          files.push(new RemoteDirectory(this, fileData, this.apiUrl));
         } else {
-          files.push(new RemoteFile(this, fileData));
+          files.push(new RemoteFile(this, fileData, this.apiUrl));
         }
       }
     }
@@ -298,17 +343,19 @@ class RemoteDirectory extends files.Directory {
 }
 
 export class RemoteFS extends RemoteDirectory {
-  constructor(url : string){
+  constructor(apiUrl : URL | string){
+    let string = apiUrl.toString();
+    let normalizedApiUrl = new URL(string.endsWith("/") ? string : string + "/");
     super(null, {
-      id: url,
+      id: 'root',
       name: 'root',
       directory: true,
       mimeType: files.Directory.mimeType,
       lastModified: new Date().toISOString(),
       created: new Date().toISOString(),
-      url: url,
+      url: null,
       icon: null,
       size: 0,
-    })
+    }, normalizedApiUrl);
   }
 }
