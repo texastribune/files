@@ -3,7 +3,7 @@ import {Directory} from "./base";
 
 
 /**
- * Proxy to an file
+ * Proxy to a file
  */
 export class ProxyFile extends files.BasicFile {
   private readonly concreteFile : files.File;
@@ -72,15 +72,23 @@ export class ProxyFile extends files.BasicFile {
   delete() {
     return this.concreteFile.delete();
   }
+
+  copy(targetDirectory : Directory){
+    return this.concreteFile.copy(targetDirectory);
+  };
+
+  move(targetDirectory : Directory){
+    return this.concreteFile.move(targetDirectory);
+  }
 }
 
 
 /**
- * Proxy to an file
+ * Proxy to a directory
  * @property {Directory} concreteDirectory - The directory to proxy
  */
 export class ProxyDirectory extends files.Directory {
-  private readonly concreteDirectory : files.Directory;
+  readonly concreteDirectory : files.Directory;
 
   constructor(concreteDirectory : files.Directory){
     super();
@@ -119,10 +127,6 @@ export class ProxyDirectory extends files.Directory {
     return this.concreteDirectory.extra;
   }
 
-  onChange() {
-    this.concreteDirectory.onChange();
-  }
-
   addOnChangeListener(listener: (file: files.File) => void) {
     this.concreteDirectory.addOnChangeListener(listener);
   }
@@ -153,6 +157,9 @@ export class ProxyDirectory extends files.Directory {
 }
 
 
+/**
+ * Fires change event for local file changes such as write, rename, delete, etc.
+ */
 export class ChangeEventProxyFile extends ProxyFile {
   async write(data : ArrayBuffer) {
     let ret = await super.write(data);
@@ -172,6 +179,11 @@ export class ChangeEventProxyFile extends ProxyFile {
   }
 }
 
+
+/**
+ * Fires change event for local file changes such as rename, delete, etc. as well as
+ * when those changes happen on children of the directory.
+ */
 export class ChangeEventProxyDirectory extends ProxyDirectory {
   async rename(newName : string) {
     let ret = await super.rename(newName);
@@ -183,7 +195,6 @@ export class ChangeEventProxyDirectory extends ProxyDirectory {
     await super.delete();
     this.onChange();
   }
-
 
   async addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File> {
     let ret = super.addFile(fileData, filename, mimeType);
@@ -214,6 +225,10 @@ export class ChangeEventProxyDirectory extends ProxyDirectory {
   }
 }
 
+/**
+ * Caches the children of the directory for when getChildren is called. Listens for change events
+ * to invalidate the cache.
+ */
 export class CachedProxyDirectory extends ChangeEventProxyDirectory {
   private cachedChildren : files.File[] | null = null;
   private readonly parent : CachedProxyDirectory | null;
@@ -221,6 +236,9 @@ export class CachedProxyDirectory extends ChangeEventProxyDirectory {
   constructor(concreteDirectory : files.Directory, parentDirectory? : CachedProxyDirectory){
     super(concreteDirectory);
     this.parent = parentDirectory || null;
+    this.addOnChangeListener(() => {
+      this.clearCache();
+    })
   }
 
   get root() : files.Directory {

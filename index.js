@@ -150,7 +150,7 @@ const init = `
 export async function createFS(){
     let fs = new VirtualFS(new MemoryDirectory(null, "root"));
     let files = await fs.addDirectory("Files");
-    files.mount(new RemoteFS('/files/mediafiles/directory/'));
+    files.mount(new RemoteFS('http://localhost:8000/files/mediafiles/'));
     // let dev = await fs.addDirectory('dev');
     // dev.mount(new DeviceDirectory());
     // let proc = await fs.addDirectory('proc');

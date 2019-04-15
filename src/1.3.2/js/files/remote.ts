@@ -24,11 +24,9 @@ function encodeQueryData(data : {[name : string] : string}) {
   return '?' + ret.join('&');
 }
 
-function isCrossDomain(url : string) {
-  let a = document.createElement("a");
-  a.href = url;
+function isCrossDomain(url : URL) {
   return window.location.protocol + '//' + window.location.host !==
-    a.protocol + '//' + a.host;
+    url.protocol + '//' + url.host;
 }
 
 interface FileData {
@@ -43,15 +41,16 @@ interface FileData {
   size: number;
 }
 
-async function ajax(url : string, query? : {[name : string] : string}, data? : Blob | null, method? : 'GET' | 'POST' | 'PUT' | 'DELETE') : Promise<ArrayBuffer> {
-  console.log("URL", url, data);
+async function ajax(url : URL, query? : {[name : string] : string}, data? : FormData | Blob | null, method? : 'GET' | 'POST' | 'PUT' | 'DELETE') : Promise<ArrayBuffer> {
   return await new Promise((resolve, reject) => {
     data = data || null;
     query = query || {};
 
     method = method || 'GET';
     if (method === 'GET' || method === 'DELETE') {
-      url = url + encodeQueryData(query);
+      for (let name in query){
+        url.searchParams.append(name, query[name]);
+      }
     }
 
     let request = new XMLHttpRequest();
@@ -88,7 +87,7 @@ async function ajax(url : string, query? : {[name : string] : string}, data? : B
       }
     };
 
-    request.open(method, url, true);
+    request.open(method, url.toString(), true);
     request.timeout = REQUEST_TIMEOUT * 1000;
     if (!isCrossDomain(url)) {
       request.withCredentials = true;
@@ -100,7 +99,6 @@ async function ajax(url : string, query? : {[name : string] : string}, data? : B
     request.send(data);
   });
 }
-
 
 class RemoteFile extends files.BasicFile {
   private readonly parent : RemoteDirectory;
@@ -148,11 +146,11 @@ class RemoteFile extends files.BasicFile {
   }
 
   read(): Promise<ArrayBuffer> {
-    return ajax(this.url, {}, null, 'GET');
+    return ajax(new URL(this.url), {}, null, 'GET');
   }
 
   async write(data : ArrayBuffer) : Promise<ArrayBuffer> {
-    return await ajax(this.url, {}, new Blob([data], {type: this.mimeType}), 'POST');
+    return await ajax(new URL(this.url), {}, new Blob([data], {type: this.mimeType}), 'POST');
   }
 
   async rename(newName : string) {
@@ -173,19 +171,13 @@ class RemoteFile extends files.BasicFile {
   }
 
   async copy(targetDirectory : Directory) {
-    if (targetDirectory instanceof RemoteDirectory){
-      let file = await targetDirectory.getFile([RemoteDirectory.copyFileName]);
-      await file.write(stringToArrayBuffer(this.id));
-    }
-    await super.copy(targetDirectory);
+    let file = await targetDirectory.getFile([RemoteDirectory.copyFileName]);
+    await file.write(stringToArrayBuffer(this.id));
   }
 
   async move(targetDirectory : Directory) {
-    if (targetDirectory instanceof RemoteDirectory){
-      let file = await targetDirectory.getFile([RemoteDirectory.moveFileName]);
-      await file.write(stringToArrayBuffer(this.id));
-    }
-    await super.move(targetDirectory);
+    let file = await targetDirectory.getFile([RemoteDirectory.moveFileName]);
+    await file.write(stringToArrayBuffer(this.id));
   }
 }
 
@@ -199,14 +191,22 @@ class RemoteDirectory extends files.Directory {
   static moveFileName = '.move';
   static searchFileName = '.search';
 
-  private readonly parent : RemoteDirectory | null;
+  private readonly parent : RemoteDirectory;
   private readonly fileData : FileData;
   private readonly apiUrl : URL;
   public readonly extra = {};
 
   constructor(parent : RemoteDirectory | null, fileData : FileData, apiUrl : URL){
     super();
-    this.parent = parent;
+    if (parent === null){
+      if (this instanceof RemoteFS){
+        this.parent = this;
+      } else {
+        this.parent = new RemoteFS(apiUrl);
+      }
+    } else {
+      this.parent = parent;
+    }
     this.fileData = fileData;
     this.apiUrl = apiUrl;
   }
@@ -240,11 +240,11 @@ class RemoteDirectory extends files.Directory {
   }
 
   read(): Promise<ArrayBuffer> {
-    return ajax(this.url, {}, null, 'GET');
+    return ajax(new URL(this.url), {}, null, 'GET');
   }
 
   async rename(newName : string) {
-    if (this.parent == null){
+    if (this.parent instanceof RemoteFS){
       throw new Error('cannot rename root directory');
     }
 
@@ -260,7 +260,7 @@ class RemoteDirectory extends files.Directory {
   }
 
   async delete() : Promise<void> {
-    if (this.parent == null){
+    if (this.parent instanceof RemoteFS){
       throw new Error('cannot delete root directory');
     }
 
@@ -269,25 +269,30 @@ class RemoteDirectory extends files.Directory {
   }
 
   async copy(targetDirectory : Directory) {
-    if (targetDirectory instanceof RemoteDirectory){
-      let file = await targetDirectory.getFile([RemoteDirectory.copyFileName]);
-      await file.write(stringToArrayBuffer(this.id));
-    }
-    await super.copy(targetDirectory);
+    let file = await targetDirectory.getFile([RemoteDirectory.copyFileName]);
+    await file.write(stringToArrayBuffer(this.id));
   }
 
   async move(targetDirectory : Directory) {
-    if (targetDirectory instanceof RemoteDirectory){
-      let file = await targetDirectory.getFile([RemoteDirectory.moveFileName]);
-      await file.write(stringToArrayBuffer(this.id));
-    }
-    await super.move(targetDirectory);
+    let file = await targetDirectory.getFile([RemoteDirectory.moveFileName]);
+    await file.write(stringToArrayBuffer(this.id));
   }
 
   async search(query: string) : Promise<files.SearchResult[]> {
-    let file = await this.getFile([RemoteDirectory.searchFileName]);
-    let data = await file.write(stringToArrayBuffer(query));
-    let fileDataMap = parseJsonArrayBuffer(data);
+    let formData = new FormData;
+    formData.append(
+      'write',
+      new File(
+        [JSON.stringify({query: query})],
+        RemoteDirectory.searchFileName,
+        {type: 'application/json'},
+      ),
+    );
+    formData.append('read', RemoteDirectory.searchFileName);
+
+    let responseData = await ajax(new URL(this.parent.url), {}, formData, 'POST');
+
+    let fileDataMap = parseJsonArrayBuffer(responseData);
     if (fileDataMap instanceof Array){
       let results : files.SearchResult[] = [];
       for (let data of fileDataMap){
@@ -303,28 +308,49 @@ class RemoteDirectory extends files.Directory {
     }
   }
 
-  async addFile(fileData: ArrayBuffer, filename: string, mimeType?: string) : Promise<RemoteFile> {
-    let data = new FormData;
-    data.append('file', new Blob([fileData], {type: mimeType}));
-    if (filename) {
-      data.append('name', filename);
-    }
+  async addFile(data: ArrayBuffer, filename: string, mimeType?: string) : Promise<RemoteFile> {
+    mimeType = mimeType || 'application/octet-stream';
 
-    let file = await this.getFile([RemoteDirectory.addFileName]);
-    let newData = await file.write(data);
-    return new RemoteFile(this, parseJsonArrayBuffer(newData), this.apiUrl);
+    let addFile = await this.parent.getFile([RemoteDirectory.addFileName]);
+
+    let formData = new FormData;
+    formData.append(
+      'write',
+      new File(
+        [JSON.stringify({name: filename, type: mimeType})],
+        RemoteDirectory.addFileName,
+        {type: addFile.mimeType},
+      ),
+    );
+    formData.append('read', RemoteDirectory.addFileName);
+
+    let responseData = await ajax(new URL(this.url), {}, formData, 'POST');
+    let newFile = new RemoteFile(this, parseJsonArrayBuffer(responseData), this.apiUrl);
+    await newFile.write(data);
+    return newFile;
   }
 
   async addDirectory(name : string) : Promise<RemoteDirectory> {
-    let file = await this.getFile([RemoteDirectory.addDirectoryName]);
-    let newData = await file.write(stringToArrayBuffer(name));
-    return new RemoteDirectory(this, parseJsonArrayBuffer(newData), this.apiUrl);
+    let mkDirFile = await this.getFile([RemoteDirectory.addDirectoryName]);
+
+    let formData = new FormData;
+    formData.append(
+      'write',
+      new File(
+          [JSON.stringify({name: name})],
+          RemoteDirectory.addDirectoryName,
+          {type: mkDirFile.mimeType},
+        ),
+      );
+    formData.append('read', RemoteDirectory.addDirectoryName);
+
+    let responseData = await ajax(new URL(this.url), {}, formData, 'POST');
+    return new RemoteDirectory(this, parseJsonArrayBuffer(responseData), this.apiUrl);
   }
 
   async getChildren() : Promise<files.File[]> {
     let data = await this.read();
     let fileDataMap = parseJsonArrayBuffer(data);
-    console.log("DATA", fileDataMap);
     let files = [];
     for (let name in fileDataMap){
       if (fileDataMap.hasOwnProperty(name)){
@@ -345,7 +371,7 @@ class RemoteDirectory extends files.Directory {
 export class RemoteFS extends RemoteDirectory {
   constructor(apiUrl : URL | string){
     let string = apiUrl.toString();
-    let normalizedApiUrl = new URL(string.endsWith("/") ? string : string + "/");
+    let normalizedApiUrl = new URL(string.endsWith("/") ? string : string + "/", window.location.href);
     super(null, {
       id: 'root',
       name: 'root',

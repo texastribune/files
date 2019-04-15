@@ -3,6 +3,7 @@ import {statSync, Stats, watch, FSWatcher, existsSync} from "fs";
 import {promises as fs} from "fs";
 import * as path from 'path';
 import {FileAlreadyExistsError} from "./base";
+import {parseTextArrayBuffer} from "../utils";
 
 
 /**
@@ -69,25 +70,17 @@ export class NodeFile extends files.BasicFile {
     await fs.unlink(this.id);
   }
 
-  async copy(targetDirectory : files.Directory) {
-    throw new Error("Not implemented")
-  }
-
-  async move(targetDirectory : files.Directory) {
-    throw new Error("Not implemented")
-  }
-
   async search(query : string) {
     throw new Error("Not implemented")
   }
 
-  async read() {
+  async read() : Promise<ArrayBuffer> {
     let typedArray = await fs.readFile(this.id);
-    return typedArray.buffer;
+    return typedArray.buffer.slice(typedArray.byteOffset, typedArray.byteLength + typedArray.byteOffset);
   }
 
   async write(data : ArrayBuffer) {
-    await fs.writeFile(this.id, new Buffer.from(data));
+    await fs.writeFile(this.id, Buffer.from(data));
     return await fs.readFile(this.id);
   }
 }
@@ -144,14 +137,6 @@ export class NodeDirectory extends files.Directory {
     await fs.rmdir(this.id);
   }
 
-  async copy(targetDirectory : files.Directory) {
-    throw new Error("Not implemented")
-  }
-
-  async move(targetDirectory : files.Directory) {
-    throw new Error("Not implemented")
-  }
-
   async search(query : string) : Promise<files.SearchResult[]> {
     throw new Error("Not implemented")
   }
@@ -164,7 +149,7 @@ export class NodeDirectory extends files.Directory {
     if (existsSync(filePath)){
       throw new FileAlreadyExistsError(`file named ${name} already exists`);
     }
-    await fs.appendFile(filePath, new Buffer.from(fileData));
+    await fs.appendFile(filePath, Buffer.from(fileData));
     let stat = await fs.stat(filePath);
     return new NodeFile(filePath, stat);
   }

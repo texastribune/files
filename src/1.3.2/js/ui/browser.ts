@@ -8,7 +8,7 @@ import "elements/lib/dialog";
 
 import {BreadCrumbs} from "./breadCrumbs";
 import {Message} from "./messages";
-import {Directory, File, FileNotFoundError} from "../files/base";
+import {Directory, File, FileNotFoundError, SearchResult} from "../files/base";
 import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath, stringToArrayBuffer} from "../utils";
 import * as icons from './icons.js';
 import {ConfigData, parseConfigFile, updateConfigFile} from "./config";
@@ -687,14 +687,14 @@ export class FileBrowser extends CustomElement {
     let fileNames = files.map((file) => {
       return file.name;
     });
-    confirmText.innerText = `Are you sure you want to move ${fileNames.join(', ')}?`;
+    confirmText.innerText = `Are you sure you want to move ${fileNames.join(', ')} to ${this.currentDirectory.name}?`;
     moveConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
       // Make sure object isn't already in this directory, and if not move it here.
       let movePromises : Promise<void>[] = [];
       for (let file of files){
         movePromises.push(file.move(this.currentDirectory));
       }
-      this.logAndLoadWrapper(Promise.all(movePromises).then(() => {}));
+      this.logAndLoadWrapper(Promise.all(movePromises).then(() => {return this.refreshFiles()}));
     });
     moveConfirmDialog.appendChild(confirmText);
     document.body.appendChild(moveConfirmDialog);
@@ -716,14 +716,14 @@ export class FileBrowser extends CustomElement {
     let fileNames = files.map((file) => {
       return file.name;
     });
-    confirmText.innerText = `Are you sure you want to copy ${fileNames.join(', ')}?`;
+    confirmText.innerText = `Are you sure you want to copy ${fileNames.join(', ')} to ${this.currentDirectory.name}?`;
     copyConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
       // Make sure object isn't already in this directory, and if not move it here.
       let movePromises : Promise<void>[] = [];
       for (let file of files){
         movePromises.push(file.copy(this.currentDirectory));
       }
-      this.logAndLoadWrapper(Promise.all(movePromises).then(() => {}));
+      this.logAndLoadWrapper(Promise.all(movePromises).then(() => {return this.refreshFiles()}));
     });
     copyConfirmDialog.appendChild(confirmText);
     document.body.appendChild(copyConfirmDialog);
@@ -915,11 +915,22 @@ export class FileBrowser extends CustomElement {
       await this.logAndLoadWrapper(
         (async () => {
           let searchResults = await this.currentDirectory.search(searchTerm);
+
+          // Normalize relative path to the root directory for each result
+          let currentPath = this.path;
+          let normalizedResults : SearchResult[] = [];
+          for (let result of searchResults) {
+            normalizedResults.push({
+              file: result.file,
+              path: currentPath.concat(result.path),
+            });
+          }
+
           let readablePath = this.path.join('/');
           this.addMessage(
             `${searchResults.length} search results for "${searchTerm}" in ${readablePath}.`
           );
-          await this.setTableData(searchResults);
+          await this.setTableData(normalizedResults);
         })()
       );
     } else {

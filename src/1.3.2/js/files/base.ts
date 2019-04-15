@@ -165,7 +165,8 @@ export abstract class BasicFile implements File {
   }
 
   async copy(targetDirectory : Directory) {
-    await targetDirectory.addFile(await this.read(), this.name, this.mimeType);
+    let data = await this.read();
+    await targetDirectory.addFile(data, this.name, this.mimeType);
   }
 
   async move(targetDirectory : Directory) {

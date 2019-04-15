@@ -261,8 +261,7 @@ function testStorage(rootDirectory : Directory) {
         await file2.move(rootDirectory);
         let movedFile2 = await rootDirectory.getFile([file2Name]);
         let data = await movedFile2.read();
-        // expect(await parseTextArrayBuffer(data)).toEqual(file2String);
-        // console.log("TEST", parseTextArrayBuffer(data));
+        expect(parseTextArrayBuffer(data)).toEqual(file2String);
 
         let caughtError = null;
         await rootDirectory.getFile([dir1Name, file2Name])
@@ -270,6 +269,22 @@ function testStorage(rootDirectory : Directory) {
               caughtError = error;
           });
         expect(caughtError).toBeInstanceOf(FileNotFoundError);
+    });
+
+    test('copy method', async () => {
+        let files = await addTestFiles();
+
+        let file2 = await rootDirectory.getFile([dir1Name, file2Name]);
+
+        await file2.copy(rootDirectory);
+        let copy = await rootDirectory.getFile([file2Name]);
+        let data = await copy.read();
+
+        let existing = await rootDirectory.getFile([dir1Name, file2Name]);
+
+        expect(copy.id).not.toEqual(existing.id);
+        expect(copy.name).toEqual(existing.name);
+        expect(parseTextArrayBuffer(data)).toEqual(file2String);
     });
 
     test('change listener', async () => {

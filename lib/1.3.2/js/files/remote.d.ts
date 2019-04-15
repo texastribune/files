@@ -58,7 +58,7 @@ declare class RemoteDirectory extends files.Directory {
     copy(targetDirectory: Directory): Promise<void>;
     move(targetDirectory: Directory): Promise<void>;
     search(query: string): Promise<files.SearchResult[]>;
-    addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<RemoteFile>;
+    addFile(data: ArrayBuffer, filename: string, mimeType?: string): Promise<RemoteFile>;
     addDirectory(name: string): Promise<RemoteDirectory>;
     getChildren(): Promise<files.File[]>;
 }
