@@ -236,7 +236,7 @@ export class FileBrowser extends CustomElement {
   static messageContainerClass = 'file-message-container';
   static menuContainerClass = 'file-menu-container';
   static stateManagerContainerClass = 'file-breadcrumbs-container';
-  static buttonClass = 'dropdown-menu button';
+  static buttonClass = 'button';
   static fileBrowserDialogClass = 'file-browser-dialog';
 
   static dataTransferType = 'text/table-rows';
@@ -506,7 +506,6 @@ export class FileBrowser extends CustomElement {
           --dialog-header-height: 28px;
           --dialog-header-background-color: var(--focus-item-color);
           --dialog-header-text-color: black;
-          --table-background-color: var(--browser-background);
           
           font-family: var(--browser-font, sans-serif);
         }
