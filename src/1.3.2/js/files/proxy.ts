@@ -11,6 +11,9 @@ export class ProxyFile extends files.BasicFile {
   constructor(concreteFile : files.File){
     super();
     this.concreteFile = concreteFile;
+    this.concreteFile.addOnChangeListener(() =>{
+      this.dispatchChangeEvent();
+    });
   }
 
   get id() {
@@ -53,10 +56,6 @@ export class ProxyFile extends files.BasicFile {
     return this.concreteFile.extra;
   }
 
-  addOnChangeListener(listener: (file: files.File) => void) {
-    this.concreteFile.addOnChangeListener(listener);
-  }
-
   read() {
     return this.concreteFile.read();
   }
@@ -93,6 +92,9 @@ export class ProxyDirectory extends files.Directory {
   constructor(concreteDirectory : files.Directory){
     super();
     this.concreteDirectory = concreteDirectory;
+    this.concreteDirectory.addOnChangeListener(() =>{
+      this.dispatchChangeEvent();
+    });
   }
 
   get id() {
@@ -127,10 +129,6 @@ export class ProxyDirectory extends files.Directory {
     return this.concreteDirectory.extra;
   }
 
-  addOnChangeListener(listener: (file: files.File) => void) {
-    this.concreteDirectory.addOnChangeListener(listener);
-  }
-
   rename(newName : string) {
     return this.concreteDirectory.rename(newName);
   }
@@ -163,19 +161,19 @@ export class ProxyDirectory extends files.Directory {
 export class ChangeEventProxyFile extends ProxyFile {
   async write(data : ArrayBuffer) {
     let ret = await super.write(data);
-    this.onChange();
+    this.dispatchChangeEvent();
     return ret;
   }
 
   async rename(newName : string) {
     let ret = await super.rename(newName);
-    this.onChange();
+    this.dispatchChangeEvent();
     return ret;
   }
 
   async delete() {
     await super.delete();
-    this.onChange();
+    this.dispatchChangeEvent();
   }
 }
 
@@ -187,37 +185,41 @@ export class ChangeEventProxyFile extends ProxyFile {
 export class ChangeEventProxyDirectory extends ProxyDirectory {
   async rename(newName : string) {
     let ret = await super.rename(newName);
-    this.onChange();
+    this.dispatchChangeEvent();
     return ret;
   }
 
   async delete() {
     await super.delete();
-    this.onChange();
+    this.dispatchChangeEvent();
   }
 
   async addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File> {
-    let ret = super.addFile(fileData, filename, mimeType);
-    this.onChange();
+    let ret = await super.addFile(fileData, filename, mimeType);
+    this.dispatchChangeEvent();
     return ret;
   }
 
   async addDirectory(name: string): Promise<files.Directory> {
-    let ret = super.addDirectory(name);
-    this.onChange();
+    let ret = await super.addDirectory(name);
+    this.dispatchChangeEvent();
     return ret;
+  }
+
+  createChild(child : files.File){
+    if (child instanceof files.Directory){
+      return new ChangeEventProxyDirectory(child);
+    } else {
+      return new ChangeEventProxyFile(child);
+    }
   }
 
   async getChildren(): Promise<files.File[]> {
     let children = [];
     for (let child of await super.getChildren()){
-      if (child instanceof files.Directory){
-        child = new ChangeEventProxyDirectory(child);
-      } else {
-        child = new ChangeEventProxyFile(child);
-      }
+      child = this.createChild(child);
       child.addOnChangeListener(() => {
-        this.onChange();
+        this.dispatchChangeEvent();
       });
       children.push(child);
     }
@@ -236,9 +238,11 @@ export class CachedProxyDirectory extends ChangeEventProxyDirectory {
   constructor(concreteDirectory : files.Directory, parentDirectory? : CachedProxyDirectory){
     super(concreteDirectory);
     this.parent = parentDirectory || null;
-    this.addOnChangeListener(() => {
-      this.clearCache();
-    })
+  }
+
+  dispatchChangeEvent() {
+    this.clearCache();
+    super.dispatchChangeEvent();
   }
 
   get root() : files.Directory {
@@ -255,16 +259,17 @@ export class CachedProxyDirectory extends ChangeEventProxyDirectory {
     return this.parent.path.concat([this]);
   }
 
+  createChild(child : files.File){
+    if (child instanceof files.Directory){
+      return new CachedProxyDirectory(child, this);
+    } else {
+      return new ChangeEventProxyFile(child);
+    }
+  }
+
   async getChildren() {
     if (this.cachedChildren === null){
-      let newChildren = [];
-      for (let child of await super.getChildren()){
-        if (child instanceof files.Directory){
-          child = new CachedProxyDirectory(child, this);
-        }
-        newChildren.push(child);
-      }
-      this.cachedChildren = newChildren;
+      this.cachedChildren = await super.getChildren();
     }
     return this.cachedChildren.slice();
   }

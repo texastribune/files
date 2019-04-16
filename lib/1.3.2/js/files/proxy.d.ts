@@ -16,7 +16,6 @@ export declare class ProxyFile extends files.BasicFile {
     readonly lastModified: Date;
     readonly created: Date;
     readonly extra: Object;
-    addOnChangeListener(listener: (file: files.File) => void): void;
     read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
@@ -39,7 +38,6 @@ export declare class ProxyDirectory extends files.Directory {
     readonly lastModified: Date;
     readonly created: Date;
     readonly extra: Object;
-    addOnChangeListener(listener: (file: files.File) => void): void;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     search(query: string): Promise<files.SearchResult[]>;
@@ -64,6 +62,7 @@ export declare class ChangeEventProxyDirectory extends ProxyDirectory {
     delete(): Promise<void>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
+    createChild(child: files.File): ChangeEventProxyFile | ChangeEventProxyDirectory;
     getChildren(): Promise<files.File[]>;
 }
 /**
@@ -74,8 +73,10 @@ export declare class CachedProxyDirectory extends ChangeEventProxyDirectory {
     private cachedChildren;
     private readonly parent;
     constructor(concreteDirectory: files.Directory, parentDirectory?: CachedProxyDirectory);
+    dispatchChangeEvent(): void;
     readonly root: files.Directory;
     readonly path: files.Directory[];
+    createChild(child: files.File): ChangeEventProxyFile | CachedProxyDirectory;
     getChildren(): Promise<files.File[]>;
     clearCache(): void;
 }

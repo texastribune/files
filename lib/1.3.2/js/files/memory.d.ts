@@ -10,7 +10,7 @@ export declare class MemoryFile extends files.BasicFile {
     name: string;
     lastModified: Date;
     constructor(parent: MemoryDirectory, name: string, mimeType?: string, data?: ArrayBuffer);
-    protected onChange(): void;
+    protected dispatchChangeEvent(): void;
     readonly url: string;
     readonly size: number;
     read(): Promise<ArrayBuffer>;

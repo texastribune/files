@@ -90,7 +90,7 @@ export declare abstract class BasicFile implements File {
     /**
      * Call whenever a file is changed.
      */
-    protected onChange(): void;
+    dispatchChangeEvent(): void;
     addOnChangeListener(listener: (file: File) => void): void;
     removeOnChangeListener(listener: (file: File) => void): void;
     readonly directory: boolean;

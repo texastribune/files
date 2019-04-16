@@ -29,8 +29,8 @@ export class MemoryFile extends files.BasicFile {
         this.id = idCounter.toString();
     }
 
-    protected onChange() {
-        super.onChange();
+    protected dispatchChangeEvent() {
+        super.dispatchChangeEvent();
         this.parent.onChildChange();
     }
 
@@ -51,7 +51,7 @@ export class MemoryFile extends files.BasicFile {
     async write(data : ArrayBuffer){
         this.fileData = data;
         this.lastModified = new Date();
-        this.onChange();
+        this.dispatchChangeEvent();
         return data;
     }
 
@@ -65,7 +65,7 @@ export class MemoryFile extends files.BasicFile {
         }
         this.name = newName;
         this.lastModified = new Date();
-        this.onChange();
+        this.dispatchChangeEvent();
     }
 }
 
@@ -110,7 +110,7 @@ export class MemoryDirectory extends files.Directory {
      * Register change on parent when child changes.
      */
     public onChildChange() {
-        this.onChange();
+        this.dispatchChangeEvent();
     }
 
     async delete() {
@@ -124,7 +124,7 @@ export class MemoryDirectory extends files.Directory {
             throw new FileAlreadyExistsError(`name ${newName} already exists`);
         }
         this.name = newName;
-        this.onChange();
+        this.dispatchChangeEvent();
     }
 
     async getChildren() : Promise<files.File[]> {
@@ -174,11 +174,11 @@ export class MemoryDirectory extends files.Directory {
 
     addChild(memoryFile : MemoryFile | MemoryDirectory){
         this.children.push(memoryFile);
-        this.onChange();
+        this.dispatchChangeEvent();
     }
 
     removeChild(memoryFile : MemoryFile | MemoryDirectory){
         this.children = this.children.filter((file) => {return file !== memoryFile});
-        this.onChange();
+        this.dispatchChangeEvent();
     }
 }

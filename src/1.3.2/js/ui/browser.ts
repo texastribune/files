@@ -983,6 +983,8 @@ export class FileBrowser extends CustomElement {
   }
 
   resetFiles() : Promise<void> {
+    console.log("RESET");
+    console.trace();
     this.busy = (async () => {
       try {
         await this.busy;

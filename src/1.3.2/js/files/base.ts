@@ -121,7 +121,7 @@ export abstract class BasicFile implements File {
   /**
    * Call whenever a file is changed.
    */
-  protected onChange() {
+  dispatchChangeEvent() {
     for (let listener of this.onChangeListeners) {
       listener(this);
     }

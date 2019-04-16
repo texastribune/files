@@ -22,7 +22,7 @@ export class NodeFile extends files.BasicFile {
     this.stat = stat || statSync(path);
 
     this.watcher = watch(this.id, () => {
-      this.onChange();
+      this.dispatchChangeEvent();
     });
   }
 
@@ -98,7 +98,7 @@ export class NodeDirectory extends files.Directory {
     this.stat = stat || statSync(path);
 
     this.watcher = watch(this.id, {recursive: true}, () => {
-      this.onChange();
+      this.dispatchChangeEvent();
     });
   }
 
