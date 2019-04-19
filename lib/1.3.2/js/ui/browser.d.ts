@@ -6,28 +6,29 @@ import "elements/lib/table";
 import "elements/lib/dialog";
 import { BreadCrumbs } from "./breadCrumbs";
 import { Directory, File } from "../files/base";
-import { Header, Row, Table } from "elements/lib/table";
+import { NumberData, AbstractTableData, Header, Row, Table } from "elements/lib/table";
 import { CachedProxyDirectory } from "../files/proxy";
 import { CustomElement } from "elements/lib/element";
+export declare class FileSizeTableData extends NumberData {
+    private size;
+    data: number;
+}
+export declare class FileTableData extends AbstractTableData<File | null> {
+    private readonly folderIcon;
+    private readonly documentIcon;
+    private file;
+    static hoverImageClass: string;
+    constructor();
+    data: File | null;
+    compare(dataElement: AbstractTableData<File | null>): number;
+}
+export declare class PathTableData extends AbstractTableData<string[]> {
+    data: string[];
+    compare(dataElement: AbstractTableData<string[]>): number;
+}
 interface RowData {
     path: string[];
     file: File;
-}
-export declare class FileTableRow extends Row {
-    private _file;
-    private _path;
-    private readonly folderIcon;
-    private readonly documentIcon;
-    static hoverImageClass: string;
-    constructor();
-    readonly css: string;
-    file: File | null;
-    path: string[] | null;
-    handleDragStart(event: DragEvent): void;
-}
-declare class FileTableHeader extends Header {
-    constructor();
-    render(shadowRoot: ShadowRoot): void;
 }
 /**
  * An element for browsing a file system.
@@ -77,7 +78,7 @@ export declare class FileBrowser extends CustomElement {
     readonly currentDirectory: Directory;
     protected setCurrentDirectory(value: CachedProxyDirectory): void;
     readonly files: File[];
-    readonly selectedFileRows: FileTableRow[];
+    readonly selectedFileRows: Row[];
     readonly selectedFiles: File[];
     path: string[];
     selectMultiple: boolean;
@@ -94,13 +95,13 @@ export declare class FileBrowser extends CustomElement {
     private moveFiles;
     private copyFiles;
     handleDataTransfer(dataTransfer: DataTransfer): void;
-    onFileRowDoubleClick(fileRow: FileTableRow): void;
+    onFileRowDoubleClick(row: Row): void;
     onCutOrCopy(event: ClipboardEvent): void;
     onPaste(event: ClipboardEvent): void;
     protected getNewTable(): Table;
     protected getNewBreadCrumbs(): BreadCrumbs;
-    protected getNewFileTableHeader(): FileTableHeader;
-    protected getNewFileTableRow(): FileTableRow;
+    protected getNewFileTableHeader(): Header;
+    protected getNewFileTableRow(rowData: RowData): Row;
     protected setTableData(rowData: RowData[]): void;
     search(searchTerm: string): Promise<void>;
     showVisibleColumnsDialog(positionX: number, positionY: number): void;
@@ -110,27 +111,5 @@ export declare class FileBrowser extends CustomElement {
     clearMessages(): void;
     resetFiles(): Promise<void>;
     refreshFiles(): Promise<void>;
-}
-export declare class DialogBrowser extends FileBrowser {
-    /**
-     * An file browser inside a dialog.
-     */
-    constructor(currentDirectory: any, table: any, dialog: any);
-    readonly dialog: any;
-}
-interface BrowserConfig {
-    visibleColumns: string[] | null;
-    defaultSortColumn: string | null;
-}
-export declare class ConfigurableFileBrowser extends FileBrowser {
-    static localConfigPath: string[];
-    static sharedConfigPath: string[];
-    constructor();
-    static readonly configPaths: string[][];
-    config: BrowserConfig;
-    setupTable(): void;
-    addLocalConfigFile(): File;
-    addLocalConfig(newConfig: BrowserConfig): Promise<void>;
-    getConfig(): Promise<BrowserConfig>;
 }
 export {};

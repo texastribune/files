@@ -290,7 +290,7 @@ class RemoteDirectory extends files.Directory {
     );
     formData.append('read', RemoteDirectory.searchFileName);
 
-    let responseData = await ajax(new URL(this.parent.url), {}, formData, 'POST');
+    let responseData = await ajax(new URL(this.url), {}, formData, 'POST');
 
     let fileDataMap = parseJsonArrayBuffer(responseData);
     if (fileDataMap instanceof Array){

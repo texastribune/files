@@ -62,7 +62,7 @@ export declare class ChangeEventProxyDirectory extends ProxyDirectory {
     delete(): Promise<void>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
-    createChild(child: files.File): ChangeEventProxyFile | ChangeEventProxyDirectory;
+    createChild(child: files.File): ChangeEventProxyDirectory | ChangeEventProxyFile;
     getChildren(): Promise<files.File[]>;
 }
 /**
@@ -76,7 +76,7 @@ export declare class CachedProxyDirectory extends ChangeEventProxyDirectory {
     dispatchChangeEvent(): void;
     readonly root: files.Directory;
     readonly path: files.Directory[];
-    createChild(child: files.File): ChangeEventProxyFile | CachedProxyDirectory;
+    createChild(child: files.File): CachedProxyDirectory | ChangeEventProxyFile;
     getChildren(): Promise<files.File[]>;
     clearCache(): void;
 }

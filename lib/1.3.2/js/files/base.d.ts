@@ -138,6 +138,12 @@ export declare abstract class Directory extends BasicFile {
     abstract getChildren(): Promise<File[]>;
 }
 export interface SearchResult {
+    /**
+     * The path relative to the directory being searched
+     */
     path: string[];
+    /**
+     * The file found in the directory
+     */
     file: File;
 }

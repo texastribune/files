@@ -13,7 +13,7 @@ import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath, s
 import * as icons from './icons.js';
 import {ConfigData, parseConfigFile, updateConfigFile} from "./config";
 import {ConfirmDialog} from "elements/lib/dialog";
-import {Data, Header, Row, Table} from "elements/lib/table";
+import {TextData, NumberData, TimeData, AbstractTableData, Header, Row, Table} from "elements/lib/table";
 import {MemoryDirectory} from "../files/memory";
 import {CachedProxyDirectory} from "../files/proxy";
 import {CustomElement} from "elements/lib/element";
@@ -23,68 +23,47 @@ import {ConsoleFile} from "../devices/console";
 import {ContextMenu} from "./contextMenu";
 
 
-interface RowData {
-  path: string[],
-  file: File,
+export class FileSizeTableData extends NumberData {
+  private size : number = 0;
+
+  get data() : number {
+    return this.size;
+  }
+
+  set data(value : number){
+    this.innerText = convertBytesToReadable(value);
+    this.size = value;
+  }
 }
 
-
-export class FileTableRow extends Row {
-  private _file: File | null = null;
-  private _path: string[] | null = null;
+export class FileTableData extends AbstractTableData<File | null> {
   private readonly folderIcon: Element;
   private readonly documentIcon: Element;
+  private file : File | null;
 
   static hoverImageClass = 'hover-image';
 
-  constructor() {
+  constructor(){
     super();
-
     this.folderIcon = createNode(icons.folderIcon);
     this.folderIcon.classList.add(FileBrowser.tableIconClass);
 
     this.documentIcon = createNode(icons.documentIcon);
     this.documentIcon.classList.add(FileBrowser.tableIconClass);
+
+    this.file = null;
   }
 
-  get css(): string {
-    // language=CSS
-    return super.css + `
-        :host(.${FileTableRow.pendingActionClass}) {
-            animation-name: pending-action;
-            animation-delay: 1s;
-            animation-duration: 2s;
-        }
-        @keyframes pending-action {
-            to {background-color: var(--table-selected-item-color, #5d91e5)}
-        }
-    `;
+  get data() : File | null {
+    return this.file;
   }
 
-  get file(): File | null {
-    return this._file
-  }
+  set data(value : File | null){
+    this.file = value;
 
-  set file(value: File | null) {
-    let idColumn = document.createElement('table-data') as Data;
-    let nameColumn = document.createElement('table-data') as Data;
-    let sizeColumn = document.createElement('table-data') as Data;
-    let lastModifiedColumn = document.createElement('table-data') as Data;
-    let createdColumn = document.createElement('table-data') as Data;
-    let typeColumn = document.createElement('table-data') as Data;
-
-    this._file = value;
-    if (this._file !== null){
-      this.hidden = this._file.name.startsWith('.');
-
-      idColumn.innerText = this._file.id;
-      sizeColumn.innerText = convertBytesToReadable(this._file.size);
-      lastModifiedColumn.innerText = new Date(this._file.lastModified).toLocaleString();
-      createdColumn.innerText = new Date(this._file.created).toLocaleString();
-      typeColumn.innerText =this._file.mimeType;
-
-      // Name column
-      if (this._file.icon !== null) {
+    this.removeChildren();
+    if (this.file !== null){
+      if (this.file.icon !== null) {
         let img = document.createElement('img');
         img.width = 22;
         img.height = 22;
@@ -93,23 +72,23 @@ export class FileTableRow extends Row {
         };
         img.classList.add(FileBrowser.tableIconClass);
 
-        nameColumn.appendChild(img);
+        this.appendChild(img);
 
-        if (this._file.directory) {
-          img.src = this._file.icon;
+        if (this.file.directory) {
+          img.src = this.file.icon;
 
         } else {
-          img.src = this._file.icon;
+          img.src = this.file.icon;
 
           // Create expanded image
           let expandedImg = document.createElement('img');
-          expandedImg.className = FileTableRow.hoverImageClass;
+          expandedImg.className = FileTableData.hoverImageClass;
           expandedImg.style.display = 'none';
 
           img.onmouseover = (event) => {
-            if (this._file !== null && this._file.url !== null) {
-              console.log("URL", this._file.url);
-              expandedImg.src = this._file.url;
+            if (this.file !== null && this.file.url !== null) {
+              console.log("URL", this.file.url);
+              expandedImg.src = this.file.url;
             }
             expandedImg.style.display = 'inline-block';
           };
@@ -117,83 +96,54 @@ export class FileTableRow extends Row {
             expandedImg.style.display = 'none';
           };
 
-          nameColumn.appendChild(expandedImg);
+          this.appendChild(expandedImg);
         }
-      } else if (this._file instanceof Directory) {
-        nameColumn.appendChild(this.folderIcon);
+      } else if (this.file instanceof Directory) {
+        this.appendChild(this.folderIcon);
       } else {
-        nameColumn.appendChild(this.documentIcon);
+        this.appendChild(this.documentIcon);
       }
 
-      let text = document.createTextNode(this._file.name);
-      nameColumn.appendChild(text);
+      let text = document.createTextNode(this.file.name);
+      this.appendChild(text);
     }
-
-    this.removeChildren();
-    this.appendChildren([
-      idColumn,
-      nameColumn,
-      sizeColumn,
-      lastModifiedColumn,
-      createdColumn,
-      typeColumn,
-    ]);
   }
 
-  get path() : string[] | null {
-    return this._path;
-  }
-
-  set path(value : string[] | null) {
-    this._path = value;
-  }
-
-  handleDragStart(event: DragEvent): void {
-    super.handleDragStart(event);
-
-    if (event.dataTransfer !== null && this._path !== null){
-      let dataTransfer : FileDataTransfer = {
-        move: [this._path],
-        copy: [],
-      };
-      event.dataTransfer.setData(FileBrowser.dataTransferType, JSON.stringify(dataTransfer));
-      event.dataTransfer.dropEffect = 'move';
+  compare(dataElement: AbstractTableData<File | null>): number {
+    let name1 : string;
+    let name2 : string;
+    if (this.data === null){
+      name1 = ""
+    } else {
+      name1 = this.data.name;
     }
+    if (dataElement.data === null){
+      name2 = ""
+    } else {
+      name2 = dataElement.data.name;
+    }
+    return name1.localeCompare(name2);
   }
 }
 
-class FileTableHeader extends Header {
-  constructor() {
-    super();
+export class PathTableData extends AbstractTableData<string[]> {
+  get data() : string[] {
+    return this.innerText.split('/');
   }
 
-  render(shadowRoot : ShadowRoot): void {
-    super.render(shadowRoot);
-
-    let idColumn = document.createElement('table-data') as Data;
-    let nameColumn = document.createElement('table-data') as Data;
-    let sizeColumn = document.createElement('table-data') as Data;
-    let lastModifiedColumn = document.createElement('table-data') as Data;
-    let createdColumn = document.createElement('table-data') as Data;
-    let typeColumn = document.createElement('table-data') as Data;
-
-    idColumn.innerText = 'ID';
-    nameColumn.innerText = "Name";
-    sizeColumn.innerText = "Size";
-    lastModifiedColumn.innerText = "Last Modified";
-    createdColumn.innerText = "Created";
-    typeColumn.innerText = "Type";
-
-    this.removeChildren();
-    this.appendChildren([
-      idColumn,
-      nameColumn,
-      sizeColumn,
-      lastModifiedColumn,
-      createdColumn,
-      typeColumn,
-    ]);
+  set data(value : string[]){
+    this.innerText = value.join('/');
   }
+
+  compare(dataElement: AbstractTableData<string[]>): number {
+    return this.innerText.localeCompare(dataElement.innerText);
+  }
+}
+
+
+interface RowData {
+  path: string[],
+  file: File,
 }
 
 
@@ -359,7 +309,7 @@ export class FileBrowser extends CustomElement {
 
     this.ondblclick = (event : MouseEvent) => {
       // if a file row is double clicked
-      let fileRow = getFirstInPath(event, FileTableRow);
+      let fileRow = getFirstInPath(event, Row);
       if (fileRow !== null){
         this.onFileRowDoubleClick(fileRow);
       }
@@ -420,27 +370,27 @@ export class FileBrowser extends CustomElement {
 
   get files(): File[] {
     let files: File[] = [];
-    for (let row of this.table.flatChildren(FileTableRow)) {
-      let file = row.file;
-      if (file !== null) {
-        files.push(file);
+    for (let row of this.table.rows) {
+      for (let child of row.children){
+        if (child instanceof FileTableData && child.data !== null){
+          files.push(child.data);
+        }
       }
     }
     return files;
   }
 
-  get selectedFileRows() : FileTableRow[] {
-    return this.table.selectedRows.filter((row) => {
-      return row instanceof FileTableRow;
-    }) as FileTableRow[];
+  get selectedFileRows() : Row[] {
+    return this.table.selectedRows;
   }
 
   get selectedFiles(): File[] {
     let files: File[] = [];
     for (let row of this.selectedFileRows) {
-      let file = row.file;
-      if (file !== null) {
-        files.push(file);
+      for (let child of row.children){
+        if (child instanceof FileTableData && child.data !== null){
+          files.push(child.data);
+        }
       }
     }
     return files;
@@ -463,7 +413,6 @@ export class FileBrowser extends CustomElement {
           }
         })
     );
-
   }
 
   get selectMultiple() : boolean{
@@ -595,7 +544,7 @@ export class FileBrowser extends CustomElement {
           pointer-events: none; /*prevent interfering with drag&drop*/
         }
         
-        selectable-table .${FileTableRow.hoverImageClass} {
+        selectable-table .${FileTableData.hoverImageClass} {
           position: absolute;
           top: calc(2 * var(--table-row-height));
           max-height: calc(100% - 3 * var(--table-row-height));
@@ -807,9 +756,18 @@ export class FileBrowser extends CustomElement {
     }
   }
 
-  onFileRowDoubleClick(fileRow : FileTableRow){
-    let file = fileRow.file;
-    let path = fileRow.path;
+  onFileRowDoubleClick(row : Row){
+    let file : File | null = null;
+    let path : string[] = [];
+    for (let dataElement of row.children){
+      if (dataElement instanceof FileTableData) {
+        if (dataElement.data !== null){
+          file = dataElement.data
+        }
+      } else if (dataElement instanceof PathTableData){
+        path = dataElement.data;
+      }
+    }
     if (file !== null) {
       if (file instanceof Directory) {
         if (path !== null){
@@ -837,14 +795,13 @@ export class FileBrowser extends CustomElement {
     let urlList = "";
     let paths : string[][] = [];
     for (let row of this.table.selectedRows) {
-      if (row instanceof FileTableRow) {
-        let file = row.file;
-        let path = row.path;
-        if (file !== null && file.url !== null){
-          urlList += file.url + '\r\n';
-        }
-        if (path !== null){
-          paths.push(path);
+      for (let dataElement of row.children){
+        if (dataElement instanceof FileTableData) {
+          if (dataElement.data !== null && dataElement.data.url !== null){
+            urlList += dataElement.data.url + '\r\n';
+          }
+        } else if (dataElement instanceof PathTableData){
+          paths.push(dataElement.data);
         }
       }
     }
@@ -877,12 +834,68 @@ export class FileBrowser extends CustomElement {
     return document.createElement('bread-crumbs') as BreadCrumbs;
   }
 
-  protected getNewFileTableHeader() : FileTableHeader {
-    return document.createElement('file-header') as FileTableHeader;
+  protected getNewFileTableHeader() : Header {
+    let header  = document.createElement('table-header') as Header;
+
+    let idColumn = document.createElement('text-data') as TextData;
+    let nameColumn = document.createElement('text-data') as TextData;
+    let sizeColumn = document.createElement('text-data') as TextData;
+    let lastModifiedColumn = document.createElement('text-data') as TextData;
+    let createdColumn = document.createElement('text-data') as TextData;
+    let typeColumn = document.createElement('text-data') as TextData;
+    let pathColumn = document.createElement('text-data') as TextData;
+
+    idColumn.innerText = 'ID';
+    nameColumn.innerText = "Name";
+    sizeColumn.innerText = "Size";
+    lastModifiedColumn.innerText = "Last Modified";
+    createdColumn.innerText = "Created";
+    typeColumn.innerText = "Type";
+    pathColumn.innerText = "Path";
+
+    header.appendChildren([
+      idColumn,
+      nameColumn,
+      sizeColumn,
+      lastModifiedColumn,
+      createdColumn,
+      typeColumn,
+      pathColumn,
+    ]);
+
+    return header;
   }
 
-  protected getNewFileTableRow() : FileTableRow {
-    return document.createElement('file-row') as FileTableRow;
+  protected getNewFileTableRow(rowData : RowData) : Row {
+    let row = document.createElement('table-row') as Row;
+
+    let idColumn = document.createElement('text-data') as TextData;
+    let nameColumn = document.createElement('file-data') as FileTableData;
+    let sizeColumn = document.createElement('size-data') as FileSizeTableData;
+    let lastModifiedColumn = document.createElement('time-data') as TimeData;
+    let createdColumn = document.createElement('time-data') as TimeData;
+    let typeColumn = document.createElement('text-data') as TextData;
+    let pathColumn = document.createElement('path-data') as PathTableData;
+
+    idColumn.data = rowData.file.id;
+    nameColumn.data = rowData.file;
+    sizeColumn.data = rowData.file.size;
+    lastModifiedColumn.data = rowData.file.lastModified;
+    createdColumn.data = rowData.file.created;
+    typeColumn.data = rowData.file.mimeType;
+    pathColumn.data = rowData.path;
+
+    row.appendChildren([
+      idColumn,
+      nameColumn,
+      sizeColumn,
+      lastModifiedColumn,
+      createdColumn,
+      typeColumn,
+      pathColumn,
+    ]);
+
+    return row;
   }
 
 
@@ -892,15 +905,23 @@ export class FileBrowser extends CustomElement {
   protected setTableData(rowData: RowData[]) {
     let tableRows: Row[] = [];
     for (let data of rowData) {
-      let tableRow : FileTableRow = this.getNewFileTableRow();
-      tableRow.file = data.file;
-      tableRow.path = data.path;
+      let tableRow = this.getNewFileTableRow(data);
       if (data.file instanceof Directory){
         tableRow.addDragoverAction(() => {
           if (data.path !== null){
             this.path = data.path;
           }
-        })
+        });
+        tableRow.addEventListener('dragstart', (event : DragEvent) => {
+            if (event.dataTransfer !== null){
+              let dataTransfer : FileDataTransfer = {
+                move: [data.path],
+                copy: [],
+              };
+              event.dataTransfer.setData(FileBrowser.dataTransferType, JSON.stringify(dataTransfer));
+              event.dataTransfer.dropEffect = 'move';
+            }
+        });
       }
       tableRows.push(tableRow);
     }
@@ -983,8 +1004,6 @@ export class FileBrowser extends CustomElement {
   }
 
   resetFiles() : Promise<void> {
-    console.log("RESET");
-    console.trace();
     this.busy = (async () => {
       try {
         await this.busy;
@@ -1008,181 +1027,7 @@ export class FileBrowser extends CustomElement {
 }
 
 
-export class DialogBrowser extends FileBrowser {
-  /**
-   * An file browser inside a dialog.
-   */
-  constructor(currentDirectory, table, dialog) {
-    // Dialog must be created before browser element any child dialogs for proper order in dom to appear on top
-    dialog = dialog || new ConfirmDialog();
-
-    super(currentDirectory, table);
-
-    this._dialog = dialog;
-    this.fileContextMenu.parent = this._dialog;
-    this.table.visibleColumnsDialog.parent = this._dialog;
-    this._dialog.items = [this.element];
-  }
-
-  get dialog() {
-    return this._dialog;
-  }
-}
-
-interface BrowserConfig {
-  visibleColumns : string[] | null,
-  defaultSortColumn : string | null,
-}
-
-export class ConfigurableFileBrowser extends FileBrowser {
-  static localConfigPath = ['.config', 'browser'];
-  static sharedConfigPath = ['Files', '.config', 'browser'];
-
-  constructor() {
-    super();
-
-    this.logAndLoadWrapper(this.getConfig()
-      .then((config) => {
-        try {
-          this.config = config;
-        } catch (e) {
-          console.log(`Error setting browser config: ${e}`);
-        }
-      }));
-  }
-
-  static get configPaths() {
-    return [
-      this.sharedConfigPath,
-      this.localConfigPath
-    ];
-  }
-
-  set config(configObject : BrowserConfig) {
-    let visibleColumns = configObject.visibleColumns;
-    if (visibleColumns !== null) {
-      for (let column of this.table.columns) {
-        column.visible = visibleColumns.includes(column.name);
-      }
-    }
-
-    let defualtSortColumn = configObject.defaultSortColumn;
-    if (defualtSortColumn) {
-      let reverse = false;
-      if (defualtSortColumn.startsWith('-')) {
-        reverse = true;
-        defualtSortColumn = defualtSortColumn.slice(1)
-      }
-      for (let column of this.table.columns) {
-        if (column.name === defualtSortColumn) {
-          let func;
-          if (column.sortCompare && reverse) {
-            func = (...args) => {
-              return -column.sortCompare(...args);
-            }
-          } else {
-            func = column.sortCompare;
-          }
-          this.table.defaultSortFunc = func;
-          this.setTableData(Object.values(this.getCurrentDirectory().data)); // Refresh data to resort with default sort
-        }
-      }
-    }
-  }
-
-  setupTable() {
-    super.setupTable();
-    if (this.table) {
-      for (let column of this.table.columns) {
-        let existing = column.onVisibilityChange;
-        column.onVisibilityChange = (vis) => {
-          existing(vis);
-          let visibleColumnNames : string[] = [];
-          for (let column of this.table.columns) {
-            if (column.visible) {
-              visibleColumnNames.push(column.name);
-            }
-          }
-          this.addLocalConfig({visibleColumns: visibleColumnNames})
-            .then()
-            .catch((error) => {
-              console.log(`Error adding config: ${error}`)
-            });
-        }
-      }
-    }
-  }
-
-  async addLocalConfigFile() : File {
-    let path = ConfigurableFileBrowser.localConfigPath.slice();
-    let directory = this.rootDirectory;
-    let configFileName = path.pop();
-    if (configFileName === undefined) {
-      throw new Error('config file path must have a name');
-    }
-    let nextName = path.shift();
-
-    while (nextName !== undefined) {
-      try {
-        let nextFile = await directory.getFile([nextName]);
-        if (nextFile instanceof Directory){
-          directory = nextFile;
-        } else {
-          throw Error(`file named ${nextName} already exists`);
-        }
-      } catch (error) {
-        if (error instanceof FileNotFoundError) {
-          directory = await directory.addDirectory(nextName);
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    return await directory.addFile(stringToArrayBuffer(""), configFileName, 'text/plain');
-  }
-
-  async addLocalConfig(newConfig : BrowserConfig) {
-    let dataBuffer;
-    let configFileObject : File;
-    try {
-      configFileObject = await this.rootDirectory.getFile(ConfigurableFileBrowser.localConfigPath);
-      let oldDataBuffer = await configFileObject.read();
-      dataBuffer = await updateConfigFile(newConfig, oldDataBuffer);
-      await configFileObject.write(dataBuffer);
-    } catch (error) {
-      if (error instanceof FileNotFoundError) {
-        configFileObject = await this.addLocalConfigFile();
-        dataBuffer = await updateConfigFile(newConfig);
-        await configFileObject.write(dataBuffer);
-      }
-    }
-  }
-
-  async getConfig() : Promise<BrowserConfig> {
-    let config : ConfigData = {};
-    let configPath = ConfigurableFileBrowser.configPaths.slice();
-    let currentPath = configPath.shift();
-    while (currentPath !== undefined) {
-      let currentConfig;
-      try {
-        let configFileObject = await this.rootDirectory.getFile(currentPath);
-        let data = await configFileObject.read();
-        currentConfig = parseConfigFile(data);
-      } catch (error) {
-        console.log(`Could not get config file at /${currentPath.join('/')}: ${error}`);
-        currentConfig = {};
-      }
-      Object.assign(config, currentConfig);
-      currentPath = configPath.shift();
-    }
-    return {
-      visibleColumns: (config.visibleColumns || "").split(','),
-      defaultSortColumn: config.defaultSortColumn || null,
-    };
-  }
-}
-
 customElements.define('file-browser', FileBrowser);
-customElements.define('file-row', FileTableRow);
-customElements.define('file-header', FileTableHeader);
+customElements.define('file-data', FileTableData);
+customElements.define('size-data', FileSizeTableData);
+customElements.define('path-data', PathTableData);
