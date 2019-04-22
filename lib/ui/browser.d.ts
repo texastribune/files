@@ -83,7 +83,9 @@ export declare class FileBrowser extends CustomElement {
     protected setCurrentDirectory(value: CachedProxyDirectory): void;
     readonly files: File[];
     readonly selectedFileRows: Row[];
+    readonly selectedRowData: RowData[];
     readonly selectedFiles: File[];
+    readonly selectedPaths: string[][];
     filePath: string[];
     selectMultiple: boolean;
     showHidden: boolean;
@@ -106,6 +108,7 @@ export declare class FileBrowser extends CustomElement {
     protected getNewBreadCrumbs(): BreadCrumbs;
     protected getNewFileTableHeader(): Header;
     protected getNewFileTableRow(rowData: RowData): Row;
+    protected getRowDataFromRow(row: Row): RowData;
     protected setTableData(rowData: RowData[]): void;
     search(searchTerm: string): Promise<void>;
     showVisibleColumnsDialog(positionX: number, positionY: number): void;

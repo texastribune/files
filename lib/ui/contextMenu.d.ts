@@ -1,11 +1,12 @@
 import { Dialog } from "elements/lib/dialog";
 import { File } from "../files/base";
-import { FileBrowser, FileTableRow } from "./browser";
+import { FileBrowser } from "./browser";
+import { Row } from "elements/lib/table";
 export declare class ContextMenu extends Dialog {
     constructor();
     readonly css: string;
     getItems(browser: FileBrowser): HTMLDivElement[];
-    createOpenButton(browser: FileBrowser, fileRow: FileTableRow): HTMLDivElement;
+    createOpenButton(browser: FileBrowser, fileRow: Row): HTMLDivElement;
     createCopyButton(): HTMLDivElement;
     createRenameButton(browser: FileBrowser, selectedFile: File): HTMLDivElement;
     createRunButton(browser: FileBrowser, path: string[]): HTMLDivElement;

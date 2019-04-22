@@ -21,6 +21,7 @@ import {SearchBar} from "./search";
 import {Process} from "../processes/base";
 import {ConsoleFile} from "../devices/console";
 import {ContextMenu} from "./contextMenu";
+import Path = jest.Path;
 
 
 export class FileSizeTableData extends NumberData {
@@ -393,16 +394,24 @@ export class FileBrowser extends CustomElement {
     return this.table.selectedRows;
   }
 
-  get selectedFiles(): File[] {
-    let files: File[] = [];
-    for (let row of this.selectedFileRows) {
-      for (let child of row.children){
-        if (child instanceof FileTableData && child.data !== null){
-          files.push(child.data);
-        }
-      }
+  get selectedRowData() : RowData[] {
+    let rowData : RowData[] = [];
+    for (let row of this.selectedFileRows){
+      rowData.push(this.getRowDataFromRow(row));
     }
-    return files;
+    return rowData;
+  }
+
+  get selectedFiles(): File[] {
+    return this.selectedRowData.map((rowData) => {
+      return rowData.file;
+    });
+  }
+
+  get selectedPaths(): string[][] {
+    return this.selectedRowData.map((rowData) => {
+      return rowData.path;
+    });
   }
 
   get filePath(): string[] {
@@ -766,32 +775,22 @@ export class FileBrowser extends CustomElement {
   }
 
   onFileRowDoubleClick(row : Row){
-    let file : File | null = null;
-    let path : string[] = [];
-    for (let dataElement of row.children){
-      if (dataElement instanceof FileTableData) {
-        if (dataElement.data !== null){
-          file = dataElement.data
-        }
-      } else if (dataElement instanceof PathTableData){
-        path = dataElement.data;
-      }
-    }
-    if (file !== null) {
-      if (file instanceof Directory) {
-        if (path !== null){
-          this.filePath = path;
+    let rowData = this.getRowDataFromRow(row);
+    if (rowData.file !== null) {
+      if (rowData.file instanceof Directory) {
+        if (rowData.path !== null){
+          this.filePath = rowData.path;
         }
       } else {
-        if (file.url !== null) {
-          if (file.url.startsWith('data')) {
+        if (rowData.file.url !== null) {
+          if (rowData.file.url.startsWith('data')) {
             // Download if its a data url.
             let link = document.createElement('a');
-            link.href = file.url || "";
-            link.setAttribute('download', file.name);
+            link.href = rowData.file.url || "";
+            link.setAttribute('download', rowData.file.name);
             link.click();
           } else {
-            window.open(file.url);
+            window.open(rowData.file.url);
           }
         }
       }
@@ -909,6 +908,29 @@ export class FileBrowser extends CustomElement {
     }
 
     return row;
+  }
+
+  protected getRowDataFromRow(row : Row) : RowData {
+    let file : File | null = null;
+    let path : string[] | null = null;
+    for (let child of row.children){
+      if (child instanceof FileTableData && child.data !== null){
+        file = child.data;
+      }
+      if (child instanceof PathTableData){
+        path = child.data;
+      }
+    }
+    if (file === null){
+      throw new Error("no file for row");
+    }
+    if (path === null){
+      throw new Error("no path for row");
+    }
+    return {
+      file: file,
+      path: path,
+    }
   }
 
 

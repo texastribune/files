@@ -1,7 +1,8 @@
 import {ConfirmDialog, Dialog} from "elements/lib/dialog";
 import {Directory, File} from "../files/base";
 import {fileToArrayBuffer} from "../utils";
-import {FileBrowser, FileTableRow} from "./browser";
+import {FileBrowser} from "./browser";
+import {Row} from "elements/lib/table";
 
 
 const executableMimeTypes : string[] = [
@@ -35,32 +36,36 @@ export class ContextMenu extends Dialog {
   getItems(browser : FileBrowser): HTMLDivElement[] {
     let items : HTMLDivElement[] = [];
 
-    let selectedFileRows = browser.selectedFileRows;
-    let selectedFiles = browser.selectedFiles;
+    let selectedRows = browser.selectedFileRows;
+    if (selectedRows.length === 1){
+      items.push(this.createOpenButton(browser, selectedRows[0]));
+    }
+
+    let selectedRowData = browser.selectedRowData;
 
     // Add items that should exist only when there is selected data.
-    if (selectedFileRows.length > 0) {
+    if (selectedRowData.length > 0) {
       // Add items that should exist only when there is one selected item.
-      if (selectedFileRows.length === 1) {
-        const selectedRow = selectedFileRows[0];
-        const selectedFile = selectedRow.file;
-        const selectedPath = selectedRow.path;
+      if (selectedRowData.length === 1) {
+        const selectedFile = selectedRowData[0].file;
+        const selectedPath = selectedRowData[0].path;
 
-        if (selectedFile !== null) {
-          items.push(this.createOpenButton(browser, selectedRow));
+        if (selectedFile.url) {
+          items.push(this.createCopyButton());
+        }
 
-          if (selectedFile.url) {
-            items.push(this.createCopyButton());
-          }
+        items.push(this.createRenameButton(browser, selectedFile));
 
-          items.push(this.createRenameButton(browser, selectedFile));
-
-          if (executableMimeTypes.includes(selectedFile.mimeType)) {
-            if (selectedPath !== null){
-              items.push(this.createRunButton(browser, selectedPath));
-            }
+        if (executableMimeTypes.includes(selectedFile.mimeType)) {
+          if (selectedPath !== null){
+            items.push(this.createRunButton(browser, selectedPath));
           }
         }
+      }
+
+      let selectedFiles : File[] = [];
+      for (let rowData of selectedRowData){
+        selectedFiles.push(rowData.file);
       }
 
       items.push(this.createDeleteButton(browser, selectedFiles));
@@ -75,7 +80,7 @@ export class ContextMenu extends Dialog {
     return items;
   }
 
-  createOpenButton(browser : FileBrowser, fileRow : FileTableRow){
+  createOpenButton(browser : FileBrowser, fileRow : Row){
     let openButton = document.createElement('div');
     openButton.innerText = 'Open';
     openButton.onclick = () => {
