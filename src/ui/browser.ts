@@ -194,10 +194,16 @@ export class FileBrowser extends CustomElement {
   static selectMultipleAttribute = 'select-multiple';
   static showHiddenAttribute = 'show-hidden';
 
+
   /**
    * @event
    */
-  static EVENT_FILES_CHANGE = 'change';
+  static EVENT_DIRECTORY_CHANGE = 'directory-change';
+
+  /**
+   * @event
+   */
+  static EVENT_FILES_CHANGE = 'files-change';
 
   /**
    * @event
@@ -366,6 +372,9 @@ export class FileBrowser extends CustomElement {
     });
     this.logAndLoadWrapper(this.refreshFiles());
     this.breadCrumbs.path = this.path;
+
+    let event = new Event(FileBrowser.EVENT_DIRECTORY_CHANGE);
+    this.dispatchEvent(event);
   }
 
   get files(): File[] {

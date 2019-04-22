@@ -52,6 +52,10 @@ export declare class FileBrowser extends CustomElement {
     /**
      * @event
      */
+    static EVENT_DIRECTORY_CHANGE: string;
+    /**
+     * @event
+     */
     static EVENT_FILES_CHANGE: string;
     /**
      * @event
