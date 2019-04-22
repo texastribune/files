@@ -84,7 +84,7 @@ export declare class FileBrowser extends CustomElement {
     readonly files: File[];
     readonly selectedFileRows: Row[];
     readonly selectedFiles: File[];
-    path: string[];
+    filePath: string[];
     selectMultiple: boolean;
     showHidden: boolean;
     readonly css: string;

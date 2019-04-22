@@ -326,7 +326,7 @@ export class FileBrowser extends CustomElement {
     });
 
     this.breadCrumbs.addEventListener(BreadCrumbs.EVENT_PATH_CHANGE, (event: Event) => {
-      this.path = this.breadCrumbs.path;
+      this.filePath = this.breadCrumbs.path;
     });
 
     this.oncontextmenu = (event : MouseEvent) => {
@@ -371,7 +371,7 @@ export class FileBrowser extends CustomElement {
       this.logAndLoadWrapper(this.refreshFiles());
     });
     this.logAndLoadWrapper(this.refreshFiles());
-    this.breadCrumbs.path = this.path;
+    this.breadCrumbs.path = this.filePath;
 
     let event = new Event(FileBrowser.EVENT_DIRECTORY_CHANGE);
     this.dispatchEvent(event);
@@ -405,13 +405,13 @@ export class FileBrowser extends CustomElement {
     return files;
   }
 
-  get path(): string[] {
+  get filePath(): string[] {
     return this.cachedCurrentDirectory.path.map((directory: Directory) => {
       return directory.name;
     });
   }
 
-  set path(path: string[]) {
+  set filePath(path: string[]) {
     this.logAndLoadWrapper(
       this.cachedCurrentDirectory.root.getFile(path.slice(1))
         .then((newDirectory) => {
@@ -780,7 +780,7 @@ export class FileBrowser extends CustomElement {
     if (file !== null) {
       if (file instanceof Directory) {
         if (path !== null){
-          this.path = path;
+          this.filePath = path;
         }
       } else {
         if (file.url !== null) {
@@ -918,7 +918,7 @@ export class FileBrowser extends CustomElement {
       if (data.file instanceof Directory){
         tableRow.addDragoverAction(() => {
           if (data.path !== null){
-            this.path = data.path;
+            this.filePath = data.path;
           }
         });
         tableRow.addEventListener('dragstart', (event : DragEvent) => {
@@ -946,7 +946,7 @@ export class FileBrowser extends CustomElement {
           let searchResults = await this.currentDirectory.search(searchTerm);
 
           // Normalize relative path to the root directory for each result
-          let currentPath = this.path;
+          let currentPath = this.filePath;
           let normalizedResults : SearchResult[] = [];
           for (let result of searchResults) {
             normalizedResults.push({
@@ -955,7 +955,7 @@ export class FileBrowser extends CustomElement {
             });
           }
 
-          let readablePath = this.path.join('/');
+          let readablePath = this.filePath.join('/');
           this.addMessage(
             `${searchResults.length} search results for "${searchTerm}" in ${readablePath}.`
           );
@@ -1020,7 +1020,7 @@ export class FileBrowser extends CustomElement {
       let children = await this.currentDirectory.getChildren();
       let rowData: RowData[] = children.map((child) => {
         return {
-          path: this.path.concat([child.name]),
+          path: this.filePath.concat([child.name]),
           file: child,
         }
       });
