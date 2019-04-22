@@ -904,6 +904,10 @@ export class FileBrowser extends CustomElement {
       pathColumn,
     ]);
 
+    if (rowData.file.name.startsWith(".")){
+      row.hidden = true;
+    }
+
     return row;
   }
 
