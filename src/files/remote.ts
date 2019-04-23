@@ -350,21 +350,16 @@ class RemoteDirectory extends files.Directory {
 
   async getChildren() : Promise<files.File[]> {
     let data = await this.read();
-    let fileDataMap = parseJsonArrayBuffer(data);
+    let fileDataArray = parseJsonArrayBuffer(data) as FileData[];
     let files = [];
-    for (let name in fileDataMap){
-      if (fileDataMap.hasOwnProperty(name)){
-        let fileData : FileData = fileDataMap[name];
-        fileData.name = name;
-        if (fileData.directory){
-          files.push(new RemoteDirectory(this, fileData, this.apiUrl));
-        } else {
-          files.push(new RemoteFile(this, fileData, this.apiUrl));
-        }
+    for (let fileData of fileDataArray){
+      if (fileData.directory){
+        files.push(new RemoteDirectory(this, fileData, this.apiUrl));
+      } else {
+        files.push(new RemoteFile(this, fileData, this.apiUrl));
       }
     }
     return files;
-
   }
 }
 
