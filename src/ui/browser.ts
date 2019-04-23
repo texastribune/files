@@ -88,7 +88,6 @@ export class FileTableData extends AbstractTableData<File | null> {
 
           img.onmouseover = (event) => {
             if (this.file !== null && this.file.url !== null) {
-              console.log("URL", this.file.url);
               expandedImg.src = this.file.url;
             }
             expandedImg.style.display = 'inline-block';
@@ -564,8 +563,8 @@ export class FileBrowser extends CustomElement {
         
         selectable-table .${FileTableData.hoverImageClass} {
           position: absolute;
-          top: calc(2 * var(--table-row-height));
-          max-height: calc(100% - 3 * var(--table-row-height));
+          top: 5%;
+          max-height: 90%;
           z-index: 99999;
           background-color: white;
           border: 1px solid black;
