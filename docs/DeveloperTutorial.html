@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Developers</title>
+</head>
+
+    <body>
+        <nav>
+            <h2><a href="index.html">Home</a></h2><h3>Tutorials</h3><ul><li><a href="DeveloperTutorial.html">Developers</a></li><li><a href="tutorial-UserInterfaceTutorial.html">User Interface</a></li></ul>
+        </nav>
+        <div id="main">
+            <h1 class="page-title">Tutorial: Developers</h1>
+            <section>
+                <header>
+                    <ul>
+                        <li>
+                            <a href="QuickStartTutorial.html">Quick Start</a>
+                        </li>
+                        <li>
+                            <a href="ContributingTutorial.html">Contributing</a>
+                        </li>
+                    </ul>
+
+                    <h2>Developers</h2>
+                    <p>
+                        You can see the full developer API here: <a href="api">Developer API</a>
+                    </p>
+                </header>
+
+                <article>
+                    <h3>File Browsers</h3>
+                    <p>
+                        To include a file browser in an HTML document import the ui/browser.js file
+                        to define the custom element and then add a file-browser custom element to the document.
+                        The element will initially no show any files because the default root directory is empty.
+                        Via javascript create an instance of Directory and set that as the root_directory
+                        property on the file browser element.
+                    </p>
+
+                    <h3>Directories</h3>
+                    <p>
+                        There are already a few Directory implementations available, such as
+                        local storage, in memory, and NodeJS,
+                        as well as others. You can also implement your own by overriding all of the abstract methods.
+                    </p>
+                </article>
+            </section>
+        </div>
+    </body>
+</html>

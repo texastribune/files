@@ -29,7 +29,7 @@ export class MemoryFile extends files.BasicFile {
         this.id = idCounter.toString();
     }
 
-    protected dispatchChangeEvent() {
+    public dispatchChangeEvent() {
         super.dispatchChangeEvent();
         this.parent.onChildChange();
     }
