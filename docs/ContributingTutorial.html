@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Contributing</title>
+</head>
+
+    <body>
+        <nav>
+            <h2><a href="index.html">Home</a></h2>
+
+            <h3>Tutorials</h3>
+                <ul>
+                    <li>
+                        <a href="DeveloperTutorial.html">Developers</a>
+                    </li>
+                    <li>
+                        <a href="UserInterfaceTutorial.html">User Interface</a>
+                    </li>
+                </ul>
+        </nav>
+
+        <div id="main">
+            <h1 class="page-title">Tutorial: Contributing</h1>
+            <section>
+
+        <header>
+            <h2>Contributing</h2>
+        </header>
+
+        <article>
+            <h3>Tests</h3>
+            <p>
+                This project uses jest to run automated tests. The tests reside any directory named __test__
+                within the /src directory. To run tests, run <code>npm run test</code>.
+            </p>
+
+            <h3>Making documentation</h3>
+            <p>
+                This project uses JSDoc to create automated documentation. Classes, functions, etc. that make up the
+                public api of this project should use JSDoc compatible comments in the code
+                (http://usejsdoc.org/about-getting-started.html#adding-documentation-comments-to-your-code).</p>
+            <p>
+                Static assets can be placed in the /docs/assets directory and referenced like so <code>&lt;img src=&quot;assets/foo.png&quot;&gt;</code>.
+                Tutorials can be placed in the tutorials folder as markdown files.
+            </p>
+            <p>
+                To build the documentation, run <code>npm run docs</code>. If all goes well, the latest documentation should
+                built and output to the /docs folder.
+            </p>
+        </article>
+
+        </section>
+
+        </div>
+
+    </body>
+</html>

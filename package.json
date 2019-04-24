@@ -1,60 +1,31 @@
 {
   "name": "ttfiles",
-  "version": "1.3.2",
+  "version": "2.0.0",
   "description": "The Texas Tribune Files App",
   "private": true,
   "scripts": {
     "build": "webpack",
+    "run": "webpack --watch",
     "test": "jest --coverage -i --verbose --bail --ci",
     "test:basic": "jest -i",
-    "docs": "./node_modules/.bin/jsdoc -c ./docs-conf.json"
+    "doc": "tsc -p tsconfig.docs.json && typedoc --options typedoc.json src/"
   },
   "devDependencies": {
-    "babel-core": "^6.3.26",
-    "babel-jest": "^21.2.0",
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "@types/jest": "^24.0.9",
+    "@types/node": "^11.9.0",
+    "@webcomponents/webcomponentsjs": "^2.2.7",
+    "babel-jest": "^24.5.0",
     "babel-loader": "7.1.3",
-    "babel-preset-env": "^1.6.1",
-    "jest": "^21.2.1",
-    "jsdoc": "^3.5.5",
-    "webpack": "^4.4.1",
-    "webpack-cli": "^2.0.13"
+    "fake-indexeddb": "^2.0.4",
+    "jest": "^24.3.0",
+    "typedoc": "^0.14.2",
+    "typescript": "^3.2.2",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2"
   },
-  "dependencies": {},
-  "jest": {
-    "collectCoverageFrom": [
-      "**/*.{js,jsx}",
-      "!**/node_modules/**",
-      "!**/dist/**",
-      "!**/doc/**",
-      "!**/vendor/**"
-    ],
-    "coverageReporters": [
-      "json",
-      "html"
-    ],
-    "coverageDirectory": "reports/js",
-    "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "/reports/",
-      "/docs/",
-      "/dist/"
-    ],
-    "globals": {
-      "NODE_ENV": "test"
-    },
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/reports/"
-    ],
-    "modulePathIgnorePatterns": [
-      "/static_root/",
-      "/reports/"
-    ],
-    "moduleFileExtensions": [
-      "js"
-    ],
-    "moduleDirectories": [
-      "node_modules"
-    ]
+  "dependencies": {
+    "elements": "git://github.com/tjb346/elements.git"
   }
 }
