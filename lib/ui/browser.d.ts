@@ -6,12 +6,13 @@ import "elements/lib/table";
 import "elements/lib/dialog";
 import { BreadCrumbs } from "./breadCrumbs";
 import { Directory, File } from "../files/base";
-import { NumberData, AbstractTableData, Header, Row, Table } from "elements/lib/table";
+import { AbstractTableData, Header, Row, Table } from "elements/lib/table";
 import { CachedProxyDirectory } from "../files/proxy";
 import { CustomElement } from "elements/lib/element";
-export declare class FileSizeTableData extends NumberData {
-    private size;
-    data: number;
+export declare class FileSizeTableData extends AbstractTableData<File | null> {
+    private file;
+    data: File | null;
+    compare(dataElement: AbstractTableData<File | null>): number;
 }
 export declare class FileTableData extends AbstractTableData<File | null> {
     private readonly folderIcon;

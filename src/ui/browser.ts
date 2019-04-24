@@ -24,16 +24,26 @@ import {ContextMenu} from "./contextMenu";
 import Path = jest.Path;
 
 
-export class FileSizeTableData extends NumberData {
-  private size : number = 0;
+export class FileSizeTableData extends AbstractTableData<File | null> {
+  private file : File | null = null;
 
-  get data() : number {
-    return this.size;
+  get data() : File | null {
+    return this.file;
   }
 
-  set data(value : number){
-    this.innerText = convertBytesToReadable(value);
-    this.size = value;
+  set data(value : File | null){
+    if (value === null || value.size === 0 && value instanceof Directory){
+      this.innerText = "";
+    } else {
+      this.innerText = convertBytesToReadable(value.size);
+    }
+    this.file = value;
+  }
+
+  compare(dataElement: AbstractTableData<File | null>): number {
+    let size1 = this.file === null ? 0 : this.file.size;
+    let size2 = dataElement.data === null ? 0 : dataElement.data.size;
+    return size1 - size2;
   }
 }
 
@@ -886,7 +896,7 @@ export class FileBrowser extends CustomElement {
 
     idColumn.data = rowData.file.id;
     nameColumn.data = rowData.file;
-    sizeColumn.data = rowData.file.size;
+    sizeColumn.data = rowData.file;
     lastModifiedColumn.data = rowData.file.lastModified;
     createdColumn.data = rowData.file.created;
     typeColumn.data = rowData.file.mimeType;
