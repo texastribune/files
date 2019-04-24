@@ -21,7 +21,7 @@ export class NodeFile extends files.BasicFile {
     this.path = path;
     this.stat = stat || statSync(path);
 
-    this.watcher = watch(this.id, () => {
+    this.watcher = watch(this.path, () => {
       this.dispatchChangeEvent();
     });
   }
@@ -63,6 +63,11 @@ export class NodeFile extends files.BasicFile {
     let newPath = path.join(dirName, newName);
     await fs.rename(this.id, newPath);
     this.path = newPath;
+
+    this.watcher.close();
+    this.watcher = watch(this.path, () => {
+      this.dispatchChangeEvent();
+    });
   }
 
   async delete() {
@@ -97,7 +102,7 @@ export class NodeDirectory extends files.Directory {
     this.path = path;
     this.stat = stat || statSync(path);
 
-    this.watcher = watch(this.id, {recursive: true}, () => {
+    this.watcher = watch(this.path, {recursive: true}, () => {
       this.dispatchChangeEvent();
     });
   }
@@ -127,6 +132,11 @@ export class NodeDirectory extends files.Directory {
     let newPath = path.join(dirName, newName);
     await fs.rename(this.id, newPath);
     this.path = newPath;
+
+    this.watcher.close();
+    this.watcher = watch(this.path, {recursive: true}, () => {
+      this.dispatchChangeEvent();
+    });
   }
 
   async delete() {

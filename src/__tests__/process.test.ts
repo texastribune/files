@@ -103,32 +103,32 @@ class TestFS extends MemoryDirectory {
 
 
 // TODO Fix these tests
-// describe('Test Process', () => {
-//     let root = new TestFS();
-//     let consoleDev : files.File;
-//     let out : files.File;
-//     let err : files.File;
-//
-//     beforeEach(async () => {
-//         root = new TestFS();
-//         consoleDev = await root.getFile(['dev', 'console']);
-//         out = await root.addFile(new ArrayBuffer(0), 'out.txt', 'text/plain');
-//         err = await root.addFile(new ArrayBuffer(0), 'err.txt', 'text/plain');
-//     });
-//
-//     test('System exit call writes to stdout', async () => {
-//         // language=JavaScript
-//         let script = `
-//             await system.exit("text text");
-//         `;
-//         await root.addFile(stringToArrayBuffer(script), 'init.js', 'application/javascript');
-//
-//         let process = new Process(null, root, ['init.js'], out, err);
-//         await onProcessExit(process);
-//         let textArrayBuffer = await out.read();
-//         let text = parseTextArrayBuffer(textArrayBuffer);
-//         expect(text).toMatch("text text");
-//     });
+describe('Test Process', () => {
+    let root = new TestFS();
+    let consoleDev : files.File;
+    let out : files.File;
+    let err : files.File;
+
+    beforeEach(async () => {
+        root = new TestFS();
+        consoleDev = await root.getFile(['dev', 'console']);
+        out = await root.addFile(new ArrayBuffer(0), 'out.txt', 'text/plain');
+        err = await root.addFile(new ArrayBuffer(0), 'err.txt', 'text/plain');
+    });
+
+    test('System exit call writes to stdout', async () => {
+        // language=JavaScript
+        let script = `
+            await system.exit("text text");
+        `;
+        await root.addFile(stringToArrayBuffer(script), 'init.js', 'application/javascript');
+
+        let process = new Process(null, root, ['init.js'], out, err);
+        await onProcessExit(process);
+        let textArrayBuffer = await out.read();
+        let text = parseTextArrayBuffer(textArrayBuffer);
+        expect(text).toMatch("text text");
+    });
 //
 //     test('In process directory until exit', async () => {
 //         // language=JavaScript
@@ -201,4 +201,4 @@ class TestFS extends MemoryDirectory {
 //         let text = parseTextArrayBuffer(textArrayBuffer);
 //         expect(text).toMatch('text');
 //     });
-// });
+});
