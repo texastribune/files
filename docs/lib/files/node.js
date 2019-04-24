@@ -29,7 +29,7 @@ class NodeFile extends files.BasicFile {
         this.extra = {};
         this.path = path;
         this.stat = stat || fs_1.statSync(path);
-        this.watcher = fs_1.watch(this.id, () => {
+        this.watcher = fs_1.watch(this.path, () => {
             this.dispatchChangeEvent();
         });
     }
@@ -63,6 +63,10 @@ class NodeFile extends files.BasicFile {
             let newPath = path.join(dirName, newName);
             yield fs_2.promises.rename(this.id, newPath);
             this.path = newPath;
+            this.watcher.close();
+            this.watcher = fs_1.watch(this.path, () => {
+                this.dispatchChangeEvent();
+            });
         });
     }
     delete() {
@@ -96,7 +100,7 @@ class NodeDirectory extends files.Directory {
         this.extra = {};
         this.path = path;
         this.stat = stat || fs_1.statSync(path);
-        this.watcher = fs_1.watch(this.id, { recursive: true }, () => {
+        this.watcher = fs_1.watch(this.path, { recursive: true }, () => {
             this.dispatchChangeEvent();
         });
     }
@@ -121,6 +125,10 @@ class NodeDirectory extends files.Directory {
             let newPath = path.join(dirName, newName);
             yield fs_2.promises.rename(this.id, newPath);
             this.path = newPath;
+            this.watcher.close();
+            this.watcher = fs_1.watch(this.path, { recursive: true }, () => {
+                this.dispatchChangeEvent();
+            });
         });
     }
     delete() {
