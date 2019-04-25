@@ -13,7 +13,7 @@ import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath} f
 import * as icons from './icons.js';
 import {ConfigData, parseConfigFile, updateConfigFile} from "./config";
 import {ConfirmDialog} from "elements/lib/dialog";
-import {TextData, NumberData, TimeData, AbstractTableData, Header, Row, Table} from "elements/lib/table";
+import {TextData, TimeData, AbstractTableData, Header, Row, Table} from "elements/lib/table";
 import {MemoryDirectory} from "../files/memory";
 import {CachedProxyDirectory} from "../files/proxy";
 import {CustomElement} from "elements/lib/element";
@@ -22,6 +22,7 @@ import {Process} from "../processes/base";
 import {ConsoleFile} from "../devices/console";
 import {ContextMenu} from "./contextMenu";
 import Path = jest.Path;
+import {VirtualDirectory, VirtualFS} from "../files/virtual";
 
 
 export class FileSizeTableData extends AbstractTableData<File | null> {
@@ -234,7 +235,7 @@ export class FileBrowser extends CustomElement {
   private readonly breadCrumbs: BreadCrumbs;
   private readonly table: Table;
 
-  private cachedCurrentDirectory: CachedProxyDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
+  private cachedCurrentDirectory: CachedProxyDirectory<VirtualDirectory<Directory>>;
 
   private readonly dropdownMenuIcon: Element;
   private readonly carrotIcon: Element;
@@ -356,26 +357,22 @@ export class FileBrowser extends CustomElement {
 
     // Set initial directory
     this.busy = Promise.resolve();
-    this.setCurrentDirectory(new CachedProxyDirectory(new MemoryDirectory(null, 'root')));
+    this.cachedCurrentDirectory = new CachedProxyDirectory(new VirtualFS(new MemoryDirectory(null, 'root')));
   }
 
   static get observedAttributes() {
     return [FileBrowser.selectMultipleAttribute, FileBrowser.showHiddenAttribute];
   }
 
-  get rootDirectory(): Directory {
-    return this.cachedCurrentDirectory.root;
+  get rootDirectory() : VirtualDirectory<Directory> {
+    return this.cachedCurrentDirectory.root.concreteDirectory;
   }
 
-  set rootDirectory(value: Directory) {
-    this.setCurrentDirectory(new CachedProxyDirectory(value));
+  get currentDirectory(): VirtualDirectory<Directory> {
+    return this.cachedCurrentDirectory.concreteDirectory;
   }
 
-  get currentDirectory(): Directory {
-    return this.cachedCurrentDirectory;
-  }
-
-  protected setCurrentDirectory(value: CachedProxyDirectory) {
+  protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<VirtualDirectory<T>>) {
     this.cachedCurrentDirectory = value;
     this.cachedCurrentDirectory.addOnChangeListener(() => {
       this.logAndLoadWrapper(this.refreshFiles());
@@ -1052,7 +1049,7 @@ export class FileBrowser extends CustomElement {
       try {
         await this.busy;
       } catch (e) {}
-      let children = await this.currentDirectory.getChildren();
+      let children = await this.cachedCurrentDirectory.getChildren();
       let rowData: RowData[] = children.map((child) => {
         return {
           path: this.filePath.concat([child.name]),

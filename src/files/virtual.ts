@@ -1,10 +1,10 @@
 import {ProxyDirectory} from "./proxy";
 import * as files from "./base";
 
-class VirtualDirectory extends ProxyDirectory {
+export class VirtualDirectory<T extends files.Directory> extends ProxyDirectory<T> {
   private readonly mounts : {[id : string] : files.Directory};
 
-  constructor(concreteDirectory : files.Directory, mounts : {[id : string] : files.Directory}){
+  constructor(concreteDirectory : T, mounts : {[id : string] : files.Directory}){
     super(concreteDirectory);
 
     this.mounts = mounts;
@@ -29,21 +29,29 @@ class VirtualDirectory extends ProxyDirectory {
   }
 
 
-  async addDirectory(name: string): Promise<VirtualDirectory> {
+  async addDirectory(name: string): Promise<files.Directory> {
     let dir = await super.addDirectory(name);
     return new VirtualDirectory(dir, this.mounts);
   }
 
   mount(file : files.Directory){
     this.mounts[this.id] = file;
+    this.dispatchChangeEvent();
+  }
+
+  unount(file : files.Directory){
+    if (this.mounts.hasOwnProperty(file.id)){
+      delete this.mounts[file.id];
+      this.dispatchChangeEvent();
+    }
   }
 }
 
 
-class MountedDirectory extends VirtualDirectory {
+class MountedDirectory<T extends files.Directory> extends VirtualDirectory<T> {
   private readonly mountPointName : string;
 
-  constructor(concreteDirectory : files.Directory, name : string){
+  constructor(concreteDirectory : T, name : string){
     super(concreteDirectory, {});
 
     this.mountPointName = name;
@@ -54,8 +62,8 @@ class MountedDirectory extends VirtualDirectory {
   }
 }
 
-export class VirtualFS extends MountedDirectory {
-  constructor(concreteDirectory : files.Directory){
+export class VirtualFS<T extends files.Directory> extends MountedDirectory<T> {
+  constructor(concreteDirectory : T){
     super(concreteDirectory, concreteDirectory.name);
   }
 }

@@ -193,7 +193,7 @@ class RemoteDirectory extends files.Directory {
 
   private readonly parent : RemoteDirectory;
   private readonly fileData : FileData;
-  private readonly apiUrl : URL;
+  protected apiUrl : URL;
   public readonly extra = {};
 
   constructor(parent : RemoteDirectory | null, fileData : FileData, apiUrl : URL){
@@ -378,5 +378,11 @@ export class RemoteFS extends RemoteDirectory {
       icon: null,
       size: 0,
     }, normalizedApiUrl);
+  }
+
+  changeUrl(url : URL | string){
+    let string = url.toString();
+    this.apiUrl = new URL(string.endsWith("/") ? string : string + "/", window.location.href);
+    this.dispatchChangeEvent();
   }
 }

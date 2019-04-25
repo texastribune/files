@@ -5,10 +5,10 @@ import {Directory} from "./base";
 /**
  * Proxy to a file
  */
-export class ProxyFile extends files.BasicFile {
-  private readonly concreteFile : files.File;
+export class ProxyFile<T extends files.File> extends files.BasicFile {
+  private readonly concreteFile : T;
 
-  constructor(concreteFile : files.File){
+  constructor(concreteFile : T){
     super();
     this.concreteFile = concreteFile;
     this.concreteFile.addOnChangeListener(() =>{
@@ -86,10 +86,10 @@ export class ProxyFile extends files.BasicFile {
  * Proxy to a directory
  * @property {Directory} concreteDirectory - The directory to proxy
  */
-export class ProxyDirectory extends files.Directory {
-  readonly concreteDirectory : files.Directory;
+export class ProxyDirectory<T extends Directory> extends files.Directory {
+  readonly concreteDirectory : T;
 
-  constructor(concreteDirectory : files.Directory){
+  constructor(concreteDirectory : T){
     super();
     this.concreteDirectory = concreteDirectory;
     this.concreteDirectory.addOnChangeListener(() =>{
@@ -158,7 +158,7 @@ export class ProxyDirectory extends files.Directory {
 /**
  * Fires change event for local file changes such as write, rename, delete, etc.
  */
-export class ChangeEventProxyFile extends ProxyFile {
+export class ChangeEventProxyFile<T extends files.File> extends ProxyFile<T> {
   async write(data : ArrayBuffer) {
     let ret = await super.write(data);
     this.dispatchChangeEvent();
@@ -182,7 +182,7 @@ export class ChangeEventProxyFile extends ProxyFile {
  * Fires change event for local file changes such as rename, delete, etc. as well as
  * when those changes happen on children of the directory.
  */
-export class ChangeEventProxyDirectory extends ProxyDirectory {
+export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyDirectory<T> {
   async rename(newName : string) {
     let ret = await super.rename(newName);
     this.dispatchChangeEvent();
@@ -206,7 +206,7 @@ export class ChangeEventProxyDirectory extends ProxyDirectory {
     return ret;
   }
 
-  createChild(child : files.File){
+  protected createChild(child : files.File) : ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>{
     if (child instanceof files.Directory){
       return new ChangeEventProxyDirectory(child);
     } else {
@@ -231,11 +231,11 @@ export class ChangeEventProxyDirectory extends ProxyDirectory {
  * Caches the children of the directory for when getChildren is called. Listens for change events
  * to invalidate the cache.
  */
-export class CachedProxyDirectory extends ChangeEventProxyDirectory {
+export class CachedProxyDirectory<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
   private cachedChildren : files.File[] | null = null;
-  private readonly parent : CachedProxyDirectory | null;
+  private readonly parent : CachedProxyDirectory<T> | null;
 
-  constructor(concreteDirectory : files.Directory, parentDirectory? : CachedProxyDirectory){
+  constructor(concreteDirectory : T, parentDirectory? : CachedProxyDirectory<T>){
     super(concreteDirectory);
     this.parent = parentDirectory || null;
   }
@@ -245,7 +245,7 @@ export class CachedProxyDirectory extends ChangeEventProxyDirectory {
     super.dispatchChangeEvent();
   }
 
-  get root() : files.Directory {
+  get root() : CachedProxyDirectory<T> {
     if (this.parent === null){
       return this;
     }
@@ -259,7 +259,7 @@ export class CachedProxyDirectory extends ChangeEventProxyDirectory {
     return this.parent.path.concat([this]);
   }
 
-  createChild(child : files.File){
+  protected createChild(child : files.File) : ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File> {
     if (child instanceof files.Directory){
       return new CachedProxyDirectory(child, this);
     } else {
