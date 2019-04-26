@@ -6,13 +6,13 @@
   "ignoreCompilerErrors": "true",
   "experimentalDecorators": "true",
   "emitDecoratorMetadata": "true",
-  "target": "ES5",
+  "target": "ES2015",
   "moduleResolution": "node",
   "preserveConstEnums": "true",
   "stripInternal": "true",
   "suppressExcessPropertyErrors": "true",
   "suppressImplicitAnyIndexErrors": "true",
-  "module": "commonjs",
+  "module": "es2015",
   "excludeExternals": "true",
   "excludePrivate": "true"
 }
