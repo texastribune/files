@@ -57,8 +57,19 @@ class VirtualDirectory extends proxy_1.ProxyDirectory {
     }
     mount(file) {
         this.mounts[this.id] = file;
+        file.addOnChangeListener((file) => {
+            this.dispatchChangeEvent();
+        });
+        this.dispatchChangeEvent();
+    }
+    unount(file) {
+        if (this.mounts.hasOwnProperty(file.id)) {
+            delete this.mounts[file.id];
+            this.dispatchChangeEvent();
+        }
     }
 }
+exports.VirtualDirectory = VirtualDirectory;
 class MountedDirectory extends VirtualDirectory {
     constructor(concreteDirectory, name) {
         super(concreteDirectory, {});

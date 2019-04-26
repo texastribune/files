@@ -35,17 +35,27 @@ const search_1 = require("./search");
 const base_2 = require("../processes/base");
 const console_1 = require("../devices/console");
 const contextMenu_1 = require("./contextMenu");
-class FileSizeTableData extends table_1.NumberData {
+class FileSizeTableData extends table_1.AbstractTableData {
     constructor() {
         super(...arguments);
-        this.size = 0;
+        this.file = null;
     }
     get data() {
-        return this.size;
+        return this.file;
     }
     set data(value) {
-        this.innerText = utils_1.convertBytesToReadable(value);
-        this.size = value;
+        if (value === null || value.size === 0 && value instanceof base_1.Directory) {
+            this.innerText = "";
+        }
+        else {
+            this.innerText = utils_1.convertBytesToReadable(value.size);
+        }
+        this.file = value;
+    }
+    compare(dataElement) {
+        let size1 = this.file === null ? 0 : this.file.size;
+        let size2 = dataElement.data === null ? 0 : dataElement.data.size;
+        return size1 - size2;
     }
 }
 exports.FileSizeTableData = FileSizeTableData;
@@ -165,7 +175,6 @@ class FileBrowser extends element_1.CustomElement {
         this.maxNumMove = 30; // Maximum number of files that can be moved at once
         this.maxNumCopy = 30; // Maximum number of files that can be copied at once
         this.activePromises = new Set();
-        this.cachedCurrentDirectory = new proxy_1.CachedProxyDirectory(new memory_1.MemoryDirectory(null, 'root'));
         // Sub elements
         this.table = this.getNewTable();
         this.table.setAttribute('select-multiple', "");
@@ -257,19 +266,19 @@ class FileBrowser extends element_1.CustomElement {
         };
         // Set initial directory
         this.busy = Promise.resolve();
-        this.setCurrentDirectory(new proxy_1.CachedProxyDirectory(new memory_1.MemoryDirectory(null, 'root')));
+        this.cachedCurrentDirectory = new proxy_1.CachedProxyDirectory(new memory_1.MemoryDirectory(null, 'root'));
     }
     static get observedAttributes() {
         return [FileBrowser.selectMultipleAttribute, FileBrowser.showHiddenAttribute];
     }
     get rootDirectory() {
-        return this.cachedCurrentDirectory.root;
+        return this.cachedCurrentDirectory.root.concreteDirectory;
     }
     set rootDirectory(value) {
         this.setCurrentDirectory(new proxy_1.CachedProxyDirectory(value));
     }
     get currentDirectory() {
-        return this.cachedCurrentDirectory;
+        return this.cachedCurrentDirectory.concreteDirectory;
     }
     setCurrentDirectory(value) {
         this.cachedCurrentDirectory = value;
@@ -749,7 +758,7 @@ class FileBrowser extends element_1.CustomElement {
         let pathColumn = document.createElement('path-data');
         idColumn.data = rowData.file.id;
         nameColumn.data = rowData.file;
-        sizeColumn.data = rowData.file.size;
+        sizeColumn.data = rowData.file;
         lastModifiedColumn.data = rowData.file.lastModified;
         createdColumn.data = rowData.file.created;
         typeColumn.data = rowData.file.mimeType;
@@ -889,7 +898,7 @@ class FileBrowser extends element_1.CustomElement {
                 yield this.busy;
             }
             catch (e) { }
-            let children = yield this.currentDirectory.getChildren();
+            let children = yield this.cachedCurrentDirectory.getChildren();
             let rowData = children.map((child) => {
                 return {
                     path: this.filePath.concat([child.name]),

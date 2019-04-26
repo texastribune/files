@@ -181,7 +181,7 @@ class RemoteDirectory extends files.Directory {
                 this.parent = this;
             }
             else {
-                this.parent = new RemoteFS(apiUrl);
+                this.parent = new RemoteFS('root', apiUrl);
             }
         }
         else {
@@ -322,12 +322,12 @@ RemoteDirectory.copyFileName = '.copy';
 RemoteDirectory.moveFileName = '.move';
 RemoteDirectory.searchFileName = '.search';
 class RemoteFS extends RemoteDirectory {
-    constructor(apiUrl) {
+    constructor(name, apiUrl) {
         let string = apiUrl.toString();
         let normalizedApiUrl = new URL(string.endsWith("/") ? string : string + "/", window.location.href);
         super(null, {
             id: 'root',
-            name: 'root',
+            name: name,
             directory: true,
             mimeType: files.Directory.mimeType,
             lastModified: new Date().toISOString(),
