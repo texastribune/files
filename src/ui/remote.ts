@@ -1,6 +1,5 @@
 import {RemoteFS} from "../files/remote";
 import {DirectoryElement} from "./files";
-import {FileBrowser} from "./browser";
 
 
 export class RemoteDirectoryElement extends DirectoryElement {
@@ -28,11 +27,6 @@ export class RemoteDirectoryElement extends DirectoryElement {
 
     updateAttributes(attributes: { [p: string]: string | null }): void {
         this.directory = new RemoteFS(this.url);
-        if (this.parentElement instanceof FileBrowser){
-            let browser = this.parentElement;
-            browser.removeChild(this);
-            browser.appendChild(this);
-        }
     }
 }
 
