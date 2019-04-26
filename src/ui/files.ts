@@ -9,6 +9,7 @@ export abstract class DirectoryElement extends CustomElement {
     private mounted : VirtualDirectory<Directory> | null = null;
 
     connectedCallback(): void {
+        super.connectedCallback();
         if (this.parentElement instanceof FileBrowser){
             this.mounted = this.parentElement.rootDirectory;
             this.mounted.mount(this.directory);
@@ -17,6 +18,7 @@ export abstract class DirectoryElement extends CustomElement {
 
 
     disconnectedCallback(): void {
+        super.disconnectedCallback();
         if (this.mounted){
             this.mounted.unount(this.directory);
             this.mounted = null;
