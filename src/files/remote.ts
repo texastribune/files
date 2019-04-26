@@ -202,7 +202,7 @@ class RemoteDirectory extends files.Directory {
       if (this instanceof RemoteFS){
         this.parent = this;
       } else {
-        this.parent = new RemoteFS(apiUrl);
+        this.parent = new RemoteFS('root', apiUrl);
       }
     } else {
       this.parent = parent;
@@ -364,12 +364,12 @@ class RemoteDirectory extends files.Directory {
 }
 
 export class RemoteFS extends RemoteDirectory {
-  constructor(apiUrl : URL | string){
+  constructor(name : string, apiUrl : URL | string){
     let string = apiUrl.toString();
     let normalizedApiUrl = new URL(string.endsWith("/") ? string : string + "/", window.location.href);
     super(null, {
       id: 'root',
-      name: 'root',
+      name: name,
       directory: true,
       mimeType: files.Directory.mimeType,
       lastModified: new Date().toISOString(),

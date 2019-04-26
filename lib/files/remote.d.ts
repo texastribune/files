@@ -63,6 +63,6 @@ declare class RemoteDirectory extends files.Directory {
     getChildren(): Promise<files.File[]>;
 }
 export declare class RemoteFS extends RemoteDirectory {
-    constructor(apiUrl: URL | string);
+    constructor(name: string, apiUrl: URL | string);
 }
 export {};

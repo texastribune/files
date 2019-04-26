@@ -5,16 +5,25 @@ import {DirectoryElement} from "./files";
 export class RemoteDirectoryElement extends DirectoryElement {
     protected directory : RemoteFS;
 
-    static urlAttribute : string = "url";
+    static urlAttribute : string = 'url';
+    static nameAttribute : string = 'name';
 
     constructor(){
         super();
 
-        this.directory = new RemoteFS("");
+        this.directory = new RemoteFS("root", "");
     }
 
     static get observedAttributes() {
-        return [RemoteDirectoryElement.urlAttribute];
+        return [RemoteDirectoryElement.urlAttribute, RemoteDirectoryElement.nameAttribute];
+    }
+
+    get name() : string {
+        return this.getAttribute(RemoteDirectoryElement.urlAttribute) || "";
+    }
+
+    set name(value : string){
+        this.setAttribute(RemoteDirectoryElement.urlAttribute, value);
     }
 
     get url() : string {
@@ -26,7 +35,7 @@ export class RemoteDirectoryElement extends DirectoryElement {
     }
 
     updateAttributes(attributes: { [p: string]: string | null }): void {
-        this.directory = new RemoteFS(this.url);
+        this.directory = new RemoteFS(this.name, this.url);
     }
 }
 
