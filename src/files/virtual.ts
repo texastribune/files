@@ -36,6 +36,9 @@ export class VirtualDirectory<T extends files.Directory> extends ProxyDirectory<
 
   mount(file : files.Directory){
     this.mounts[this.id] = file;
+    file.addOnChangeListener((file : files.File) => {
+      this.dispatchChangeEvent();
+    });
     this.dispatchChangeEvent();
   }
 
