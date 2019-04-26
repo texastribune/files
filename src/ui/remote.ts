@@ -19,11 +19,11 @@ export class RemoteDirectoryElement extends DirectoryElement {
     }
 
     get name() : string {
-        return this.getAttribute(RemoteDirectoryElement.urlAttribute) || "";
+        return this.getAttribute(RemoteDirectoryElement.nameAttribute) || "";
     }
 
     set name(value : string){
-        this.setAttribute(RemoteDirectoryElement.urlAttribute, value);
+        this.setAttribute(RemoteDirectoryElement.nameAttribute, value);
     }
 
     get url() : string {
