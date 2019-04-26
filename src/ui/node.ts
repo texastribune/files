@@ -29,8 +29,9 @@ export class NodeDirectoryElement extends DirectoryElement {
     updateAttributes(attributes: { [p: string]: string | null }): void {
         this.directory = new NodeDirectory(this.path);
         if (this.parentElement instanceof FileBrowser){
-            this.parentElement.removeChild(this);
-            this.parentElement.appendChild(this);
+            let browser = this.parentElement;
+            browser.removeChild(this);
+            browser.appendChild(this);
         }
     }
 }
