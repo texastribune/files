@@ -42,7 +42,7 @@ declare class RemoteDirectory extends files.Directory {
     static searchFileName: string;
     private readonly parent;
     private readonly fileData;
-    protected apiUrl: URL;
+    private readonly apiUrl;
     readonly extra: {};
     constructor(parent: RemoteDirectory | null, fileData: FileData, apiUrl: URL);
     readonly id: string;
@@ -64,6 +64,5 @@ declare class RemoteDirectory extends files.Directory {
 }
 export declare class RemoteFS extends RemoteDirectory {
     constructor(apiUrl: URL | string);
-    changeUrl(url: URL | string): void;
 }
 export {};
