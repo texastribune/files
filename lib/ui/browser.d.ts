@@ -9,7 +9,6 @@ import { Directory, File } from "../files/base";
 import { AbstractTableData, Header, Row, Table } from "elements/lib/table";
 import { CachedProxyDirectory } from "../files/proxy";
 import { CustomElement } from "elements/lib/element";
-import { VirtualDirectory } from "../files/virtual";
 export declare class FileSizeTableData extends AbstractTableData<File | null> {
     private file;
     data: File | null;
@@ -80,9 +79,9 @@ export declare class FileBrowser extends CustomElement {
     private readonly carrotIcon;
     constructor();
     static readonly observedAttributes: string[];
-    readonly rootDirectory: VirtualDirectory<Directory>;
-    readonly currentDirectory: VirtualDirectory<Directory>;
-    protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<VirtualDirectory<T>>): void;
+    rootDirectory: Directory;
+    readonly currentDirectory: Directory;
+    protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<T>): void;
     readonly files: File[];
     readonly selectedFileRows: Row[];
     readonly selectedRowData: RowData[];

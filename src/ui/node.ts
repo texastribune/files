@@ -1,4 +1,3 @@
-import {FileBrowser} from "./browser";
 import {NodeDirectory} from "../files/node";
 import {DirectoryElement} from "./files";
 
@@ -28,11 +27,6 @@ export class NodeDirectoryElement extends DirectoryElement {
 
     updateAttributes(attributes: { [p: string]: string | null }): void {
         this.directory = new NodeDirectory(this.path);
-        if (this.parentElement instanceof FileBrowser){
-            let browser = this.parentElement;
-            browser.removeChild(this);
-            browser.appendChild(this);
-        }
     }
 }
 

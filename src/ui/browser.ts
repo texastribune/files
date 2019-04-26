@@ -235,7 +235,7 @@ export class FileBrowser extends CustomElement {
   private readonly breadCrumbs: BreadCrumbs;
   private readonly table: Table;
 
-  private cachedCurrentDirectory: CachedProxyDirectory<VirtualDirectory<Directory>>;
+  private cachedCurrentDirectory: CachedProxyDirectory<Directory>;
 
   private readonly dropdownMenuIcon: Element;
   private readonly carrotIcon: Element;
@@ -357,22 +357,26 @@ export class FileBrowser extends CustomElement {
 
     // Set initial directory
     this.busy = Promise.resolve();
-    this.cachedCurrentDirectory = new CachedProxyDirectory(new VirtualFS(new MemoryDirectory(null, 'root')));
+    this.cachedCurrentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
   }
 
   static get observedAttributes() {
     return [FileBrowser.selectMultipleAttribute, FileBrowser.showHiddenAttribute];
   }
 
-  get rootDirectory() : VirtualDirectory<Directory> {
+  get rootDirectory() : Directory {
     return this.cachedCurrentDirectory.root.concreteDirectory;
   }
 
-  get currentDirectory(): VirtualDirectory<Directory> {
+  set rootDirectory(value : Directory){
+    this.setCurrentDirectory(new CachedProxyDirectory(value));
+  }
+
+  get currentDirectory(): Directory {
     return this.cachedCurrentDirectory.concreteDirectory;
   }
 
-  protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<VirtualDirectory<T>>) {
+  protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<T>) {
     this.cachedCurrentDirectory = value;
     this.cachedCurrentDirectory.addOnChangeListener(() => {
       this.logAndLoadWrapper(this.refreshFiles());

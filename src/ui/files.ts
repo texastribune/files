@@ -9,7 +9,7 @@ export abstract class DirectoryElement extends CustomElement {
     refresh(): void {
         super.refresh();
         if (this.parentElement instanceof FileBrowser){
-            this.parentElement.rootDirectory.mount(this.directory);
+            this.parentElement.rootDirectory = this.directory;
         }
     }
 }
