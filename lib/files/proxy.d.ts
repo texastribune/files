@@ -40,6 +40,8 @@ export declare class ProxyDirectory<T extends Directory> extends files.Directory
     readonly extra: Object;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
+    copy(targetDirectory: Directory): Promise<void>;
+    move(targetDirectory: Directory): Promise<void>;
     search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;

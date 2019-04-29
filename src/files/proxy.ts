@@ -137,6 +137,14 @@ export class ProxyDirectory<T extends Directory> extends files.Directory {
     return this.concreteDirectory.delete();
   }
 
+  copy(targetDirectory : Directory){
+    return this.concreteDirectory.copy(targetDirectory);
+  };
+
+  move(targetDirectory : Directory){
+    return this.concreteDirectory.move(targetDirectory);
+  }
+
   search(query : string) {
     return this.concreteDirectory.search(query);
   }
