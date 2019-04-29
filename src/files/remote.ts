@@ -14,16 +14,6 @@ function getCookie(name : string) : string | null {
   return null;
 }
 
-function encodeQueryData(data : {[name : string] : string}) {
-  let ret = [];
-  for (let d in data) {
-    if (data.hasOwnProperty(d)) {
-      ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
-    }
-  }
-  return '?' + ret.join('&');
-}
-
 function isCrossDomain(url : URL) {
   return window.location.protocol + '//' + window.location.host !==
     url.protocol + '//' + url.host;
@@ -244,10 +234,6 @@ class RemoteDirectory extends files.Directory {
   }
 
   async rename(newName : string) {
-    if (this.parent instanceof RemoteFS){
-      throw new Error('cannot rename root directory');
-    }
-
     let data = new FormData;
     data.append('id', this.id);
     data.append('name', newName);
@@ -260,10 +246,6 @@ class RemoteDirectory extends files.Directory {
   }
 
   async delete() : Promise<void> {
-    if (this.parent instanceof RemoteFS){
-      throw new Error('cannot delete root directory');
-    }
-
     let file = await this.parent.getFile([RemoteDirectory.deleteFileName]);
     await file.write(stringToArrayBuffer(this.id));
   }
@@ -378,5 +360,17 @@ export class RemoteFS extends RemoteDirectory {
       icon: null,
       size: 0,
     }, normalizedApiUrl);
+  }
+
+  async rename(newName : string) {
+    throw new Error('cannot rename root directory');
+  }
+
+  async delete() : Promise<void> {
+    throw new Error('cannot delete root directory');
+  }
+
+  async move(targetDirectory : Directory) {
+    throw new Error('cannot delete move directory');
   }
 }
