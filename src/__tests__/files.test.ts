@@ -9,6 +9,7 @@ import {VirtualFS} from "../files/virtual";
 import {BasicFile, Directory, File, FileAlreadyExistsError, FileNotFoundError} from "../files/base";
 import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
+import {CachedProxyDirectory} from "../files/proxy";
 
 
 function compareById(a : File, b : File) {
@@ -293,7 +294,7 @@ function testStorage(rootDirectory : Directory) {
         // Can be called more than once
         let files = await addTestFiles();
 
-        let dir1 = await rootDirectory.getFile([dir1Name]);
+        let dir1 = files[0];
         let file1 = await rootDirectory.getFile([file1Name]);
         let file2 = await rootDirectory.getFile([dir1Name, file2Name]);
 
@@ -357,6 +358,17 @@ function testStorage(rootDirectory : Directory) {
         calls.file1 = 0;
         calls.file2 = 0;
 
+        // add should trigger call change listener on parent directory only
+        await dir1.addFile(new ArrayBuffer(0), 'added-file', 'text/plain');
+        expect(calls.dir1).toBeGreaterThanOrEqual(1);
+        expect(calls.file1).toEqual(0);
+        expect(calls.file2).toEqual(0);
+
+        // reset counts
+        calls.dir1 = 0;
+        calls.file1 = 0;
+        calls.file2 = 0;
+
         // delete should trigger call change listener on parent directory only
         await file2.delete();
         expect(calls.dir1).toBeGreaterThanOrEqual(1);
@@ -408,6 +420,13 @@ describe('Test local file storage', () => {
 describe('Test virtual file storage', () => {
     let rootMounted = new MemoryDirectory(null, 'mounted');
     let storage = new VirtualFS(rootMounted);
+
+    testStorage(storage);
+});
+
+describe('Test cached proxy file storage', () => {
+    let rootMounted = new MemoryDirectory(null, 'mounted');
+    let storage = new CachedProxyDirectory(rootMounted);
 
     testStorage(storage);
 });

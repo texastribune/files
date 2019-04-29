@@ -21,8 +21,6 @@ import {SearchBar} from "./search";
 import {Process} from "../processes/base";
 import {ConsoleFile} from "../devices/console";
 import {ContextMenu} from "./contextMenu";
-import Path = jest.Path;
-import {VirtualDirectory, VirtualFS} from "../files/virtual";
 
 
 export class FileSizeTableData extends AbstractTableData<File | null> {
@@ -365,7 +363,7 @@ export class FileBrowser extends CustomElement {
   }
 
   get rootDirectory() : Directory {
-    return this.cachedCurrentDirectory.root.concreteDirectory;
+    return this.cachedCurrentDirectory.root;
   }
 
   set rootDirectory(value : Directory){
@@ -373,7 +371,7 @@ export class FileBrowser extends CustomElement {
   }
 
   get currentDirectory(): Directory {
-    return this.cachedCurrentDirectory.concreteDirectory;
+    return this.cachedCurrentDirectory;
   }
 
   protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<T>) {
@@ -1052,15 +1050,16 @@ export class FileBrowser extends CustomElement {
     this.busy = (async () => {
       try {
         await this.busy;
-      } catch (e) {}
-      let children = await this.cachedCurrentDirectory.getChildren();
-      let rowData: RowData[] = children.map((child) => {
-        return {
-          path: this.filePath.concat([child.name]),
-          file: child,
-        }
-      });
-      await this.setTableData(rowData);
+      } finally {
+        let children = await this.cachedCurrentDirectory.getChildren();
+        let rowData: RowData[] = children.map((child) => {
+          return {
+            path: this.filePath.concat([child.name]),
+            file: child,
+          }
+        });
+        await this.setTableData(rowData);
+      }
     })();
     return this.busy;
   }

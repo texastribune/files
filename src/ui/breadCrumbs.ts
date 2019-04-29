@@ -1,4 +1,4 @@
-import {CustomElement} from "elements/lib/element";
+import {CustomElement} from 'elements/lib/element';
 
 export class BreadCrumbs extends CustomElement {
   private startCharacter : string = '|';

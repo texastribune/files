@@ -170,11 +170,6 @@ export class ChangeEventProxyFile<T extends files.File> extends ProxyFile<T> {
     this.dispatchChangeEvent();
     return ret;
   }
-
-  async delete() {
-    await super.delete();
-    this.dispatchChangeEvent();
-  }
 }
 
 
@@ -187,11 +182,6 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
     let ret = await super.rename(newName);
     this.dispatchChangeEvent();
     return ret;
-  }
-
-  async delete() {
-    await super.delete();
-    this.dispatchChangeEvent();
   }
 
   async addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File> {
