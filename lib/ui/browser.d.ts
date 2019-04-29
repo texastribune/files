@@ -27,7 +27,7 @@ export declare class PathTableData extends AbstractTableData<string[]> {
     data: string[];
     compare(dataElement: AbstractTableData<string[]>): number;
 }
-interface RowData {
+export interface RowData {
     path: string[];
     file: File;
 }
@@ -102,7 +102,7 @@ export declare class FileBrowser extends CustomElement {
     private moveFiles;
     private copyFiles;
     handleDataTransfer(dataTransfer: DataTransfer): void;
-    onFileRowDoubleClick(row: Row): void;
+    onOpen(rowData: RowData): void;
     onCutOrCopy(event: ClipboardEvent): void;
     onPaste(event: ClipboardEvent): void;
     protected getNewTable(): Table;
@@ -120,4 +120,3 @@ export declare class FileBrowser extends CustomElement {
     resetFiles(): Promise<void>;
     refreshFiles(): Promise<void>;
 }
-export {};

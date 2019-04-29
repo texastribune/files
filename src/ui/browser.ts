@@ -150,7 +150,7 @@ export class PathTableData extends AbstractTableData<string[]> {
 }
 
 
-interface RowData {
+export interface RowData {
   path: string[],
   file: File,
 }
@@ -326,7 +326,8 @@ export class FileBrowser extends CustomElement {
       // if a file row is double clicked
       let fileRow = getFirstInPath(event, Row);
       if (fileRow !== null){
-        this.onFileRowDoubleClick(fileRow);
+        let rowData = this.getRowDataFromRow(fileRow);
+        this.onOpen(rowData);
       }
     };
 
@@ -782,8 +783,7 @@ export class FileBrowser extends CustomElement {
     }
   }
 
-  onFileRowDoubleClick(row : Row){
-    let rowData = this.getRowDataFromRow(row);
+  onOpen(rowData : RowData){
     if (rowData.file !== null) {
       if (rowData.file instanceof Directory) {
         if (rowData.path !== null){
