@@ -1,8 +1,7 @@
-import {ConfirmDialog, Dialog} from "elements/lib/dialog";
-import {Directory, File} from "../files/base";
-import {fileToArrayBuffer} from "../utils";
-import {FileBrowser, RowData} from "./browser";
-import {Row} from "elements/lib/table";
+import {ConfirmDialog, Dialog} from "elements/lib/dialog.js";
+import {Directory, File} from "../files/base.js";
+import {fileToArrayBuffer} from "../utils.js";
+import {FileBrowser, RowData} from "./browser.js";
 
 
 const executableMimeTypes : string[] = [

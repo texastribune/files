@@ -1,9 +1,9 @@
-import * as files from "./base";
+import * as files from "./base.js";
+
 import {statSync, Stats, watch, FSWatcher, existsSync} from "fs";
 import {promises as fs} from "fs";
 import * as path from 'path';
-import {FileAlreadyExistsError} from "./base";
-import {parseTextArrayBuffer} from "../utils";
+import {FileAlreadyExistsError} from "./base.js";
 
 
 /**

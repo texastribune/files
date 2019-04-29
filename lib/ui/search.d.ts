@@ -1,4 +1,4 @@
-import { CustomElement } from "elements/lib/element";
+import { CustomElement } from "elements/lib/element.js";
 export declare class SearchBar extends CustomElement {
     private readonly input;
     private readonly container;

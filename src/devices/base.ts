@@ -1,8 +1,8 @@
-import {ConsoleFile} from "./console";
-import {NullFile} from "./null";
-import {DomElementDevice} from "./dom";
-import * as files from "../files/base";
-import {SearchResult} from "../files/base";
+import {ConsoleFile} from "./console.js";
+import {NullFile} from "./null.js";
+import {DomElementDevice} from "./dom.js";
+import * as files from "../files/base.js";
+import {SearchResult} from "../files/base.js";
 
 
 const deviceFiles : files.File[] = [

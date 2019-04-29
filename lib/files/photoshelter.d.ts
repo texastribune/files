@@ -1,4 +1,4 @@
-import * as files from "./base";
+import * as files from "./base.js";
 interface ImageData {
     image_id: string;
     owner_id: string;

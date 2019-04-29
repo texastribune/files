@@ -1,4 +1,4 @@
-import {BasicFile} from "../files/base";
+import {BasicFile} from "../files/base.js";
 
 
 export class NullFile extends BasicFile {

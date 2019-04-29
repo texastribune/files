@@ -1,6 +1,6 @@
-import { Dialog } from "elements/lib/dialog";
-import { File } from "../files/base";
-import { FileBrowser, RowData } from "./browser";
+import { Dialog } from "elements/lib/dialog.js";
+import { File } from "../files/base.js";
+import { FileBrowser, RowData } from "./browser.js";
 export declare class ContextMenu extends Dialog {
     constructor();
     readonly css: string;

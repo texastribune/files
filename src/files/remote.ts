@@ -1,6 +1,6 @@
-import * as files from "./base";
-import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
-import {Directory} from "./base";
+import * as files from "./base.js";
+import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils.js";
+import {Directory} from "./base.js";
 
 const REQUEST_TIMEOUT = 30;
 

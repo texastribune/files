@@ -1,5 +1,5 @@
-import {CustomElement} from "elements/lib/element";
-import {Dialog} from "elements/lib/dialog";
+import {CustomElement} from "elements/lib/element.js";
+import {Dialog} from "elements/lib/dialog.js";
 
 export class Message extends CustomElement {
   private delay : number | null = null;

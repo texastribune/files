@@ -1,4 +1,4 @@
-import * as files from "../files/base";
+import * as files from "../files/base.js";
 
 let idCounter = 0;
 

@@ -1,5 +1,5 @@
-import { ProcessFile } from "./files";
-import { File, Directory } from "../files/base";
+import { ProcessFile } from "./files.js";
+import { File, Directory } from "../files/base.js";
 declare type syscallTable = {
     open: (pathArray: string[]) => Promise<number>;
     close: (fileDescriptor: number) => void;

@@ -1,5 +1,5 @@
-import * as files from "../files/base";
-import { SearchResult } from "../files/base";
+import * as files from "../files/base.js";
+import { SearchResult } from "../files/base.js";
 export declare abstract class AbstractElementFile extends files.BasicFile {
     readonly created: Date;
     readonly extra: {};

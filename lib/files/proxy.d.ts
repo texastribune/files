@@ -1,5 +1,5 @@
-import * as files from "./base";
-import { Directory } from "./base";
+import * as files from "./base.js";
+import { Directory } from "./base.js";
 /**
  * Proxy to a file
  */

@@ -1,14 +1,13 @@
-import "./breadCrumbs";
-import "./messages";
-import "./search";
-import "./contextMenu";
-import "elements/lib/table";
-import "elements/lib/dialog";
-import { BreadCrumbs } from "./breadCrumbs";
-import { Directory, File } from "../files/base";
-import { AbstractTableData, Header, Row, Table } from "elements/lib/table";
-import { CachedProxyDirectory } from "../files/proxy";
-import { CustomElement } from "elements/lib/element";
+import "./breadCrumbs.js";
+import "./messages.js";
+import "./search.js";
+import "./contextMenu.js";
+import "elements/lib/table.js";
+import "elements/lib/dialog.js";
+import { BreadCrumbs } from "./breadCrumbs.js";
+import { Directory, File } from "../files/base.js";
+import { AbstractTableData, Header, Row, Table } from "elements/lib/table.js";
+import { CachedProxyDirectory } from "../files/proxy.js";
 export declare class FileSizeTableData extends AbstractTableData<File | null> {
     private file;
     data: File | null;
@@ -18,10 +17,13 @@ export declare class FileTableData extends AbstractTableData<File | null> {
     private readonly folderIcon;
     private readonly documentIcon;
     private file;
+    private iconContainer;
     static hoverImageClass: string;
     constructor();
     data: File | null;
+    readonly css: string;
     compare(dataElement: AbstractTableData<File | null>): number;
+    render(shadowRoot: ShadowRoot): void;
 }
 export declare class PathTableData extends AbstractTableData<string[]> {
     data: string[];
@@ -36,7 +38,7 @@ export interface RowData {
  * @param {Directory} currentDirectory - The root directory of the browser.
  * @param {Table} table - The table to use for displaying the files.
  */
-export declare class FileBrowser extends CustomElement {
+export declare class FileBrowser extends Table {
     static actionsContainerClass: string;
     static tableContainerClass: string;
     static tableIconClass: string;
@@ -70,10 +72,8 @@ export declare class FileBrowser extends CustomElement {
     private readonly messagesContainer;
     private readonly menusContainer;
     private readonly searchElement;
-    private readonly tableContainer;
     private readonly tableBusyOverlay;
     private readonly breadCrumbs;
-    private readonly table;
     private cachedCurrentDirectory;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
@@ -91,9 +91,6 @@ export declare class FileBrowser extends CustomElement {
     selectMultiple: boolean;
     showHidden: boolean;
     readonly css: string;
-    updateAttributes(attributes: {
-        [p: string]: string | null;
-    }): void;
     render(shadowRoot: ShadowRoot): void;
     loadingWrapper(promise: Promise<void>): Promise<void>;
     errorLoggingWrapper(promise: Promise<void>): Promise<void>;
@@ -112,7 +109,6 @@ export declare class FileBrowser extends CustomElement {
     protected getRowDataFromRow(row: Row): RowData;
     protected setTableData(rowData: RowData[]): void;
     search(searchTerm: string): Promise<void>;
-    showVisibleColumnsDialog(positionX: number, positionY: number): void;
     showContextMenu(positionX: number, positionY: number): void;
     execute(path: string[]): void;
     addMessage(message: Error | string, isError?: boolean): void;

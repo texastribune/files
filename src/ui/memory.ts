@@ -1,5 +1,5 @@
-import {MemoryDirectory} from "../files/memory";
-import {DirectoryElement} from "./files";
+import {MemoryDirectory} from "../files/memory.js";
+import {DirectoryElement} from "./files.js";
 
 
 export class MemoryDirectoryElement extends DirectoryElement {

@@ -1,6 +1,6 @@
 import * as files from "./base";
-import {FileAlreadyExistsError} from "./base";
-import {File} from "./base";
+
+import {FileAlreadyExistsError, File} from "./base.js";
 
 
 function indexedDbRequestToPromise(request : IDBRequest) : Promise<any> {

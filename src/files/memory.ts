@@ -1,5 +1,5 @@
 import * as files from "./base.js";
-import {FileAlreadyExistsError} from "./base";
+import {FileAlreadyExistsError} from "./base.js";
 
 
 let idCounter = 0;

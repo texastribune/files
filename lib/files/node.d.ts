@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import * as files from "./base";
+import * as files from "./base.js";
 import { Stats } from "fs";
 /**
  * A file on the local system using NodeJS file operations.

@@ -1,5 +1,5 @@
 import * as files from "./base";
-import { File } from "./base";
+import { File } from "./base.js";
 declare class Database {
     private readonly name;
     private readyPromise;
