@@ -1,5 +1,5 @@
-import * as files from "./base";
-import {Directory} from "./base";
+import * as files from "./base.js";
+import {Directory} from "./base.js";
 
 
 /**
@@ -137,6 +137,14 @@ export class ProxyDirectory<T extends Directory> extends files.Directory {
     return this.concreteDirectory.delete();
   }
 
+  copy(targetDirectory : Directory){
+    return this.concreteDirectory.copy(targetDirectory);
+  };
+
+  move(targetDirectory : Directory){
+    return this.concreteDirectory.move(targetDirectory);
+  }
+
   search(query : string) {
     return this.concreteDirectory.search(query);
   }
@@ -171,9 +179,10 @@ export class ChangeEventProxyFile<T extends files.File> extends ProxyFile<T> {
     return ret;
   }
 
-  async delete() {
-    await super.delete();
+  async delete(): Promise<void> {
+    let ret = await super.delete();
     this.dispatchChangeEvent();
+    return ret;
   }
 }
 
@@ -183,15 +192,24 @@ export class ChangeEventProxyFile<T extends files.File> extends ProxyFile<T> {
  * when those changes happen on children of the directory.
  */
 export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyDirectory<T> {
+  protected readonly parent : CachedProxyDirectory<T> | null;
+
+  constructor(concreteDirectory : T, parentDirectory? : CachedProxyDirectory<T>){
+    super(concreteDirectory);
+    this.parent = parentDirectory || null;
+  }
+
   async rename(newName : string) {
     let ret = await super.rename(newName);
     this.dispatchChangeEvent();
     return ret;
   }
 
-  async delete() {
-    await super.delete();
+
+  async delete(): Promise<void> {
+    let ret = await super.delete();
     this.dispatchChangeEvent();
+    return ret;
   }
 
   async addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File> {
@@ -233,11 +251,9 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
  */
 export class CachedProxyDirectory<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
   private cachedChildren : files.File[] | null = null;
-  private readonly parent : CachedProxyDirectory<T> | null;
 
   constructor(concreteDirectory : T, parentDirectory? : CachedProxyDirectory<T>){
-    super(concreteDirectory);
-    this.parent = parentDirectory || null;
+    super(concreteDirectory, parentDirectory);
   }
 
   dispatchChangeEvent() {

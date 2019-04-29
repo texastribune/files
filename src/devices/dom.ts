@@ -1,6 +1,6 @@
-import * as files from "../files/base";
-import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
-import {SearchResult} from "../files/base";
+import * as files from "../files/base.js";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils.js";
+import {SearchResult} from "../files/base.js";
 
 
 export abstract class AbstractElementFile extends files.BasicFile {

@@ -1,5 +1,5 @@
-import * as files from "./base";
-import { Directory } from "./base";
+import * as files from "./base.js";
+import { Directory } from "./base.js";
 interface FileData {
     id: string;
     name: string;
@@ -64,5 +64,8 @@ declare class RemoteDirectory extends files.Directory {
 }
 export declare class RemoteFS extends RemoteDirectory {
     constructor(name: string, apiUrl: URL | string);
+    rename(newName: string): Promise<void>;
+    delete(): Promise<void>;
+    move(targetDirectory: Directory): Promise<void>;
 }
 export {};

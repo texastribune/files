@@ -1,8 +1,7 @@
-import {ConfirmDialog, Dialog} from "elements/lib/dialog";
-import {Directory, File} from "../files/base";
-import {fileToArrayBuffer} from "../utils";
-import {FileBrowser} from "./browser";
-import {Row} from "elements/lib/table";
+import {ConfirmDialog, Dialog} from "elements/lib/dialog.js";
+import {Directory, File} from "../files/base.js";
+import {fileToArrayBuffer} from "../utils.js";
+import {FileBrowser, RowData} from "./browser.js";
 
 
 const executableMimeTypes : string[] = [
@@ -18,7 +17,9 @@ export class ContextMenu extends Dialog {
     this.addEventListener(Dialog.EVENT_OPENED, (event) => {
       if (this.parentElement instanceof FileBrowser){
         this.removeChildren();
-        this.appendChildren(this.getItems(this.parentElement));
+
+        let selectedRowData = this.parentElement.selectedRowData;
+        this.appendChildren(this.getItems(this.parentElement, selectedRowData));
       }
     });
   }
@@ -33,15 +34,12 @@ export class ContextMenu extends Dialog {
     `;
   }
 
-  getItems(browser : FileBrowser): HTMLDivElement[] {
+  getItems(browser : FileBrowser, selectedRowData : RowData[]): HTMLDivElement[] {
     let items : HTMLDivElement[] = [];
 
-    let selectedRows = browser.selectedFileRows;
-    if (selectedRows.length === 1){
-      items.push(this.createOpenButton(browser, selectedRows[0]));
+    if (selectedRowData.length === 1){
+      items.push(this.createOpenButton(browser, selectedRowData[0]));
     }
-
-    let selectedRowData = browser.selectedRowData;
 
     // Add items that should exist only when there is selected data.
     if (selectedRowData.length > 0) {
@@ -80,11 +78,11 @@ export class ContextMenu extends Dialog {
     return items;
   }
 
-  createOpenButton(browser : FileBrowser, fileRow : Row){
+  createOpenButton(browser : FileBrowser, rowData : RowData){
     let openButton = document.createElement('div');
     openButton.innerText = 'Open';
     openButton.onclick = () => {
-      browser.onFileRowDoubleClick(fileRow);
+      browser.onOpen(rowData);
       this.visible = false;
     };
     return openButton;
@@ -156,6 +154,7 @@ export class ContextMenu extends Dialog {
         browser.logAndLoadWrapper(Promise.all(promises).then(() => {}));
       });
       deleteDialog.appendChild(removeText);
+      deleteDialog.center();
       deleteDialog.visible = true;
     };
     return deleteButton;
@@ -197,6 +196,7 @@ export class ContextMenu extends Dialog {
       moveDialog.addEventListener(Dialog.EVENT_CLOSED, () => {
         moveDialog.remove();
       });
+      moveDialog.center();
       moveDialog.visible = true;
     };
     return moveButton;
@@ -236,6 +236,7 @@ export class ContextMenu extends Dialog {
 
       fileDialog.appendChild(fileInputDiv);
       this.appendChild(fileDialog);
+      fileDialog.center();
       fileDialog.visible = true;
     };
     return addFileButton;

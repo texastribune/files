@@ -1,4 +1,4 @@
-import { BasicFile } from "../files/base";
+import { BasicFile } from "../files/base.js";
 export declare class NullFile extends BasicFile {
     readonly created: Date;
     readonly lastModified: Date;

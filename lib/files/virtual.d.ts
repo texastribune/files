@@ -1,5 +1,5 @@
-import { ProxyDirectory } from "./proxy";
-import * as files from "./base";
+import { ProxyDirectory } from "./proxy.js";
+import * as files from "./base.js";
 export declare class VirtualDirectory<T extends files.Directory> extends ProxyDirectory<T> {
     private readonly mounts;
     constructor(concreteDirectory: T, mounts: {

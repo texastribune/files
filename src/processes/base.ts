@@ -1,6 +1,6 @@
-import {ProcessFile} from "./files";
-import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
-import {File, Directory} from "../files/base";
+import {ProcessFile} from "./files.js";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils.js";
+import {File, Directory} from "../files/base.js";
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 

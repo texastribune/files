@@ -1,4 +1,4 @@
-import * as files from "../files/base";
+import * as files from "../files/base.js";
 export declare class ConsoleFile extends files.BasicFile {
     readonly created: Date;
     readonly lastModified: Date;

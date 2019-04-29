@@ -1,5 +1,5 @@
-import {parseTextArrayBuffer} from "../utils";
-import * as files from "../files/base";
+import {parseTextArrayBuffer} from "../utils.js";
+import * as files from "../files/base.js";
 
 
 export class ConsoleFile extends files.BasicFile {

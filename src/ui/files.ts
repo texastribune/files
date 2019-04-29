@@ -1,6 +1,6 @@
-import {CustomElement} from "elements/lib/element";
-import {Directory} from "../files/base";
-import {FileBrowser} from "./browser";
+import {CustomElement} from "elements/lib/element.js";
+import {Directory} from "../files/base.js";
+import {FileBrowser} from "./browser.js";
 
 
 export abstract class DirectoryElement extends CustomElement {

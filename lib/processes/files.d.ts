@@ -1,4 +1,4 @@
-import * as files from "../files/base";
+import * as files from "../files/base.js";
 export declare class ProcessFile extends files.BasicFile {
     readonly id: string;
     readonly created: Date;

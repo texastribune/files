@@ -1,4 +1,4 @@
-import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils.js";
 
 export type ConfigData = {[name : string] : string};
 

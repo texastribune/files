@@ -1,5 +1,5 @@
-import * as files from "./base";
-import { Directory } from "./base";
+import * as files from "./base.js";
+import { Directory } from "./base.js";
 /**
  * Proxy to a file
  */
@@ -40,6 +40,8 @@ export declare class ProxyDirectory<T extends Directory> extends files.Directory
     readonly extra: Object;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
+    copy(targetDirectory: Directory): Promise<void>;
+    move(targetDirectory: Directory): Promise<void>;
     search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
@@ -58,6 +60,8 @@ export declare class ChangeEventProxyFile<T extends files.File> extends ProxyFil
  * when those changes happen on children of the directory.
  */
 export declare class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyDirectory<T> {
+    protected readonly parent: CachedProxyDirectory<T> | null;
+    constructor(concreteDirectory: T, parentDirectory?: CachedProxyDirectory<T>);
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
@@ -71,7 +75,6 @@ export declare class ChangeEventProxyDirectory<T extends files.Directory> extend
  */
 export declare class CachedProxyDirectory<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
     private cachedChildren;
-    private readonly parent;
     constructor(concreteDirectory: T, parentDirectory?: CachedProxyDirectory<T>);
     dispatchChangeEvent(): void;
     readonly root: CachedProxyDirectory<T>;
