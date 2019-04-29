@@ -170,6 +170,12 @@ export class ChangeEventProxyFile<T extends files.File> extends ProxyFile<T> {
     this.dispatchChangeEvent();
     return ret;
   }
+
+  async delete(): Promise<void> {
+    let ret = await super.delete();
+    this.dispatchChangeEvent();
+    return ret;
+  }
 }
 
 
@@ -178,8 +184,22 @@ export class ChangeEventProxyFile<T extends files.File> extends ProxyFile<T> {
  * when those changes happen on children of the directory.
  */
 export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyDirectory<T> {
+  protected readonly parent : CachedProxyDirectory<T> | null;
+
+  constructor(concreteDirectory : T, parentDirectory? : CachedProxyDirectory<T>){
+    super(concreteDirectory);
+    this.parent = parentDirectory || null;
+  }
+
   async rename(newName : string) {
     let ret = await super.rename(newName);
+    this.dispatchChangeEvent();
+    return ret;
+  }
+
+
+  async delete(): Promise<void> {
+    let ret = await super.delete();
     this.dispatchChangeEvent();
     return ret;
   }
@@ -223,11 +243,9 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
  */
 export class CachedProxyDirectory<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
   private cachedChildren : files.File[] | null = null;
-  private readonly parent : CachedProxyDirectory<T> | null;
 
   constructor(concreteDirectory : T, parentDirectory? : CachedProxyDirectory<T>){
-    super(concreteDirectory);
-    this.parent = parentDirectory || null;
+    super(concreteDirectory, parentDirectory);
   }
 
   dispatchChangeEvent() {

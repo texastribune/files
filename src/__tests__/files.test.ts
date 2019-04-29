@@ -369,11 +369,11 @@ function testStorage(rootDirectory : Directory) {
         calls.file1 = 0;
         calls.file2 = 0;
 
-        // delete should trigger call change listener on parent directory only
+        // delete should trigger call change listener on parent directory/may or may not on file itself
         await file2.delete();
         expect(calls.dir1).toBeGreaterThanOrEqual(1);
         expect(calls.file1).toEqual(0);
-        expect(calls.file2).toEqual(0);
+        expect(calls.file2).toBeLessThanOrEqual(1);
 
         // reset counts
         calls.dir1 = 0;
