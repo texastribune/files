@@ -39,7 +39,7 @@ export interface RowData {
  * @param {Table} table - The table to use for displaying the files.
  */
 export declare class FileBrowser extends Table {
-    static actionsContainerClass: string;
+    static actionsContainerId: string;
     static tableContainerClass: string;
     static tableIconClass: string;
     static activeAjaxClass: string;
