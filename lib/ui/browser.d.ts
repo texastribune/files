@@ -39,14 +39,14 @@ export interface RowData {
  * @param {Table} table - The table to use for displaying the files.
  */
 export declare class FileBrowser extends Table {
-    static actionsContainerClass: string;
-    static tableContainerClass: string;
+    static actionsContainerId: string;
     static tableIconClass: string;
     static activeAjaxClass: string;
     static searchInputClass: string;
-    static messageContainerClass: string;
-    static menuContainerClass: string;
-    static stateManagerContainerClass: string;
+    static messageContainerId: string;
+    static menuContainerId: string;
+    static bodyContainerId: string;
+    static overlayId: string;
     static buttonClass: string;
     static fileBrowserDialogClass: string;
     static dataTransferType: string;
@@ -72,6 +72,7 @@ export declare class FileBrowser extends Table {
     private readonly messagesContainer;
     private readonly menusContainer;
     private readonly searchElement;
+    private readonly bodyContainer;
     private readonly tableBusyOverlay;
     private readonly breadCrumbs;
     private cachedCurrentDirectory;
