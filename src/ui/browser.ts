@@ -170,11 +170,15 @@ export class FileTableData extends AbstractTableData<File | null> {
 
 export class PathTableData extends AbstractTableData<string[]> {
   get data() : string[] {
-    return this.innerText.split('/');
+    return this.innerText.split('/').map((segment : string) => {
+      return decodeURIComponent(segment);
+    });
   }
 
   set data(value : string[]){
-    this.innerText = value.join('/');
+    this.innerText = value.map((segment : string) => {
+      return encodeURIComponent(segment);
+    }).join('/');
   }
 
   compare(dataElement: AbstractTableData<string[]>): number {
@@ -850,10 +854,6 @@ export class FileBrowser extends Table {
   }
 
   // Default element creation
-
-  protected getNewTable() : Table {
-    return document.createElement('selectable-table') as Table;
-  }
 
   protected getNewBreadCrumbs() : BreadCrumbs {
     return document.createElement('bread-crumbs') as BreadCrumbs;
