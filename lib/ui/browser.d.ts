@@ -103,7 +103,6 @@ export declare class FileBrowser extends Table {
     onOpen(rowData: RowData): void;
     onCutOrCopy(event: ClipboardEvent): void;
     onPaste(event: ClipboardEvent): void;
-    protected getNewTable(): Table;
     protected getNewBreadCrumbs(): BreadCrumbs;
     protected getNewFileTableHeader(): Header;
     protected getNewFileTableRow(rowData: RowData): Row;
