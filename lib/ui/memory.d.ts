@@ -3,7 +3,7 @@ import { DirectoryElement } from "./files.js";
 export declare class MemoryDirectoryElement extends DirectoryElement {
     protected readonly directory: MemoryDirectory;
     constructor();
-    updateAttributes(attributes: {
+    updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
 }

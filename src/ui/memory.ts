@@ -11,7 +11,7 @@ export class MemoryDirectoryElement extends DirectoryElement {
         this.directory = new MemoryDirectory(null, "root");
     }
 
-    updateAttributes(attributes: { [p: string]: string | null }): void {
+    updateFromAttributes(attributes: { [p: string]: string | null }): void {
     }
 }
 

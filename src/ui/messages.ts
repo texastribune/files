@@ -7,6 +7,20 @@ export class Message extends CustomElement {
 
   static className = 'error';
 
+  constructor() {
+    super();
+
+    let slot = document.createElement('slot');
+    let deleteButton = document.createElement('div');
+    deleteButton.onclick = (event) => {
+      event.preventDefault();
+      this.remove();
+    };
+
+    this.shadowDOM.appendChild(slot);
+    this.shadowDOM.appendChild(deleteButton);
+  }
+
   static get observedAttributes() {
     return ['delay'];
   }
@@ -54,23 +68,8 @@ export class Message extends CustomElement {
     this.innerText = value;
   }
 
-  render(shadowRoot: ShadowRoot): void {
-    super.render(shadowRoot);
 
-    let slot = document.createElement('slot');
-    shadowRoot.appendChild(slot);
-
-    let deleteButton = document.createElement('div');
-    deleteButton.onclick = (event) => {
-      event.preventDefault();
-      this.remove();
-    };
-
-    shadowRoot.appendChild(deleteButton);
-  }
-
-
-  updateAttributes(attributes: { [p: string]: string | null }): void {
+  updateFromAttributes(attributes: { [p: string]: string | null }): void {
     if (attributes.delay !== null) {
       this.delay = Number.parseInt(attributes.delay);
     } else {

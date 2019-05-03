@@ -14,10 +14,10 @@ export class BreadCrumbs extends CustomElement {
     super();
 
     this.ul = document.createElement('ul');
+    this.shadowDOM.appendChild(this.ul);
   }
 
-  updateAttributes(attributes: { [p: string]: string | null }): void {
-  }
+  updateFromAttributes(attributes: { [p: string]: string | null }): void {}
 
   get css(): string {
     // language=CSS
@@ -89,11 +89,6 @@ export class BreadCrumbs extends CustomElement {
       let path = value.slice(0, i + 1);
       this.ul.appendChild(this.buildCrumb(path))
     }
-  }
-
-  render(shadowRoot: ShadowRoot): void {
-    super.render(shadowRoot);
-    shadowRoot.appendChild(this.ul);
   }
 
   buildCrumb(path : string[]){

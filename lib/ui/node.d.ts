@@ -6,7 +6,7 @@ export declare class NodeDirectoryElement extends DirectoryElement {
     constructor();
     static readonly observedAttributes: string[];
     path: string;
-    updateAttributes(attributes: {
+    updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
 }

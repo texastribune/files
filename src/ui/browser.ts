@@ -62,6 +62,8 @@ export class FileTableData extends AbstractTableData<File | null> {
 
     this.file = null;
     this.iconContainer = document.createElement('span');
+
+    this.shadowDOM.appendChild(this.iconContainer);
   }
 
   get data() : File | null {
@@ -158,13 +160,6 @@ export class FileTableData extends AbstractTableData<File | null> {
       name2 = dataElement.data.name;
     }
     return name1.localeCompare(name2);
-  }
-
-
-
-  render(shadowRoot: ShadowRoot): void {
-    shadowRoot.appendChild(this.iconContainer);
-    super.render(shadowRoot);
   }
 }
 
@@ -268,6 +263,7 @@ export class FileBrowser extends Table {
   private readonly bodyContainer: HTMLDivElement;
   private readonly tableBusyOverlay: HTMLDivElement;
   private readonly breadCrumbs: BreadCrumbs;
+  private readonly tableHeader: Header;
 
   private cachedCurrentDirectory: CachedProxyDirectory<Directory>;
 
@@ -319,11 +315,22 @@ export class FileBrowser extends Table {
     this.tableBusyOverlay.id = FileBrowser.overlayId;
     this.bodyContainer.appendChild(this.tableBusyOverlay);
 
+    // Move table body from shadow root inside wrapper container
+    this.bodyContainer.appendChild(this.view);
+
     // Add action elements
     this.actionsContainer.appendChild(this.breadCrumbs);
     this.actionsContainer.appendChild(this.messagesContainer);
     this.actionsContainer.appendChild(this.menusContainer);
     this.actionsContainer.appendChild(this.searchElement);
+
+    // Add actions and breadcrumbs to the top of the shadow DOM
+    this.shadowDOM.insertBefore(this.actionsContainer, this.shadowDOM.firstChild);
+    this.shadowDOM.insertBefore(this.breadCrumbs, this.shadowDOM.firstChild);
+
+    this.shadowDOM.appendChild(this.bodyContainer);
+
+    this.tableHeader = this.getNewFileTableHeader();
 
     // Element events
     document.addEventListener('copy', (event : ClipboardEvent) => {
@@ -605,18 +612,9 @@ export class FileBrowser extends Table {
     `;
   }
 
-  render(shadowRoot: ShadowRoot): void {
-    shadowRoot.appendChild(this.breadCrumbs);
-    shadowRoot.appendChild(this.actionsContainer);
-
-    super.render(shadowRoot);
-
-    // Move body view from shadow root inside wrapper container
-    this.bodyContainer.appendChild(this.view);
-    shadowRoot.appendChild(this.bodyContainer);
-
-    let tableHeader = this.getNewFileTableHeader();
-    this.appendChild(tableHeader);
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.appendChild(this.tableHeader);
   }
 
 // Wrapper utilities

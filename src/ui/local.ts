@@ -11,7 +11,7 @@ export class LocalStorageDirectoryElement extends DirectoryElement {
         this.directory = new LocalStorageRoot();
     }
 
-    updateAttributes(attributes: { [p: string]: string | null }): void {
+    updateFromAttributes(attributes: { [p: string]: string | null }): void {
     }
 }
 

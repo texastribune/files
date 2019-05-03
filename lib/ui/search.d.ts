@@ -13,10 +13,9 @@ export declare class SearchBar extends CustomElement {
     static TIMEOUT: number;
     constructor();
     readonly css: string;
-    updateAttributes(attributes: {
+    updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
-    render(shadowRoot: ShadowRoot): void;
     private dispatchSearchEvent;
     readonly value: string;
 }

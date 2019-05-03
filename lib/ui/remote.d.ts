@@ -8,7 +8,7 @@ export declare class RemoteDirectoryElement extends DirectoryElement {
     static readonly observedAttributes: string[];
     name: string;
     url: string;
-    updateAttributes(attributes: {
+    updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
 }

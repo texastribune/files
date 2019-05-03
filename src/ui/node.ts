@@ -25,7 +25,7 @@ export class NodeDirectoryElement extends DirectoryElement {
         this.setAttribute(NodeDirectoryElement.pathAttribute, value);
     }
 
-    updateAttributes(attributes: { [p: string]: string | null }): void {
+    updateFromAttributes(attributes: { [p: string]: string | null }): void {
         this.directory = new NodeDirectory(this.path);
     }
 }

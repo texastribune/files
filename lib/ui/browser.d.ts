@@ -23,7 +23,6 @@ export declare class FileTableData extends AbstractTableData<File | null> {
     data: File | null;
     readonly css: string;
     compare(dataElement: AbstractTableData<File | null>): number;
-    render(shadowRoot: ShadowRoot): void;
 }
 export declare class PathTableData extends AbstractTableData<string[]> {
     data: string[];
@@ -75,6 +74,7 @@ export declare class FileBrowser extends Table {
     private readonly bodyContainer;
     private readonly tableBusyOverlay;
     private readonly breadCrumbs;
+    private readonly tableHeader;
     private cachedCurrentDirectory;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
@@ -92,7 +92,7 @@ export declare class FileBrowser extends Table {
     selectMultiple: boolean;
     showHidden: boolean;
     readonly css: string;
-    render(shadowRoot: ShadowRoot): void;
+    connectedCallback(): void;
     loadingWrapper(promise: Promise<void>): Promise<void>;
     errorLoggingWrapper(promise: Promise<void>): Promise<void>;
     logAndLoadWrapper(promise: Promise<void>): Promise<void>;

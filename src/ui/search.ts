@@ -41,6 +41,8 @@ export class SearchBar extends CustomElement {
     let icon = createNode(icons.searchIcon);
     this.container.appendChild(icon);
     this.container.appendChild(this.input);
+
+    this.shadowDOM.appendChild(this.container);
   }
 
   get css(): string {
@@ -65,13 +67,7 @@ export class SearchBar extends CustomElement {
     `
   }
 
-  updateAttributes(attributes: { [p: string]: string | null }): void {
-  }
-
-  render(shadowRoot: ShadowRoot): void {
-    super.render(shadowRoot);
-    shadowRoot.appendChild(this.container);
-  }
+  updateFromAttributes(attributes: { [p: string]: string | null }): void {}
 
   private dispatchSearchEvent(){
     let event = new Event(SearchBar.EVENT_SEARCH_CHANGE);

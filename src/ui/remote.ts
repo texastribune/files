@@ -34,7 +34,7 @@ export class RemoteDirectoryElement extends DirectoryElement {
         this.setAttribute(RemoteDirectoryElement.urlAttribute, value);
     }
 
-    updateAttributes(attributes: { [p: string]: string | null }): void {
+    updateFromAttributes(attributes: { [p: string]: string | null }): void {
         this.directory = new RemoteFS(this.name, this.url);
     }
 }
