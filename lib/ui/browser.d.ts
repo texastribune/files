@@ -17,7 +17,7 @@ export declare class FileTableData extends AbstractTableData<File | null> {
     private readonly folderIcon;
     private readonly documentIcon;
     private file;
-    private iconContainer;
+    private readonly iconContainer;
     static hoverImageClass: string;
     constructor();
     data: File | null;
@@ -41,13 +41,11 @@ export declare class FileBrowser extends Table {
     static actionsContainerId: string;
     static tableIconClass: string;
     static activeAjaxClass: string;
-    static searchInputClass: string;
     static messageContainerId: string;
     static menuContainerId: string;
     static bodyContainerId: string;
     static overlayId: string;
     static buttonClass: string;
-    static fileBrowserDialogClass: string;
     static dataTransferType: string;
     static selectMultipleAttribute: string;
     static showHiddenAttribute: string;

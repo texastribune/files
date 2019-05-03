@@ -48,7 +48,7 @@ export class FileTableData extends AbstractTableData<File | null> {
   private readonly folderIcon: Element;
   private readonly documentIcon: Element;
   private file : File | null;
-  private iconContainer : HTMLSpanElement;
+  private readonly iconContainer : HTMLSpanElement;
 
   static hoverImageClass = 'hover-image';
 
@@ -63,7 +63,7 @@ export class FileTableData extends AbstractTableData<File | null> {
     this.file = null;
     this.iconContainer = document.createElement('span');
 
-    this.shadowDOM.appendChild(this.iconContainer);
+    this.shadowDOM.insertBefore(this.iconContainer, this.shadowDOM.firstChild);
   }
 
   get data() : File | null {
@@ -136,7 +136,8 @@ export class FileTableData extends AbstractTableData<File | null> {
         
         .${FileTableData.hoverImageClass} {
           position: absolute;
-          bottom: 5%;
+          top: 50%;
+          transform: translate(0%, -50%);
           max-height: 90%;
           z-index: 99999;
           background-color: white;
@@ -222,13 +223,11 @@ export class FileBrowser extends Table {
   static actionsContainerId = 'file-actions-container';
   static tableIconClass = 'icon';
   static activeAjaxClass = 'ajax-active';
-  static searchInputClass = 'file-search-input';
   static messageContainerId = 'file-message-container';
   static menuContainerId = 'file-menu-container';
   static bodyContainerId = 'body-container';
   static overlayId = 'overlay';
   static buttonClass = 'button';
-  static fileBrowserDialogClass = 'file-browser-dialog';
 
   static dataTransferType = 'text/table-rows';
 
