@@ -33,7 +33,7 @@ export interface RowData {
     file: File;
 }
 /**
- * An element for browsing a file system.
+ * An element for browsing a directory.
  * @param {Directory} currentDirectory - The root directory of the browser.
  * @param {Table} table - The table to use for displaying the files.
  */

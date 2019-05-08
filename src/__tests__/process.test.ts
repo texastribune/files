@@ -3,7 +3,7 @@
 
 
 import {MemoryDirectory} from "../files/memory";
-import {parseJsonArrayBuffer, parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 import {Process} from "../processes/base";
 import {DeviceDirectory} from "../devices/base";
 import {ProcessDirectory} from "../processes/files";

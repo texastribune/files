@@ -2,7 +2,7 @@
 /* global jest, test, expect, describe */
 
 import {MemoryDirectory} from "../files/memory";
-import {parseTextArrayBuffer, parseJsonArrayBuffer, stringToArrayBuffer} from "../utils";
+import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 import IndexedDB from "fake-indexeddb/build/index";
 import {LocalStorageRoot, database} from "../files/local";
 import {VirtualFS} from "../files/virtual";
@@ -23,8 +23,7 @@ function compareById(a : File, b : File) {
 }
 
 async function listDirectoryDataFromRead(directory : Directory) {
-    let directoryArrayBuffer = await directory.read();
-    return parseJsonArrayBuffer(directoryArrayBuffer);
+    return await directory.readJSON();
 }
 
 async function listDirectoryDataFromGetChildren(directory : Directory){
@@ -72,8 +71,7 @@ function testStorage(rootDirectory : Directory) {
     test('Directories are files with json array string', async () => {
         expect(rootDirectory).toBeInstanceOf(BasicFile);
 
-        let arrayBuffer = await rootDirectory.read();
-        let childData = parseJsonArrayBuffer(arrayBuffer);
+        let childData = await rootDirectory.readJSON();
         if (childData instanceof Array){
             expect(childData.length).toEqual(0);
         } else {

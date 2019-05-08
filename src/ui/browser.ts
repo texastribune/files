@@ -214,7 +214,7 @@ function isFileTransfer(object : any) : object is FileDataTransfer {
 }
 
 /**
- * An element for browsing a file system.
+ * An element for browsing a directory.
  * @param {Directory} currentDirectory - The root directory of the browser.
  * @param {Table} table - The table to use for displaying the files.
  */

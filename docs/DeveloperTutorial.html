@@ -29,20 +29,26 @@
                 </header>
 
                 <article>
-                    <h3>File Browsers</h3>
+                    <h3>Files and Directories</h3>
                     <p>
-                        To include a file browser in an HTML document import the ui/browser.js file
-                        to define the custom element and then add a file-browser custom element to the document.
-                        The element will initially no show any files because the default root directory is empty.
-                        Via javascript create an instance of Directory and set that as the root_directory
-                        property on the file browser element.
+                        The file interface is the fundamental building block of this library. Directories are a special
+                        abstract implementation of the file interface. All directories should implement the Directory
+                        abstract class.
+                    </p>
+                    <p>
+                        There are already a few Directory implementations available, such as local storage, in memory,
+                        and NodeJS, as well as others. You can also implement your own by overriding all of the
+                        abstract methods.
                     </p>
 
-                    <h3>Directories</h3>
+                    <h3>File Browsers</h3>
                     <p>
-                        There are already a few Directory implementations available, such as
-                        local storage, in memory, and NodeJS,
-                        as well as others. You can also implement your own by overriding all of the abstract methods.
+                        File browsers are implemented as webcomponents. When ui/browser.js is imported as a module,
+                        the a custom element with the tag file-browser is defined. To include a file browser in an
+                        HTML document import the ui/browser.js file and add a file-browser custom element to the document.
+                        By default the browser have an empty MemoryDirectory instance as it's root directory. To
+                        change the root directory add one of the DirectoryElement implementations as a child of
+                        the file-browser element.
                     </p>
                 </article>
             </section>

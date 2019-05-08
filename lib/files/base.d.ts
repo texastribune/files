@@ -101,13 +101,11 @@ export declare abstract class BasicFile implements File {
     /**
      * Read the file as a string.
      * @async
-     * @returns {string} - File file data converted to a string.
      */
     readText(): Promise<string>;
     /**
      * Read the file as a json encoded string and convert to a Javascript Object.
      * @async
-     * @returns {Object|Array} - File file data converted to a Javascript Object.
      */
     readJSON(): Promise<any>;
     copy(targetDirectory: Directory): Promise<void>;
@@ -132,9 +130,19 @@ export declare abstract class Directory extends BasicFile {
      * @throws FileNotFoundError
      */
     getFile(pathArray: string[]): Promise<File>;
+    /**
+     * Searches the directory and its children recursively based on the given search query.
+     */
     abstract search(query: string): Promise<SearchResult[]>;
+    /**
+     * Adds a file to the directory and returns it.
+     */
     abstract addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<File>;
     abstract addDirectory(name: string): Promise<Directory>;
+    /**
+     * Returns all of the children of the directory. The children should all implement the File
+     * interface.
+     */
     abstract getChildren(): Promise<File[]>;
 }
 export interface SearchResult {
