@@ -298,10 +298,7 @@ export class FileBrowser extends Table {
     contextMenuButton.onclick = (event) => {
       event.stopPropagation();
       let rect = contextMenuButton.getBoundingClientRect();
-      this.showContextMenu(
-          rect.left - document.documentElement.scrollLeft,
-          rect.bottom -  document.documentElement.scrollTop,
-      );
+      this.showContextMenu(rect.left, rect.bottom);
     };
     this.menusContainer.appendChild(contextMenuButton);
 
