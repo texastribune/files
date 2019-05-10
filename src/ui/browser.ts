@@ -231,9 +231,6 @@ export class FileBrowser extends Table {
 
   static dataTransferType = 'text/table-rows';
 
-  static selectMultipleAttribute = 'select-multiple';
-  static showHiddenAttribute = 'show-hidden';
-
 
   /**
    * @event
@@ -393,10 +390,6 @@ export class FileBrowser extends Table {
     this.cachedCurrentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
   }
 
-  static get observedAttributes() {
-    return [FileBrowser.selectMultipleAttribute, FileBrowser.showHiddenAttribute];
-  }
-
   get rootDirectory() : Directory {
     return this.cachedCurrentDirectory.root;
   }
@@ -474,30 +467,6 @@ export class FileBrowser extends Table {
           }
         })
     );
-  }
-
-  get selectMultiple() : boolean{
-    return this.getAttribute(FileBrowser.selectMultipleAttribute) !== null;
-  }
-
-  set selectMultiple(value : boolean){
-    if (value){
-      this.setAttribute(FileBrowser.selectMultipleAttribute, "");
-    } else {
-      this.removeAttribute(FileBrowser.selectMultipleAttribute);
-    }
-  }
-
-  get showHidden() : boolean{
-    return this.getAttribute(FileBrowser.showHiddenAttribute) !== null;
-  }
-
-  set showHidden(value : boolean){
-    if (value){
-      this.setAttribute(FileBrowser.showHiddenAttribute, "");
-    } else {
-      this.removeAttribute(FileBrowser.showHiddenAttribute);
-    }
   }
 
   get css(): string {

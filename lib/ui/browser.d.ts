@@ -47,8 +47,6 @@ export declare class FileBrowser extends Table {
     static overlayId: string;
     static buttonClass: string;
     static dataTransferType: string;
-    static selectMultipleAttribute: string;
-    static showHiddenAttribute: string;
     /**
      * @event
      */
@@ -77,7 +75,6 @@ export declare class FileBrowser extends Table {
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
     constructor();
-    static readonly observedAttributes: string[];
     rootDirectory: Directory;
     readonly currentDirectory: Directory;
     protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<T>): void;
@@ -87,8 +84,6 @@ export declare class FileBrowser extends Table {
     readonly selectedFiles: File[];
     readonly selectedPaths: string[][];
     filePath: string[];
-    selectMultiple: boolean;
-    showHidden: boolean;
     readonly css: string;
     connectedCallback(): void;
     loadingWrapper(promise: Promise<void>): Promise<void>;
