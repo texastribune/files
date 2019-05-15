@@ -154,8 +154,8 @@ export class ContextMenu extends Dialog {
         browser.logAndLoadWrapper(Promise.all(promises).then(() => {}));
       });
       deleteDialog.appendChild(removeText);
-      deleteDialog.center();
       deleteDialog.visible = true;
+      deleteDialog.center();
     };
     return deleteButton;
   }
@@ -197,8 +197,8 @@ export class ContextMenu extends Dialog {
       moveDialog.addEventListener(Dialog.EVENT_CLOSED, () => {
         moveDialog.remove();
       });
-      moveDialog.center();
       moveDialog.visible = true;
+      moveDialog.center();
     };
     return moveButton;
   }
@@ -237,8 +237,8 @@ export class ContextMenu extends Dialog {
 
       fileDialog.appendChild(fileInputDiv);
       this.appendChild(fileDialog);
-      fileDialog.center();
       fileDialog.visible = true;
+      fileDialog.center();
     };
     return addFileButton;
   }
