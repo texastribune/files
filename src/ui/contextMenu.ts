@@ -169,13 +169,14 @@ export class ContextMenu extends Dialog {
       event.stopPropagation();
 
 
-      let moveBrowser = document.createElement('file-browser') as FileBrowser;
+      let moveBrowser = browser.cloneNode() as FileBrowser;
       moveBrowser.rootDirectory = browser.rootDirectory;
       let moveDialog = document.createElement('confirm-dialog') as ConfirmDialog;
+      moveDialog.appendChild(moveBrowser);
 
       moveBrowser.selectMultiple = false;
       moveDialog.name = "Move Files";
-      moveDialog.confirmationText = "Select";
+      moveDialog.confirmationText = "Move";
       moveDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
         let target : Directory;
         let moveSelection =  moveBrowser.selectedFiles;
