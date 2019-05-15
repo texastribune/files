@@ -6,8 +6,9 @@ import "elements/lib/table.js";
 import "elements/lib/dialog.js";
 import { BreadCrumbs } from "./breadCrumbs.js";
 import { Directory, File } from "../files/base.js";
-import { AbstractTableData, Header, Row, Table } from "elements/lib/table.js";
+import { AbstractTableData, Header, Row } from "elements/lib/table.js";
 import { CachedProxyDirectory } from "../files/proxy.js";
+import { CustomElement } from "elements/lib/element.js";
 export declare class FileSizeTableData extends AbstractTableData<File | null> {
     private file;
     data: File | null;
@@ -37,16 +38,19 @@ export interface RowData {
  * @param {Directory} currentDirectory - The root directory of the browser.
  * @param {Table} table - The table to use for displaying the files.
  */
-export declare class FileBrowser extends Table {
+export declare class FileBrowser extends CustomElement {
     static actionsContainerId: string;
     static tableIconClass: string;
     static activeAjaxClass: string;
     static messageContainerId: string;
     static menuContainerId: string;
     static bodyContainerId: string;
+    static tableId: string;
     static overlayId: string;
     static buttonClass: string;
     static dataTransferType: string;
+    static showHiddenAttribute: string;
+    static selectMultipleAttribute: string;
     /**
      * @event
      */
@@ -67,14 +71,15 @@ export declare class FileBrowser extends Table {
     private readonly messagesContainer;
     private readonly menusContainer;
     private readonly searchElement;
-    private readonly bodyContainer;
+    private readonly tableContainer;
     private readonly tableBusyOverlay;
     private readonly breadCrumbs;
-    private readonly tableHeader;
     private cachedCurrentDirectory;
+    private readonly table;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
     constructor();
+    static readonly observedAttributes: string[];
     rootDirectory: Directory;
     readonly currentDirectory: Directory;
     protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<T>): void;
@@ -84,8 +89,13 @@ export declare class FileBrowser extends Table {
     readonly selectedFiles: File[];
     readonly selectedPaths: string[][];
     filePath: string[];
+    selectMultiple: boolean;
+    showHidden: boolean;
     readonly css: string;
     connectedCallback(): void;
+    updateFromAttributes(attributes: {
+        [p: string]: string | null;
+    }): void;
     loadingWrapper(promise: Promise<void>): Promise<void>;
     errorLoggingWrapper(promise: Promise<void>): Promise<void>;
     logAndLoadWrapper(promise: Promise<void>): Promise<void>;
@@ -102,6 +112,7 @@ export declare class FileBrowser extends Table {
     protected getRowDataFromRow(row: Row): RowData;
     protected setTableData(rowData: RowData[]): void;
     search(searchTerm: string): Promise<void>;
+    showVisibleColumnsDialog(positionX: number, positionY: number): void;
     showContextMenu(positionX: number, positionY: number): void;
     execute(path: string[]): void;
     addMessage(message: Error | string, isError?: boolean): void;

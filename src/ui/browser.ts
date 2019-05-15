@@ -19,6 +19,7 @@ import {SearchBar} from "./search.js";
 import {Process} from "../processes/base.js";
 import {ConsoleFile} from "../devices/console.js";
 import {ContextMenu} from "./contextMenu.js";
+import {CustomElement} from "elements/lib/element.js";
 
 
 export class FileSizeTableData extends AbstractTableData<File | null> {
@@ -218,7 +219,7 @@ function isFileTransfer(object : any) : object is FileDataTransfer {
  * @param {Directory} currentDirectory - The root directory of the browser.
  * @param {Table} table - The table to use for displaying the files.
  */
-export class FileBrowser extends Table {
+export class FileBrowser extends CustomElement {
   // Class names
   static actionsContainerId = 'file-actions-container';
   static tableIconClass = 'icon';
@@ -226,10 +227,14 @@ export class FileBrowser extends Table {
   static messageContainerId = 'file-message-container';
   static menuContainerId = 'file-menu-container';
   static bodyContainerId = 'body-container';
+  static tableId = 'table';
   static overlayId = 'overlay';
   static buttonClass = 'button';
 
   static dataTransferType = 'text/table-rows';
+
+  static showHiddenAttribute = 'show-hidden';
+  static selectMultipleAttribute = 'select-multiple';
 
 
   /**
@@ -256,18 +261,23 @@ export class FileBrowser extends Table {
   private readonly messagesContainer: HTMLDivElement;
   private readonly menusContainer: HTMLDivElement;
   private readonly searchElement: SearchBar;
-  private readonly bodyContainer: HTMLDivElement;
+  private readonly tableContainer: HTMLDivElement;
   private readonly tableBusyOverlay: HTMLDivElement;
   private readonly breadCrumbs: BreadCrumbs;
-  private readonly tableHeader: Header;
 
   private cachedCurrentDirectory: CachedProxyDirectory<Directory>;
 
+  private readonly table: Table;
   private readonly dropdownMenuIcon: Element;
   private readonly carrotIcon: Element;
 
   constructor() {
     super();
+    this.table = document.createElement('selectable-table') as Table;
+    this.table.id = FileBrowser.tableId;
+    this.table.appendChild(this.getNewFileTableHeader());
+    let slot = document.createElement('slot');
+    this.table.appendChild(slot);
 
     // Sub elements
     this.breadCrumbs = this.getNewBreadCrumbs();
@@ -302,14 +312,12 @@ export class FileBrowser extends Table {
     this.searchElement = document.createElement('search-bar') as SearchBar;
 
     // Table
-    this.bodyContainer = document.createElement('div') as HTMLDivElement;
-    this.bodyContainer.id = FileBrowser.bodyContainerId;
+    this.tableContainer = document.createElement('div') as HTMLDivElement;
+    this.tableContainer.id = FileBrowser.bodyContainerId;
     this.tableBusyOverlay = document.createElement('div');
     this.tableBusyOverlay.id = FileBrowser.overlayId;
-    this.bodyContainer.appendChild(this.tableBusyOverlay);
-
-    // Move table body from shadow root inside wrapper container
-    this.bodyContainer.appendChild(this.view);
+    this.tableContainer.appendChild(this.table);
+    this.tableContainer.appendChild(this.tableBusyOverlay);
 
     // Add action elements
     this.actionsContainer.appendChild(this.breadCrumbs);
@@ -317,23 +325,20 @@ export class FileBrowser extends Table {
     this.actionsContainer.appendChild(this.menusContainer);
     this.actionsContainer.appendChild(this.searchElement);
 
-    // Add actions and breadcrumbs to the top of the shadow DOM
-    this.shadowDOM.insertBefore(this.actionsContainer, this.shadowDOM.firstChild);
-    this.shadowDOM.insertBefore(this.breadCrumbs, this.shadowDOM.firstChild);
-
-    this.shadowDOM.appendChild(this.bodyContainer);
-
-    this.tableHeader = this.getNewFileTableHeader();
+    // Add children to shadow dom
+    this.shadowDOM.appendChild(this.breadCrumbs);
+    this.shadowDOM.appendChild(this.actionsContainer);
+    this.shadowDOM.appendChild(this.tableContainer);
 
     // Element events
     document.addEventListener('copy', (event : ClipboardEvent) => {
-      if (this.selectedRows.length > 0){
+      if (this.selectedRowData.length > 0){
         this.onCutOrCopy(event);
       }
     });
 
     document.addEventListener('cut', (event : ClipboardEvent) => {
-      if (this.selectedRows.length > 0){
+      if (this.selectedRowData.length > 0){
         this.onCutOrCopy(event);
       }
     });
@@ -390,6 +395,10 @@ export class FileBrowser extends Table {
     this.cachedCurrentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
   }
 
+  static get observedAttributes() {
+    return [FileBrowser.selectMultipleAttribute, FileBrowser.showHiddenAttribute];
+  }
+
   get rootDirectory() : Directory {
     return this.cachedCurrentDirectory.root;
   }
@@ -416,7 +425,7 @@ export class FileBrowser extends Table {
 
   get files(): File[] {
     let files: File[] = [];
-    for (let row of this.rows) {
+    for (let row of this.table.rows) {
       for (let child of row.children){
         if (child instanceof FileTableData && child.data !== null){
           files.push(child.data);
@@ -427,7 +436,7 @@ export class FileBrowser extends Table {
   }
 
   get selectedFileRows() : Row[] {
-    return this.selectedRows;
+    return this.table.selectedRows;
   }
 
   get selectedRowData() : RowData[] {
@@ -469,6 +478,30 @@ export class FileBrowser extends Table {
     );
   }
 
+  get selectMultiple() : boolean{
+    return this.getAttribute(FileBrowser.selectMultipleAttribute) !== null;
+  }
+
+  set selectMultiple(value : boolean){
+    if (value){
+      this.setAttribute(FileBrowser.selectMultipleAttribute, "");
+    } else {
+      this.removeAttribute(FileBrowser.selectMultipleAttribute);
+    }
+  }
+
+  get showHidden() : boolean{
+    return this.hasAttribute(FileBrowser.showHiddenAttribute);
+  }
+
+  set showHidden(value : boolean){
+    if (value) {
+      this.setAttribute(FileBrowser.showHiddenAttribute, "");
+    } else {
+      this.removeAttribute(FileBrowser.showHiddenAttribute);
+    }
+  }
+
   get css(): string {
     // language=CSS
     return super.css + `
@@ -502,6 +535,7 @@ export class FileBrowser extends Table {
         
         #${FileBrowser.actionsContainerId} {
             width: 100%;
+            overflow: hidden;
         }
         
         #${FileBrowser.actionsContainerId} .${FileBrowser.tableIconClass} {
@@ -561,7 +595,7 @@ export class FileBrowser extends Table {
           display: block;
         }
         
-        :host(.${FileBrowser.dragOverClass}) #${FileBrowser.overlayId} {          
+        #${FileBrowser.tableId}.${Table.dragOverClass} ~ #${FileBrowser.overlayId} {          
           background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAhVJREFUeJzt3bEKhDAQQEH1//9Zy2vkqYgXkZk6xcLmkTLTBAAAAAAAAAD8zKMH+IB19AAH7PiGZfQA8GYCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCPOFs+tjU8D/nbr7XhAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAgCgSAQCAKBIBAIAoEgEAhX/kln39v/j7fjG7wgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAQBAJBIBAEAkEgEAQCQSAAAAAAAAAAAJy0AdBdBGYni5DTAAAAAElFTkSuQmCC);
           display: block;
           pointer-events: none; /*prevent interfering with drag&drop*/
@@ -579,7 +613,22 @@ export class FileBrowser extends Table {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.appendChild(this.tableHeader);
+  }
+
+  updateFromAttributes(attributes: { [p: string]: string | null }): void {
+    let selectMultiple = attributes[FileBrowser.selectMultipleAttribute];
+    if (selectMultiple === null){
+      this.table.removeAttribute(Table.selectMultipleAttribute);
+    } else {
+      this.table.setAttribute(Table.selectMultipleAttribute, selectMultiple);
+    }
+
+    let showHidden = attributes[FileBrowser.showHiddenAttribute];
+    if (showHidden === null){
+      this.table.removeAttribute(Table.showHiddenAttribute);
+    } else {
+      this.table.setAttribute(Table.showHiddenAttribute, showHidden);
+    }
   }
 
 // Wrapper utilities
@@ -588,13 +637,13 @@ export class FileBrowser extends Table {
   async loadingWrapper(promise: Promise<void>): Promise<void> {
     // Add loading class to element while waiting on the async call.
     this.activePromises.add(promise);
-    this.bodyContainer.classList.add(FileBrowser.activeAjaxClass);
+    this.tableContainer.classList.add(FileBrowser.activeAjaxClass);
     try {
       return await promise;
     } finally {
       this.activePromises.delete(promise);
       if (this.activePromises.size === 0){
-        this.bodyContainer.classList.remove(FileBrowser.activeAjaxClass);
+        this.tableContainer.classList.remove(FileBrowser.activeAjaxClass);
       }
     }
   }
@@ -786,16 +835,11 @@ export class FileBrowser extends Table {
 
     let urlList = "";
     let paths : string[][] = [];
-    for (let row of this.selectedRows) {
-      for (let dataElement of row.children){
-        if (dataElement instanceof FileTableData) {
-          if (dataElement.data !== null && dataElement.data.url !== null){
-            urlList += dataElement.data.url + '\r\n';
-          }
-        } else if (dataElement instanceof PathTableData){
-          paths.push(dataElement.data);
-        }
+    for (let rowData of this.selectedRowData) {
+      if (rowData.file.url !== null){
+        urlList += rowData.file.url + '\r\n';
       }
+      paths.push(rowData.path);
     }
 
     event.clipboardData.setData('text/plain', urlList);
@@ -940,7 +984,7 @@ export class FileBrowser extends Table {
       }
       tableRows.push(tableRow);
     }
-    this.rows = tableRows;
+    this.table.rows = tableRows;
     this.dispatchEvent(new Event(FileBrowser.EVENT_FILES_CHANGE));
   }
 
@@ -971,6 +1015,10 @@ export class FileBrowser extends Table {
     } else {
       await this.logAndLoadWrapper(this.resetFiles());
     }
+  }
+
+  showVisibleColumnsDialog(positionX: number, positionY: number){
+    this.table.showVisibleColumnsDialog(positionX, positionY);
   }
 
   showContextMenu(positionX: number, positionY: number) {
