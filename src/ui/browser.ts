@@ -125,7 +125,7 @@ export class FileTableData extends AbstractTableData<File | null> {
 
   get css(): string {
     // language=CSS
-    return super.css + `
+    return super.css + `        
        .${FileBrowser.tableIconClass} {
           display: inline-block;
           width: var(--icon-size, 22px);
@@ -230,11 +230,13 @@ export class FileBrowser extends CustomElement {
   static tableId = 'table';
   static overlayId = 'overlay';
   static buttonClass = 'button';
+  static gridItemClass = 'grid-item';
 
   static dataTransferType = 'text/table-rows';
 
   static showHiddenAttribute = 'show-hidden';
   static selectMultipleAttribute = 'select-multiple';
+  static gridAttribute = 'grid';
 
 
   /**
@@ -270,6 +272,9 @@ export class FileBrowser extends CustomElement {
   private readonly table: Table;
   private readonly dropdownMenuIcon: Element;
   private readonly carrotIcon: Element;
+
+  private readonly cutAndCopyListener : (event: ClipboardEvent) => void;
+  private readonly pasteListener : (event: ClipboardEvent) => void;
 
   constructor() {
     super();
@@ -331,21 +336,15 @@ export class FileBrowser extends CustomElement {
     this.shadowDOM.appendChild(this.tableContainer);
 
     // Element events
-    document.addEventListener('copy', (event : ClipboardEvent) => {
+    this.cutAndCopyListener = (event : ClipboardEvent) => {
       if (this.selectedRowData.length > 0){
         this.onCutOrCopy(event);
       }
-    });
+    };
 
-    document.addEventListener('cut', (event : ClipboardEvent) => {
-      if (this.selectedRowData.length > 0){
-        this.onCutOrCopy(event);
-      }
-    });
-
-    this.addEventListener('paste', (event : ClipboardEvent) => {
+    this.pasteListener = (event : ClipboardEvent) => {
       this.onPaste(event);
-    });
+    };
 
     this.ondrop = (event: DragEvent) => {
       if (event.dataTransfer !== null) {
@@ -396,7 +395,11 @@ export class FileBrowser extends CustomElement {
   }
 
   static get observedAttributes() {
-    return [FileBrowser.selectMultipleAttribute, FileBrowser.showHiddenAttribute];
+    return [
+      FileBrowser.selectMultipleAttribute,
+      FileBrowser.showHiddenAttribute,
+      FileBrowser.gridAttribute,
+    ];
   }
 
   get rootDirectory() : Directory {
@@ -522,6 +525,30 @@ export class FileBrowser extends CustomElement {
           position: relative;
           font-family: var(--browser-font, sans-serif);
         }
+        
+        :host([grid]) #${FileBrowser.tableId} {
+            display: grid;
+        }
+        
+        :host([grid]) #${FileBrowser.tableId} > table-row {
+            display: block;
+            width: 10%;
+            float: left;
+        }
+        
+        :host([grid]) #${FileBrowser.tableId} > table-row > :not(.${FileBrowser.gridItemClass}) {
+            display: none;
+        }
+        
+        :host([grid]) #${FileBrowser.tableId} > table-row > .${FileBrowser.gridItemClass} {
+            width: var(--icon-size, 22px);
+            text-align: center;
+            display: block;
+            text-overflow: initial;
+            white-space: normal;
+            margin: auto;
+        }
+       
 
         .${FileBrowser.tableIconClass} {
           display: inline-block;
@@ -613,6 +640,17 @@ export class FileBrowser extends CustomElement {
 
   connectedCallback(): void {
     super.connectedCallback();
+    document.addEventListener('copy', this.cutAndCopyListener);
+    document.addEventListener('cut', this.cutAndCopyListener);
+    document.addEventListener('paste', this.pasteListener);
+  }
+
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener('copy', this.cutAndCopyListener);
+    document.removeEventListener('cut', this.cutAndCopyListener);
+    document.removeEventListener('paste', this.pasteListener);
   }
 
   updateFromAttributes(attributes: { [p: string]: string | null }): void {
@@ -916,6 +954,8 @@ export class FileBrowser extends CustomElement {
     createdColumn.data = rowData.file.created;
     typeColumn.data = rowData.file.mimeType;
     pathColumn.data = rowData.path;
+
+    nameColumn.classList.add(FileBrowser.gridItemClass);
 
     row.appendChildren([
       idColumn,

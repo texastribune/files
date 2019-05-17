@@ -48,9 +48,11 @@ export declare class FileBrowser extends CustomElement {
     static tableId: string;
     static overlayId: string;
     static buttonClass: string;
+    static gridItemClass: string;
     static dataTransferType: string;
     static showHiddenAttribute: string;
     static selectMultipleAttribute: string;
+    static gridAttribute: string;
     /**
      * @event
      */
@@ -78,6 +80,8 @@ export declare class FileBrowser extends CustomElement {
     private readonly table;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
+    private readonly cutAndCopyListener;
+    private readonly pasteListener;
     constructor();
     static readonly observedAttributes: string[];
     rootDirectory: Directory;
@@ -93,6 +97,7 @@ export declare class FileBrowser extends CustomElement {
     showHidden: boolean;
     readonly css: string;
     connectedCallback(): void;
+    disconnectedCallback(): void;
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
