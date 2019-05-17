@@ -1,5 +1,6 @@
 import * as files from "./base.js";
 import {FileAlreadyExistsError} from "./base.js";
+import {arrayBufferToDataUrl} from "../utils.js";
 
 
 let idCounter = 0;
@@ -35,9 +36,7 @@ export class MemoryFile extends files.BasicFile {
     }
 
     get url(){
-        let numArray = new Uint8Array(this.fileData) as unknown as number[];
-        let binaryStr = String.fromCharCode.apply(null, numArray);
-        return `data:${this.mimeType};base64,${btoa(binaryStr)}`;
+        return arrayBufferToDataUrl(this.fileData, this.mimeType);
     }
 
     get size(){

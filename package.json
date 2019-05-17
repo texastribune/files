@@ -1,6 +1,6 @@
 {
   "name": "ttfiles",
-  "version": "2.2.10",
+  "version": "2.2.11",
   "description": "The Texas Tribune Files App",
   "private": true,
   "scripts": {
@@ -26,6 +26,6 @@
     "webpack-cli": "^3.1.2"
   },
   "dependencies": {
-    "elements": "git://github.com/tjb346/elements.git#v1.0.6"
+    "elements": "git://github.com/tjb346/elements.git#v1.0.7"
   }
 }
