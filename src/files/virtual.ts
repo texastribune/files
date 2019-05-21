@@ -1,6 +1,7 @@
 import {ProxyDirectory} from "./proxy.js";
 import * as files from "./base.js";
 
+
 export class VirtualDirectory<T extends files.Directory> extends ProxyDirectory<T> {
   private readonly mounts : {[id : string] : files.Directory};
 
@@ -28,8 +29,7 @@ export class VirtualDirectory<T extends files.Directory> extends ProxyDirectory<
     return virtualChildren;
   }
 
-
-  async addDirectory(name: string): Promise<files.Directory> {
+  async addDirectory(name: string): Promise<VirtualDirectory<files.Directory>> {
     let dir = await super.addDirectory(name);
     return new VirtualDirectory(dir, this.mounts);
   }
@@ -64,6 +64,7 @@ class MountedDirectory<T extends files.Directory> extends VirtualDirectory<T> {
     return this.mountPointName;
   }
 }
+
 
 export class VirtualFS<T extends files.Directory> extends MountedDirectory<T> {
   constructor(concreteDirectory : T){

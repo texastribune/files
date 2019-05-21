@@ -6,7 +6,7 @@ export declare class VirtualDirectory<T extends files.Directory> extends ProxyDi
         [id: string]: files.Directory;
     });
     getChildren(): Promise<files.File[]>;
-    addDirectory(name: string): Promise<files.Directory>;
+    addDirectory(name: string): Promise<VirtualDirectory<files.Directory>>;
     mount(file: files.Directory): void;
     unount(file: files.Directory): void;
 }

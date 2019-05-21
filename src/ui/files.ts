@@ -10,10 +10,20 @@ import {FileBrowser} from "./browser.js";
 export abstract class DirectoryElement extends CustomElement {
     protected abstract readonly directory : Directory;
 
-    refresh(): void {
-        super.refresh();
+
+    connectedCallback(): void {
+        super.connectedCallback();
+
         if (this.parentElement instanceof FileBrowser){
-            this.parentElement.rootDirectory = this.directory;
+            this.parentElement.mountDirectory(this.directory);
+        }
+    }
+
+    disconnectedCallback(): void {
+        super.disconnectedCallback();
+
+        if (this.parentElement instanceof FileBrowser){
+            this.parentElement.unMountDirectory(this.directory);
         }
     }
 }

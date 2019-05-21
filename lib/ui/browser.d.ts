@@ -77,6 +77,7 @@ export declare class FileBrowser extends CustomElement {
     private readonly tableBusyOverlay;
     private readonly breadCrumbs;
     private cachedCurrentDirectory;
+    private readonly rootDirectory;
     private readonly table;
     private readonly dropdownMenuIcon;
     private readonly carrotIcon;
@@ -84,7 +85,6 @@ export declare class FileBrowser extends CustomElement {
     private readonly pasteListener;
     constructor();
     static readonly observedAttributes: string[];
-    rootDirectory: Directory;
     readonly currentDirectory: Directory;
     protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<T>): void;
     readonly files: File[];
@@ -101,6 +101,8 @@ export declare class FileBrowser extends CustomElement {
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
+    mountDirectory(directory: Directory): void;
+    unMountDirectory(directory: Directory): void;
     loadingWrapper(promise: Promise<void>): Promise<void>;
     errorLoggingWrapper(promise: Promise<void>): Promise<void>;
     logAndLoadWrapper(promise: Promise<void>): Promise<void>;
