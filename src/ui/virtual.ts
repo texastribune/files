@@ -26,7 +26,7 @@ export class VirtualDirectoryElement extends DirectoryElement {
                     if (added instanceof DirectoryElement){
                         this.addDirectory(added.directory)
                             .then(() => {
-                                this.dispatchEvent(new Event(VirtualDirectoryElement.EVENT_MOUNTED));
+                                this.dispatchEvent(new Event(VirtualDirectoryElement.EVENT_MOUNTED, {bubbles: true}));
                             });
                     }
                 }
@@ -34,7 +34,7 @@ export class VirtualDirectoryElement extends DirectoryElement {
                     if (removed instanceof DirectoryElement){
                         this.removeDirectory(removed.directory)
                             .then(() => {
-                                this.dispatchEvent(new Event(VirtualDirectoryElement.EVENT_UNMOUNTED));
+                                this.dispatchEvent(new Event(VirtualDirectoryElement.EVENT_UNMOUNTED, {bubbles: true}));
                             });
                     }
                 }

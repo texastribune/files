@@ -353,7 +353,7 @@ export class FileBrowser extends CustomElement {
     };
 
     this.addEventListener(Table.EVENT_SELECTION_CHANGED, () => {
-      let event = new Event(FileBrowser.EVENT_SELECTED_FILES_CHANGE);
+      let event = new Event(FileBrowser.EVENT_SELECTED_FILES_CHANGE, {bubbles: true});
       this.dispatchEvent(event);
     });
 
@@ -422,7 +422,7 @@ export class FileBrowser extends CustomElement {
     this.logAndLoadWrapper(this.refreshFiles());
     this.breadCrumbs.path = this.filePath;
 
-    let event = new Event(FileBrowser.EVENT_DIRECTORY_CHANGE);
+    let event = new Event(FileBrowser.EVENT_DIRECTORY_CHANGE, {bubbles: true});
     this.dispatchEvent(event);
   }
 
@@ -1025,7 +1025,7 @@ export class FileBrowser extends CustomElement {
       tableRows.push(tableRow);
     }
     this.table.rows = tableRows;
-    this.dispatchEvent(new Event(FileBrowser.EVENT_FILES_CHANGE));
+    this.dispatchEvent(new Event(FileBrowser.EVENT_FILES_CHANGE, {bubbles: true}));
   }
 
   async search(searchTerm: string) {
