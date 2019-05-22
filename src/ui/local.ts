@@ -3,7 +3,7 @@ import {DirectoryElement} from "./files.js";
 
 
 export class LocalStorageDirectoryElement extends DirectoryElement {
-    protected readonly directory : LocalStorageRoot;
+    public readonly directory : LocalStorageRoot;
 
     static nameAttribute = "name";
 

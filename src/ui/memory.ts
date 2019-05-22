@@ -3,7 +3,7 @@ import {DirectoryElement} from "./files.js";
 
 
 export class MemoryDirectoryElement extends DirectoryElement {
-    protected readonly directory : MemoryDirectory;
+    public readonly directory : MemoryDirectory;
 
     static nameAttribute = "name";
 

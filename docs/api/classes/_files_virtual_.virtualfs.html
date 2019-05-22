@@ -908,7 +908,10 @@ img { max-width: 100%; }
 <nav class="tsd-navigation secondary">
 	<ul>
 		<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-has-type-parameter tsd-is-not-exported">
-			<a href="_files_virtual_.mounteddirectory.html" class="tsd-kind-icon">Mounted<wbr>Directory</a>
+			<a href="_files_virtual_.abstractvirtualdirectory.html" class="tsd-kind-icon">Abstract<wbr>Virtual<wbr>Directory</a>
+		</li>
+		<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-has-type-parameter tsd-is-not-exported">
+			<a href="_files_virtual_.abstractvirtualrootdirectory.html" class="tsd-kind-icon">Abstract<wbr>Virtual<wbr>Root<wbr>Directory</a>
 		</li>
 		<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-has-type-parameter">
 			<a href="_files_virtual_.virtualdirectory.html" class="tsd-kind-icon">Virtual<wbr>Directory</a>
@@ -943,14 +946,20 @@ img { max-width: 100%; }
 				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
 					<a href="_files_virtual_.virtualfs.html#mimetype" class="tsd-kind-icon">mime<wbr>Type</a>
 				</li>
-				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite">
 					<a href="_files_virtual_.virtualfs.html#name" class="tsd-kind-icon">name</a>
+				</li>
+				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite">
+					<a href="_files_virtual_.virtualfs.html#path" class="tsd-kind-icon">path</a>
 				</li>
 				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
 					<a href="_files_virtual_.virtualfs.html#size" class="tsd-kind-icon">size</a>
 				</li>
 				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
 					<a href="_files_virtual_.virtualfs.html#url" class="tsd-kind-icon">url</a>
+				</li>
+				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+					<a href="_files_virtual_.virtualfs.html#virtualroot" class="tsd-kind-icon">virtual<wbr>Root</a>
 				</li>
 				<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-static">
 					<a href="_files_virtual_.virtualfs.html#mimetype-1" class="tsd-kind-icon">mime<wbr>Type</a>
@@ -980,7 +989,13 @@ img { max-width: 100%; }
 					<a href="_files_virtual_.virtualfs.html#getfile" class="tsd-kind-icon">get<wbr>File</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a href="_files_virtual_.virtualfs.html#getmounteddata" class="tsd-kind-icon">get<wbr>Mounted<wbr>Data</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="_files_virtual_.virtualfs.html#mount" class="tsd-kind-icon">mount</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a href="_files_virtual_.virtualfs.html#mountto" class="tsd-kind-icon">mount<wbr>To</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
 					<a href="_files_virtual_.virtualfs.html#move" class="tsd-kind-icon">move</a>
@@ -1007,12 +1022,18 @@ img { max-width: 100%; }
 					<a href="_files_virtual_.virtualfs.html#tostring" class="tsd-kind-icon">to<wbr>String</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-					<a href="_files_virtual_.virtualfs.html#unount" class="tsd-kind-icon">unount</a>
+					<a href="_files_virtual_.virtualfs.html#unmountfrom" class="tsd-kind-icon">unmount<wbr>From</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
 					<a href="_files_virtual_.virtualfs.html#write" class="tsd-kind-icon">write</a>
 				</li>
 			</ul>
+		</li>
+		<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-has-type-parameter">
+			<a href="_files_virtual_.virtualrootdirectory.html" class="tsd-kind-icon">Virtual<wbr>Root<wbr>Directory</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-not-exported">
+			<a href="../interfaces/_files_virtual_.mountpointdata.html" class="tsd-kind-icon">Mount<wbr>Point<wbr>Data</a>
 		</li>
 	</ul>
 </nav>
@@ -1030,7 +1051,7 @@ img { max-width: 100%; }
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<a href="_files_virtual_.mounteddirectory.html" class="tsd-signature-type">MountedDirectory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span>
+					<a href="_files_virtual_.abstractvirtualrootdirectory.html" class="tsd-signature-type">AbstractVirtualRootDirectory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span>
 					<ul class="tsd-hierarchy">
 						<li>
 							<span class="target">VirtualFS</span>
@@ -1061,7 +1082,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#concretedirectory" class="tsd-kind-icon">concrete<wbr>Directory</a></li>
 						</ul>
 					</section>
-					<section class="tsd-index-section tsd-is-inherited">
+					<section class="tsd-index-section ">
 						<h3>Accessors</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#created" class="tsd-kind-icon">created</a></li>
@@ -1071,9 +1092,11 @@ img { max-width: 100%; }
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#id" class="tsd-kind-icon">id</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#lastmodified" class="tsd-kind-icon">last<wbr>Modified</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#mimetype" class="tsd-kind-icon">mime<wbr>Type</a></li>
-							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#name" class="tsd-kind-icon">name</a></li>
+							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite"><a href="_files_virtual_.virtualfs.html#name" class="tsd-kind-icon">name</a></li>
+							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite"><a href="_files_virtual_.virtualfs.html#path" class="tsd-kind-icon">path</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#size" class="tsd-kind-icon">size</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#url" class="tsd-kind-icon">url</a></li>
+							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#virtualroot" class="tsd-kind-icon">virtual<wbr>Root</a></li>
 							<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="_files_virtual_.virtualfs.html#mimetype-1" class="tsd-kind-icon">mime<wbr>Type</a></li>
 						</ul>
 					</section>
@@ -1088,7 +1111,9 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#dispatchchangeevent" class="tsd-kind-icon">dispatch<wbr>Change<wbr>Event</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#getchildren" class="tsd-kind-icon">get<wbr>Children</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#getfile" class="tsd-kind-icon">get<wbr>File</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#getmounteddata" class="tsd-kind-icon">get<wbr>Mounted<wbr>Data</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#mount" class="tsd-kind-icon">mount</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#mountto" class="tsd-kind-icon">mount<wbr>To</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#move" class="tsd-kind-icon">move</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#read" class="tsd-kind-icon">read</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#readjson" class="tsd-kind-icon">readJSON</a></li>
@@ -1097,7 +1122,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#rename" class="tsd-kind-icon">rename</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#search" class="tsd-kind-icon">search</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#tostring" class="tsd-kind-icon">to<wbr>String</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#unount" class="tsd-kind-icon">unount</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#unmountfrom" class="tsd-kind-icon">unmount<wbr>From</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="_files_virtual_.virtualfs.html#write" class="tsd-kind-icon">write</a></li>
 						</ul>
 					</section>
@@ -1115,9 +1140,9 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Overrides <a href="_files_virtual_.mounteddirectory.html">MountedDirectory</a>.<a href="_files_virtual_.mounteddirectory.html#constructor">constructor</a></p>
+							<p>Overrides <a href="_files_virtual_.abstractvirtualrootdirectory.html">AbstractVirtualRootDirectory</a>.<a href="_files_virtual_.abstractvirtualrootdirectory.html#constructor">constructor</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/virtual.ts#L69">files/virtual.ts:69</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L122">files/virtual.ts:122</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1140,12 +1165,12 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#concretedirectory">concreteDirectory</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L90">files/proxy.ts:90</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L90">files/proxy.ts:90</a></li>
 					</ul>
 				</aside>
 			</section>
 		</section>
-		<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
+		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Accessors</h2>
 			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
 				<a name="created" class="tsd-anchor"></a>
@@ -1156,7 +1181,7 @@ img { max-width: 100%; }
 					<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#created">created</a></p>
 					<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#created">created</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L124">files/proxy.ts:124</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L124">files/proxy.ts:124</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1169,7 +1194,7 @@ img { max-width: 100%; }
 					<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#directory">directory</a></p>
 					<p>Overrides <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#directory">directory</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L108">files/proxy.ts:108</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L108">files/proxy.ts:108</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1182,7 +1207,7 @@ img { max-width: 100%; }
 					<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#extra">extra</a></p>
 					<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#extra">extra</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L128">files/proxy.ts:128</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L128">files/proxy.ts:128</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1195,7 +1220,7 @@ img { max-width: 100%; }
 					<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#icon">icon</a></p>
 					<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#icon">icon</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L116">files/proxy.ts:116</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L116">files/proxy.ts:116</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1208,7 +1233,7 @@ img { max-width: 100%; }
 					<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#id">id</a></p>
 					<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#id">id</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L100">files/proxy.ts:100</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L100">files/proxy.ts:100</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1221,7 +1246,7 @@ img { max-width: 100%; }
 					<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#lastmodified">lastModified</a></p>
 					<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#lastmodified">lastModified</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L120">files/proxy.ts:120</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L120">files/proxy.ts:120</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1234,20 +1259,30 @@ img { max-width: 100%; }
 					<p>Inherited from <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#mimetype">mimeType</a></p>
 					<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#mimetype">mimeType</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L193">files/base.ts:193</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L193">files/base.ts:193</a></li>
 					</ul>
 				</aside>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite">
 				<a name="name" class="tsd-anchor"></a>
 				<h3>name</h3>
 				<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<p>Implementation of <a href="../interfaces/_files_base_.file.html">File</a>.<a href="../interfaces/_files_base_.file.html#name">name</a></p>
-					<p>Inherited from <a href="_files_virtual_.mounteddirectory.html">MountedDirectory</a>.<a href="_files_virtual_.mounteddirectory.html#name">name</a></p>
 					<p>Overrides <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#name">name</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/virtual.ts#L63">files/virtual.ts:63</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L131">files/virtual.ts:131</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite">
+				<a name="path" class="tsd-anchor"></a>
+				<h3>path</h3>
+				<div class="tsd-signature tsd-kind-icon">path<span class="tsd-signature-symbol">:</span> </div>
+				<aside class="tsd-sources">
+					<p>Overrides <a href="_files_virtual_.abstractvirtualdirectory.html">AbstractVirtualDirectory</a>.<a href="_files_virtual_.abstractvirtualdirectory.html#path">path</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L127">files/virtual.ts:127</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1260,7 +1295,7 @@ img { max-width: 100%; }
 					<p>Inherited from <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#size">size</a></p>
 					<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#size">size</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L197">files/base.ts:197</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L197">files/base.ts:197</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1273,7 +1308,19 @@ img { max-width: 100%; }
 					<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#url">url</a></p>
 					<p>Overrides <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#url">url</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L112">files/proxy.ts:112</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L112">files/proxy.ts:112</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+				<a name="virtualroot" class="tsd-anchor"></a>
+				<h3>virtual<wbr>Root</h3>
+				<div class="tsd-signature tsd-kind-icon">virtual<wbr>Root<span class="tsd-signature-symbol">:</span> </div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="_files_virtual_.abstractvirtualrootdirectory.html">AbstractVirtualRootDirectory</a>.<a href="_files_virtual_.abstractvirtualrootdirectory.html#virtualroot">virtualRoot</a></p>
+					<p>Overrides <a href="_files_virtual_.abstractvirtualdirectory.html">AbstractVirtualDirectory</a>.<a href="_files_virtual_.abstractvirtualdirectory.html#virtualroot">virtualRoot</a></p>
+					<ul>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L73">files/virtual.ts:73</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1284,7 +1331,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#mimetype-1">mimeType</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L185">files/base.ts:185</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L185">files/base.ts:185</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1300,10 +1347,10 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="_files_virtual_.virtualdirectory.html">VirtualDirectory</a>.<a href="_files_virtual_.virtualdirectory.html#adddirectory">addDirectory</a></p>
+							<p>Inherited from <a href="_files_virtual_.abstractvirtualdirectory.html">AbstractVirtualDirectory</a>.<a href="_files_virtual_.abstractvirtualdirectory.html#adddirectory">addDirectory</a></p>
 							<p>Overrides <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#adddirectory">addDirectory</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/virtual.ts#L32">files/virtual.ts:32</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L30">files/virtual.ts:30</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1328,7 +1375,7 @@ img { max-width: 100%; }
 							<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#addfile">addFile</a></p>
 							<p>Overrides <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#addfile">addFile</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L152">files/proxy.ts:152</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L152">files/proxy.ts:152</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1358,7 +1405,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#addonchangelistener">addOnChangeListener</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L130">files/base.ts:130</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L130">files/base.ts:130</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1402,7 +1449,7 @@ img { max-width: 100%; }
 							<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#copy">copy</a></p>
 							<p>Overrides <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#copy">copy</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L140">files/proxy.ts:140</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L140">files/proxy.ts:140</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1428,7 +1475,7 @@ img { max-width: 100%; }
 							<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#delete">delete</a></p>
 							<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#delete">delete</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L136">files/proxy.ts:136</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L136">files/proxy.ts:136</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1446,7 +1493,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#dispatchchangeevent">dispatchChangeEvent</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L124">files/base.ts:124</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L124">files/base.ts:124</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1467,10 +1514,10 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="_files_virtual_.virtualdirectory.html">VirtualDirectory</a>.<a href="_files_virtual_.virtualdirectory.html#getchildren">getChildren</a></p>
+							<p>Inherited from <a href="_files_virtual_.abstractvirtualdirectory.html">AbstractVirtualDirectory</a>.<a href="_files_virtual_.abstractvirtualdirectory.html#getchildren">getChildren</a></p>
 							<p>Overrides <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#getchildren">getChildren</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/virtual.ts#L14">files/virtual.ts:14</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L12">files/virtual.ts:12</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_files_base_.file.html" class="tsd-signature-type">File</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1488,7 +1535,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#getfile">getFile</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L242">files/base.ts:242</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L242">files/base.ts:242</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1515,6 +1562,33 @@ img { max-width: 100%; }
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+				<a name="getmounteddata" class="tsd-anchor"></a>
+				<h3>get<wbr>Mounted<wbr>Data</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Mounted<wbr>Data<span class="tsd-signature-symbol">(</span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/_files_virtual_.mountpointdata.html" class="tsd-signature-type">MountPointData</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Inherited from <a href="_files_virtual_.abstractvirtualrootdirectory.html">AbstractVirtualRootDirectory</a>.<a href="_files_virtual_.abstractvirtualrootdirectory.html#getmounteddata">getMountedData</a></p>
+							<ul>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L92">files/virtual.ts:92</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>id: <span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <a href="../interfaces/_files_virtual_.mountpointdata.html" class="tsd-signature-type">MountPointData</a>
+							<span class="tsd-signature-symbol"> | </span>
+							<span class="tsd-signature-type">null</span>
+						</h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 				<a name="mount" class="tsd-anchor"></a>
 				<h3>mount</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
@@ -1523,13 +1597,40 @@ img { max-width: 100%; }
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="_files_virtual_.virtualdirectory.html">VirtualDirectory</a>.<a href="_files_virtual_.virtualdirectory.html#mount">mount</a></p>
+							<p>Inherited from <a href="_files_virtual_.abstractvirtualdirectory.html">AbstractVirtualDirectory</a>.<a href="_files_virtual_.abstractvirtualdirectory.html#mount">mount</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/virtual.ts#L37">files/virtual.ts:37</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L35">files/virtual.ts:35</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
+							<li>
+								<h5>file: <a href="_files_base_.directory.html" class="tsd-signature-type">Directory</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+				<a name="mountto" class="tsd-anchor"></a>
+				<h3>mount<wbr>To</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<li class="tsd-signature tsd-kind-icon">mount<wbr>To<span class="tsd-signature-symbol">(</span>mountPoint<span class="tsd-signature-symbol">: </span><a href="_files_virtual_.abstractvirtualdirectory.html" class="tsd-signature-type">AbstractVirtualDirectory</a><span class="tsd-signature-symbol">&lt;</span><a href="_files_base_.directory.html" class="tsd-signature-type">Directory</a><span class="tsd-signature-symbol">&gt;</span>, file<span class="tsd-signature-symbol">: </span><a href="_files_base_.directory.html" class="tsd-signature-type">Directory</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Inherited from <a href="_files_virtual_.abstractvirtualrootdirectory.html">AbstractVirtualRootDirectory</a>.<a href="_files_virtual_.abstractvirtualrootdirectory.html#mountto">mountTo</a></p>
+							<ul>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L77">files/virtual.ts:77</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>mountPoint: <a href="_files_virtual_.abstractvirtualdirectory.html" class="tsd-signature-type">AbstractVirtualDirectory</a><span class="tsd-signature-symbol">&lt;</span><a href="_files_base_.directory.html" class="tsd-signature-type">Directory</a><span class="tsd-signature-symbol">&gt;</span></h5>
+							</li>
 							<li>
 								<h5>file: <a href="_files_base_.directory.html" class="tsd-signature-type">Directory</a></h5>
 							</li>
@@ -1551,7 +1652,7 @@ img { max-width: 100%; }
 							<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#move">move</a></p>
 							<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#move">move</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L144">files/proxy.ts:144</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L144">files/proxy.ts:144</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1577,7 +1678,7 @@ img { max-width: 100%; }
 							<p>Inherited from <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#read">read</a></p>
 							<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#read">read</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L205">files/base.ts:205</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L205">files/base.ts:205</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1595,7 +1696,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#readjson">readJSON</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L160">files/base.ts:160</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L160">files/base.ts:160</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1622,7 +1723,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#readtext">readText</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L151">files/base.ts:151</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L151">files/base.ts:151</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1649,7 +1750,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#removeonchangelistener">removeOnChangeListener</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L134">files/base.ts:134</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L134">files/base.ts:134</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1693,7 +1794,7 @@ img { max-width: 100%; }
 							<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#rename">rename</a></p>
 							<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#rename">rename</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L132">files/proxy.ts:132</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L132">files/proxy.ts:132</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1718,7 +1819,7 @@ img { max-width: 100%; }
 							<p>Inherited from <a href="_files_proxy_.proxydirectory.html">ProxyDirectory</a>.<a href="_files_proxy_.proxydirectory.html#search">search</a></p>
 							<p>Overrides <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#search">search</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/proxy.ts#L148">files/proxy.ts:148</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/proxy.ts#L148">files/proxy.ts:148</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1742,7 +1843,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#tostring">toString</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L175">files/base.ts:175</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L175">files/base.ts:175</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -1750,23 +1851,23 @@ img { max-width: 100%; }
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-				<a name="unount" class="tsd-anchor"></a>
-				<h3>unount</h3>
+				<a name="unmountfrom" class="tsd-anchor"></a>
+				<h3>unmount<wbr>From</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-					<li class="tsd-signature tsd-kind-icon">unount<span class="tsd-signature-symbol">(</span>file<span class="tsd-signature-symbol">: </span><a href="_files_base_.directory.html" class="tsd-signature-type">Directory</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">unmount<wbr>From<span class="tsd-signature-symbol">(</span>mountPoint<span class="tsd-signature-symbol">: </span><a href="../interfaces/_files_base_.file.html" class="tsd-signature-type">File</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="_files_virtual_.virtualdirectory.html">VirtualDirectory</a>.<a href="_files_virtual_.virtualdirectory.html#unount">unount</a></p>
+							<p>Inherited from <a href="_files_virtual_.abstractvirtualrootdirectory.html">AbstractVirtualRootDirectory</a>.<a href="_files_virtual_.abstractvirtualrootdirectory.html#unmountfrom">unmountFrom</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/virtual.ts#L45">files/virtual.ts:45</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/virtual.ts#L85">files/virtual.ts:85</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>file: <a href="_files_base_.directory.html" class="tsd-signature-type">Directory</a></h5>
+								<h5>mountPoint: <a href="../interfaces/_files_base_.file.html" class="tsd-signature-type">File</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1786,7 +1887,7 @@ img { max-width: 100%; }
 							<p>Inherited from <a href="_files_base_.directory.html">Directory</a>.<a href="_files_base_.directory.html#write">write</a></p>
 							<p>Overrides <a href="_files_base_.basicfile.html">BasicFile</a>.<a href="_files_base_.basicfile.html#write">write</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/4d976d8/src/files/base.ts#L226">files/base.ts:226</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/98463bb/src/files/base.ts#L226">files/base.ts:226</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>

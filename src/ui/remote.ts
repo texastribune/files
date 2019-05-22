@@ -3,7 +3,7 @@ import {DirectoryElement} from "./files.js";
 
 
 export class RemoteDirectoryElement extends DirectoryElement {
-    protected directory : RemoteFS;
+    public directory : RemoteFS;
 
     static urlAttribute : string = 'url';
     static nameAttribute : string = 'name';

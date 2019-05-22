@@ -20,7 +20,6 @@ import {Process} from "../processes/base.js";
 import {ConsoleFile} from "../devices/console.js";
 import {ContextMenu} from "./contextMenu.js";
 import {CustomElement} from "elements/lib/element.js";
-import {VirtualFS} from "../files/virtual.js";
 
 
 export class FileSizeTableData extends AbstractTableData<File | null> {
@@ -269,7 +268,6 @@ export class FileBrowser extends CustomElement {
   private readonly breadCrumbs: BreadCrumbs;
 
   private cachedCurrentDirectory: CachedProxyDirectory<Directory>;
-  private readonly rootDirectory: CachedProxyDirectory<VirtualFS<MemoryDirectory>>;
 
   private readonly table: Table;
   private readonly dropdownMenuIcon: Element;
@@ -393,8 +391,7 @@ export class FileBrowser extends CustomElement {
 
     // Set initial directory
     this.busy = Promise.resolve();
-    this.rootDirectory = new CachedProxyDirectory(new VirtualFS(new MemoryDirectory(null, 'root')));
-    this.cachedCurrentDirectory = this.rootDirectory;
+    this.cachedCurrentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
   }
 
   static get observedAttributes() {
@@ -403,6 +400,14 @@ export class FileBrowser extends CustomElement {
       FileBrowser.showHiddenAttribute,
       FileBrowser.gridAttribute,
     ];
+  }
+
+  get rootDirectory() : Directory {
+    return this.cachedCurrentDirectory.root;
+  }
+
+  set rootDirectory(value : Directory){
+    this.setCurrentDirectory(new CachedProxyDirectory(value));
   }
 
   get currentDirectory(): Directory {
@@ -662,20 +667,6 @@ export class FileBrowser extends CustomElement {
     } else {
       this.table.setAttribute(Table.showHiddenAttribute, showHidden);
     }
-  }
-
-  mountDirectory(directory : Directory){
-    console.log("MOUNT", directory);
-    this.rootDirectory.concreteDirectory.addDirectory(directory.name)
-      .then((mountPoint) => {
-        mountPoint.mount(directory);
-        return this.logAndLoadWrapper(this.refreshFiles());
-      });
-  }
-
-  unMountDirectory(directory : Directory){
-    this.rootDirectory.concreteDirectory.unount(directory);
-    this.logAndLoadWrapper(this.refreshFiles());
   }
 
 // Wrapper utilities
