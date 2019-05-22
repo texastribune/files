@@ -8,7 +8,7 @@ import {FileBrowser} from "./browser.js";
  * child of {@link FileBrowser} to browse the directory in an HTML document.
  */
 export abstract class DirectoryElement extends CustomElement {
-    protected abstract readonly directory : Directory;
+    public abstract readonly directory : Directory;
 
     refresh(): void {
         super.refresh();

@@ -1,7 +1,7 @@
 import { RemoteFS } from "../files/remote.js";
 import { DirectoryElement } from "./files.js";
 export declare class RemoteDirectoryElement extends DirectoryElement {
-    protected directory: RemoteFS;
+    directory: RemoteFS;
     static urlAttribute: string;
     static nameAttribute: string;
     constructor();

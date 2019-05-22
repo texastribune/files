@@ -1,8 +1,8 @@
 import { CustomElement } from 'elements/lib/element.js';
 export declare class BreadCrumbs extends CustomElement {
-    private startCharacter;
     private delimiter;
     private readonly ul;
+    static emptyCharacter: string;
     /**
      * @event
      */

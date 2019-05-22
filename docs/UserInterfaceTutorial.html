@@ -40,7 +40,10 @@
                     </p>
 
                     <file-browser>
-                        <memory-directory></memory-directory>
+                        <virtual-fs>
+                            <memory-directory name="memory"></memory-directory>
+                            <local-directory name="local"></local-directory>
+                        </virtual-fs>
                         <file-browser-context-menu></file-browser-context-menu>
                     </file-browser>
                 </article>

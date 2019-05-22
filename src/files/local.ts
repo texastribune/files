@@ -453,9 +453,9 @@ export class LocalStorageFile extends files.BasicFile {
  * A directory class uses IndexedDB to store files locally in the browser.
  */
 export class LocalStorageDirectory extends files.Directory {
-    private _name : string;
-    private _lastModified : Date;
-    private listenerMap : Map<(file: File) => void, (id : number | null) => void> = new Map();
+    protected _name : string;
+    protected _lastModified : Date;
+    protected listenerMap : Map<(file: File) => void, (id : number | null) => void> = new Map();
 
     public readonly intId : number;
     public readonly created : Date;
@@ -559,5 +559,13 @@ export class LocalStorageRoot extends LocalStorageDirectory {
             lastModified: now,
             mimeType: files.Directory.mimeType
         });
+    }
+
+    get name() : string {
+        return this._name;
+    }
+
+    set name(value : string){
+        this._name = value;
     }
 }
