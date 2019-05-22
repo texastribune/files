@@ -7,6 +7,16 @@ import {Directory} from "../files/base.js";
 export class VirtualDirectoryElement extends DirectoryElement {
     public readonly directory : VirtualFS<MemoryDirectory>;
 
+    /**
+     * @event
+     */
+    static EVENT_MOUNTED = 'mounted';
+
+    /**
+     * @event
+     */
+    static EVENT_UNMOUNTED = 'unmounted';
+
     constructor(){
         super();
 
@@ -14,12 +24,18 @@ export class VirtualDirectoryElement extends DirectoryElement {
             for (let mutation of mutations){
                 for (let added of mutation.addedNodes) {
                     if (added instanceof DirectoryElement){
-                        this.addDirectory(added.directory);
+                        this.addDirectory(added.directory)
+                            .then(() => {
+                                this.dispatchEvent(new Event(VirtualDirectoryElement.EVENT_MOUNTED));
+                            });
                     }
                 }
                 for (let removed of mutation.removedNodes) {
                     if (removed instanceof DirectoryElement){
-                        this.removeDirectory(removed.directory);
+                        this.removeDirectory(removed.directory)
+                            .then(() => {
+                                this.dispatchEvent(new Event(VirtualDirectoryElement.EVENT_UNMOUNTED));
+                            });
                     }
                 }
             }

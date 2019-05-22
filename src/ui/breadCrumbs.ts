@@ -1,9 +1,10 @@
 import {CustomElement} from 'elements/lib/element.js';
 
 export class BreadCrumbs extends CustomElement {
-  private startCharacter : string = '|';
   private delimiter : string = '>';
   private readonly ul : HTMLUListElement;
+
+  static emptyCharacter = "|";
 
   /**
    * @event
@@ -59,6 +60,10 @@ export class BreadCrumbs extends CustomElement {
         color: #01447e;
         text-decoration: underline;
       }
+        
+      a:empty::after {
+        content: "${BreadCrumbs.emptyCharacter}";
+      }
     `;
   }
 
@@ -83,9 +88,11 @@ export class BreadCrumbs extends CustomElement {
       this.ul.removeChild(this.ul.firstChild);
     }
 
-    for (let i = 0; i < value.length; i++) {
-      let delim = i == 0 ? this.startCharacter : this.delimiter;
-      this.ul.appendChild(this.buildDelimiter(delim));
+    this.ul.appendChild(this.buildCrumb(value.slice(0, 1)));
+
+    for (let i = 1; i < value.length; i++) {
+      this.ul.appendChild(this.buildDelimiter(this.delimiter));
+
       let path = value.slice(0, i + 1);
       this.ul.appendChild(this.buildCrumb(path))
     }
