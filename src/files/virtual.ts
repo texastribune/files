@@ -1,8 +1,5 @@
 import {ProxyDirectory} from "./proxy.js";
 import * as files from "./base.js";
-import {ensureFileSync} from "fs-extra";
-import {SearchResult} from "./base.js";
-
 
 
 abstract class AbstractVirtualDirectory<T extends files.Directory> extends ProxyDirectory<T> {

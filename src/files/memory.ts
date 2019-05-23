@@ -44,21 +44,39 @@ export class MemoryFile extends files.BasicFile {
     }
 
     async read(){
+        return this.readSync();
+    }
+
+    async write(data : ArrayBuffer) : Promise<ArrayBuffer> {
+        return this.writeSync(data);
+    }
+
+    async delete() {
+        this.deleteSync();
+    }
+
+    async rename(newName : string){
+        this.renameSync(newName);
+    }
+
+    // Synchronous methods
+
+    readSync(){
         return this.fileData;
     }
 
-    async write(data : ArrayBuffer){
+    writeSync(data : ArrayBuffer) : ArrayBuffer {
         this.fileData = data;
         this.lastModified = new Date();
         this.dispatchChangeEvent();
         return data;
     }
 
-    async delete() {
+    deleteSync() {
         this.parent.removeChild(this);
     }
 
-    async rename(newName : string){
+    renameSync(newName : string){
         if (this.parent.nameExists(newName)){
             throw new FileAlreadyExistsError(`name ${newName} already exists`);
         }
@@ -112,13 +130,33 @@ export class MemoryDirectory extends files.Directory {
         this.dispatchChangeEvent();
     }
 
-    async delete() {
-        if (this.parent !== null) {
-            this.parent.removeChild(this);
-        }
+    async delete() : Promise<void> {
+        this.deleteSync();
     }
 
-    async rename(newName : string){
+    async rename(newName : string) : Promise<void> {
+        this.renameSync(newName);
+    }
+
+    async getChildren() : Promise<files.File[]> {
+        return this.getChildrenSync();
+    }
+
+    async search(query : string) : Promise<files.SearchResult[]> {
+        return this.searchSync(query);
+    }
+
+    async addFile(fileData : ArrayBuffer, filename : string, mimeType : string) {
+        return this.addFileSync(fileData, filename, mimeType);
+    }
+
+    async addDirectory(name : string) {
+        return this.addDirectorySync(name);
+    }
+
+    // Synchronous methods
+
+    renameSync(newName : string) : void {
         if (this.parent !== null && this.parent.nameExists(newName)){
             throw new FileAlreadyExistsError(`name ${newName} already exists`);
         }
@@ -126,11 +164,13 @@ export class MemoryDirectory extends files.Directory {
         this.dispatchChangeEvent();
     }
 
-    async getChildren() : Promise<files.File[]> {
-        return this.children.slice();
+    deleteSync() : void {
+        if (this.parent !== null) {
+            this.parent.removeChild(this);
+        }
     }
 
-    async search(query : string) {
+    searchSync(query : string) : files.SearchResult[] {
         let results : files.SearchResult[] = [];
         let path = this.path;
         for (let child of this.children){
@@ -138,22 +178,18 @@ export class MemoryDirectory extends files.Directory {
                 results.push({path: path.concat([child.name]), file: child});
             }
             if (child instanceof files.Directory){
-                let subResults = await child.search(query);
+                let subResults = child.searchSync(query);
                 results = results.concat(subResults);
             }
         }
         return results;
     }
 
-    nameExists(name : string){
-        let names = this.children.reduce((names, file) => {
-            names.add(file.name);
-            return names;
-        }, new Set<string>());
-        return names.has(name);
+    getChildrenSync() : files.File[] {
+        return this.children.slice();
     }
 
-    async addFile(fileData : ArrayBuffer, filename : string, mimeType : string) {
+    addFileSync(fileData : ArrayBuffer, filename : string, mimeType : string) : MemoryFile {
         if (this.nameExists(filename)){
             throw new FileAlreadyExistsError(`file named ${filename} already exists`);
         }
@@ -162,7 +198,7 @@ export class MemoryDirectory extends files.Directory {
         return newFile;
     }
 
-    async addDirectory(name : string) {
+    addDirectorySync(name : string) : MemoryDirectory {
         if (this.nameExists(name)){
             throw new FileAlreadyExistsError(`file named ${name} already exists`);
         }
@@ -170,6 +206,8 @@ export class MemoryDirectory extends files.Directory {
         this.addChild(newDir);
         return newDir;
     }
+
+    // utilities
 
     addChild(memoryFile : MemoryFile | MemoryDirectory){
         this.children.push(memoryFile);
@@ -179,5 +217,13 @@ export class MemoryDirectory extends files.Directory {
     removeChild(memoryFile : MemoryFile | MemoryDirectory){
         this.children = this.children.filter((file) => {return file !== memoryFile});
         this.dispatchChangeEvent();
+    }
+
+    nameExists(name : string){
+        let names = this.children.reduce((names, file) => {
+            names.add(file.name);
+            return names;
+        }, new Set<string>());
+        return names.has(name);
     }
 }

@@ -17,6 +17,10 @@ export declare class MemoryFile extends files.BasicFile {
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;
+    readSync(): ArrayBuffer;
+    writeSync(data: ArrayBuffer): ArrayBuffer;
+    deleteSync(): void;
+    renameSync(newName: string): void;
 }
 export declare class MemoryDirectory extends files.Directory {
     readonly id: string;
@@ -37,9 +41,15 @@ export declare class MemoryDirectory extends files.Directory {
     rename(newName: string): Promise<void>;
     getChildren(): Promise<files.File[]>;
     search(query: string): Promise<files.SearchResult[]>;
-    nameExists(name: string): boolean;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<MemoryFile>;
     addDirectory(name: string): Promise<MemoryDirectory>;
+    renameSync(newName: string): void;
+    deleteSync(): void;
+    searchSync(query: string): files.SearchResult[];
+    getChildrenSync(): files.File[];
+    addFileSync(fileData: ArrayBuffer, filename: string, mimeType: string): MemoryFile;
+    addDirectorySync(name: string): MemoryDirectory;
     addChild(memoryFile: MemoryFile | MemoryDirectory): void;
     removeChild(memoryFile: MemoryFile | MemoryDirectory): void;
+    nameExists(name: string): boolean;
 }
