@@ -295,6 +295,7 @@ class RemoteDirectory extends files.Directory {
 
     let addFile = await this.parent.getFile([RemoteDirectory.addFileName]);
 
+    // Create transaction that writes to add file and then reads the metadata for the new file
     let formData = new FormData;
     formData.append(
       'write',
@@ -308,7 +309,13 @@ class RemoteDirectory extends files.Directory {
 
     let responseData = await ajax(new URL(this.url), {}, formData, 'POST');
     let newFile = new RemoteFile(this, parseJsonArrayBuffer(responseData), this.apiUrl);
-    await newFile.write(data);
+    try {
+      await newFile.write(data);
+    } catch (e) {
+      // If there is an error writing to the newly created file, delete the file
+      await newFile.delete();
+      throw e;
+    }
     return newFile;
   }
 

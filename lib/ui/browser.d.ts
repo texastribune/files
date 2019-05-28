@@ -101,9 +101,18 @@ export declare class FileBrowser extends CustomElement {
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
-    loadingWrapper(promise: Promise<void>): Promise<void>;
-    errorLoggingWrapper(promise: Promise<void>): Promise<void>;
-    logAndLoadWrapper(promise: Promise<void>): Promise<void>;
+    /**
+     * Add loading class to element while waiting on the async call.
+     */
+    loadingWrapper(promise: Promise<any>): void;
+    /**
+     * Catch and log any errors that happen during the execution of the call.
+     */
+    errorLoggingWrapper(promise: Promise<any>): void;
+    /**
+     * Combine the actions in loadingWrapper and errorLoggingWrapper.
+     */
+    logAndLoadWrapper(promise: Promise<any>): void;
     private copyUrl;
     private moveFiles;
     private copyFiles;

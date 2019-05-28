@@ -151,7 +151,7 @@ export class ContextMenu extends Dialog {
           promises.push(file.delete());
         }
         this.visible = false;
-        browser.logAndLoadWrapper(Promise.all(promises).then(() => {}));
+        browser.logAndLoadWrapper(Promise.all(promises));
       });
       deleteDialog.appendChild(removeText);
       deleteDialog.visible = true;
@@ -190,7 +190,7 @@ export class ContextMenu extends Dialog {
         for (let file of selectedFiles) {
           movePromises.push(file.move(target));
         }
-        browser.logAndLoadWrapper(Promise.all(movePromises).then(() => {}));
+        browser.logAndLoadWrapper(Promise.all(movePromises));
       });
 
       this.appendChild(moveDialog);
@@ -232,7 +232,7 @@ export class ContextMenu extends Dialog {
         }
 
         this.visible = false;
-        browser.logAndLoadWrapper(Promise.all(promises).then(() => {}));
+        browser.logAndLoadWrapper(Promise.all(promises));
       });
 
       fileDialog.appendChild(fileInputDiv);
@@ -249,7 +249,7 @@ export class ContextMenu extends Dialog {
     addDirectoryButton.onclick = () => {
       let name = prompt("Directory Name");
       if (name !== null) {
-        browser.logAndLoadWrapper(browser.currentDirectory.addDirectory(name).then(() => {}));
+        browser.logAndLoadWrapper(browser.currentDirectory.addDirectory(name));
       }
       this.visible = false;
     };

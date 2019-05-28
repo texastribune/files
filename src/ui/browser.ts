@@ -671,35 +671,37 @@ export class FileBrowser extends CustomElement {
 
 // Wrapper utilities
 
-
-  async loadingWrapper(promise: Promise<void>): Promise<void> {
-    // Add loading class to element while waiting on the async call.
+  /**
+   * Add loading class to element while waiting on the async call.
+   */
+  loadingWrapper(promise: Promise<any>): void {
     this.activePromises.add(promise);
     this.tableContainer.classList.add(FileBrowser.activeAjaxClass);
-    try {
-      return await promise;
-    } finally {
-      this.activePromises.delete(promise);
-      if (this.activePromises.size === 0){
-        this.tableContainer.classList.remove(FileBrowser.activeAjaxClass);
-      }
-    }
+    promise
+      .finally(() => {
+        this.activePromises.delete(promise);
+        if (this.activePromises.size === 0){
+          this.tableContainer.classList.remove(FileBrowser.activeAjaxClass);
+        }
+      });
   }
 
-  async errorLoggingWrapper(promise: Promise<void>): Promise<void> {
-    // Catch and log any errors that happen during the execution of the call.
-    // WARNING this will prevent and return value and error propagation.
-    try {
-      return await promise;
-    } catch (error) {
-      this.addMessage(error, true);
-    }
+  /**
+   * Catch and log any errors that happen during the execution of the call.
+   */
+  errorLoggingWrapper(promise: Promise<any>): void {
+    promise
+      .catch((error) => {
+        this.addMessage(error, true);
+      });
   }
 
-  logAndLoadWrapper(promise: Promise<void>): Promise<void> {
-    // Combine the actions in loadingWrapper and errorLoggingWrapper.
-    // WARNING this will prevent and return value and error propagation.
-    return this.loadingWrapper(this.errorLoggingWrapper(promise));
+  /**
+   * Combine the actions in loadingWrapper and errorLoggingWrapper.
+   */
+  logAndLoadWrapper(promise: Promise<any>): void {
+    this.errorLoggingWrapper(promise);
+    this.loadingWrapper(promise);
   }
 
   // Actions
@@ -802,7 +804,7 @@ export class FileBrowser extends CustomElement {
       }
     }
 
-    this.logAndLoadWrapper(Promise.all(promises).then(() => {}));
+    this.logAndLoadWrapper(Promise.all(promises));
 
     let pathsJson = dataTransfer.getData(FileBrowser.dataTransferType);
     if (pathsJson) {
@@ -1031,7 +1033,7 @@ export class FileBrowser extends CustomElement {
   async search(searchTerm: string) {
     this.clearMessages();
     if (searchTerm) {
-      await this.logAndLoadWrapper(
+      this.logAndLoadWrapper(
         (async () => {
           let searchResults = await this.currentDirectory.search(searchTerm);
 
@@ -1053,7 +1055,7 @@ export class FileBrowser extends CustomElement {
         })()
       );
     } else {
-      await this.logAndLoadWrapper(this.resetFiles());
+      this.logAndLoadWrapper(this.resetFiles());
     }
   }
 
