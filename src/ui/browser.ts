@@ -906,9 +906,7 @@ export class FileBrowser extends CustomElement {
     return document.createElement('bread-crumbs') as BreadCrumbs;
   }
 
-  protected getNewFileTableHeader() : Header {
-    let header  = document.createElement('table-header') as Header;
-
+  protected getNewFileTableHeaderColumns() : AbstractTableData<any>[] {
     let idColumn = document.createElement('text-data') as TextData;
     let nameColumn = document.createElement('text-data') as TextData;
     let sizeColumn = document.createElement('text-data') as TextData;
@@ -925,7 +923,7 @@ export class FileBrowser extends CustomElement {
     typeColumn.innerText = "Type";
     pathColumn.innerText = "Path";
 
-    header.appendChildren([
+    return [
       idColumn,
       nameColumn,
       sizeColumn,
@@ -933,14 +931,16 @@ export class FileBrowser extends CustomElement {
       createdColumn,
       typeColumn,
       pathColumn,
-    ]);
+    ];
+  }
 
+  protected getNewFileTableHeader() : Header {
+    let header  = document.createElement('table-header') as Header;
+    header.appendChildren(this.getNewFileTableHeaderColumns());
     return header;
   }
 
-  protected getNewFileTableRow(rowData : RowData) : Row {
-    let row = document.createElement('table-row') as Row;
-
+  protected getNewFileTableRowColumns(rowData : RowData) : AbstractTableData<any>[] {
     let idColumn = document.createElement('text-data') as TextData;
     let nameColumn = document.createElement('file-data') as FileTableData;
     let sizeColumn = document.createElement('size-data') as FileSizeTableData;
@@ -957,9 +957,7 @@ export class FileBrowser extends CustomElement {
     typeColumn.data = rowData.file.mimeType;
     pathColumn.data = rowData.path;
 
-    nameColumn.classList.add(FileBrowser.gridItemClass);
-
-    row.appendChildren([
+    return [
       idColumn,
       nameColumn,
       sizeColumn,
@@ -967,12 +965,16 @@ export class FileBrowser extends CustomElement {
       createdColumn,
       typeColumn,
       pathColumn,
-    ]);
+    ];
+  }
+
+  protected getNewFileTableRow(rowData : RowData) : Row {
+    let row = document.createElement('table-row') as Row;
+    row.appendChildren(this.getNewFileTableRowColumns(rowData));
 
     if (rowData.file.name.startsWith(".")){
       row.hidden = true;
     }
-
     return row;
   }
 

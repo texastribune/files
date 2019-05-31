@@ -121,7 +121,9 @@ export declare class FileBrowser extends CustomElement {
     onCutOrCopy(event: ClipboardEvent): void;
     onPaste(event: ClipboardEvent): void;
     protected getNewBreadCrumbs(): BreadCrumbs;
+    protected getNewFileTableHeaderColumns(): AbstractTableData<any>[];
     protected getNewFileTableHeader(): Header;
+    protected getNewFileTableRowColumns(rowData: RowData): AbstractTableData<any>[];
     protected getNewFileTableRow(rowData: RowData): Row;
     protected getRowDataFromRow(row: Row): RowData;
     protected setTableData(rowData: RowData[]): void;
