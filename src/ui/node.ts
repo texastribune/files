@@ -3,7 +3,7 @@ import {DirectoryElement} from "./files.js";
 
 
 export class NodeDirectoryElement extends DirectoryElement {
-    protected directory : NodeDirectory;
+    directory : NodeDirectory;
 
     static pathAttribute : string = "path";
 

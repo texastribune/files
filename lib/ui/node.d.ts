@@ -1,7 +1,7 @@
 import { NodeDirectory } from "../files/node.js";
 import { DirectoryElement } from "./files.js";
 export declare class NodeDirectoryElement extends DirectoryElement {
-    protected directory: NodeDirectory;
+    directory: NodeDirectory;
     static pathAttribute: string;
     constructor();
     static readonly observedAttributes: string[];
