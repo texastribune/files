@@ -172,13 +172,15 @@ export class MemoryDirectory extends files.Directory {
 
     searchSync(query : string) : files.SearchResult[] {
         let results : files.SearchResult[] = [];
-        let path = this.path;
         for (let child of this.children){
             if (child.name.includes(query)){
-                results.push({path: path.concat([child.name]), file: child});
+                results.push({path: [child.name,], file: child});
             }
             if (child instanceof files.Directory){
                 let subResults = child.searchSync(query);
+                for (let result of subResults) {
+                    result.path.unshift(child.name);
+                }
                 results = results.concat(subResults);
             }
         }

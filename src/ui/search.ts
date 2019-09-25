@@ -7,6 +7,8 @@ export class SearchBar extends CustomElement {
   private readonly container : HTMLDivElement;
   private searchPending : boolean = false;
 
+  static debounceAttribute = "debounce";
+
   /**
    * @event
    */
@@ -15,7 +17,7 @@ export class SearchBar extends CustomElement {
   /**
    * milliseconds between search events for debounce purposes
    */
-  static TIMEOUT = 500;
+  static DEFAULT_DEBOUNCE = 500;
 
   constructor(){
     super();
@@ -23,13 +25,17 @@ export class SearchBar extends CustomElement {
     this.input = document.createElement('input');
     this.input.placeholder = "Search";
     this.input.oninput = () => {
-      // Wait TIMEOUT milliseconds to debounce and then search. Toggle searchPending.
+      // Wait debounce attribute value in milliseconds to debounce and then search. Toggle searchPending.
+      let debounce = this.debounce;
+      if (debounce === null) {
+        debounce = SearchBar.DEFAULT_DEBOUNCE;
+      }
       if (!this.searchPending) {
         this.searchPending = true;
         setTimeout(() => {
           this.dispatchSearchEvent();
           this.searchPending = false;
-        }, SearchBar.TIMEOUT);
+        }, debounce);
       }
     };
     this.input.onkeyup = (event) => {
@@ -67,6 +73,10 @@ export class SearchBar extends CustomElement {
     `
   }
 
+  static get observedAttributes() {
+    return [SearchBar.debounceAttribute,];
+  }
+
   updateFromAttributes(attributes: { [p: string]: string | null }): void {}
 
   private dispatchSearchEvent(){
@@ -76,6 +86,23 @@ export class SearchBar extends CustomElement {
 
   get value() : string {
     return this.input.value;
+  }
+
+  get debounce(): number | null {
+    let stringValue = this.getAttribute(SearchBar.debounceAttribute);
+    if (stringValue === null){
+      return null;
+    }
+
+    return Number.parseInt(stringValue);
+  }
+
+  set debounce(value: number | null) {
+    if (value === null) {
+      this.removeAttribute(SearchBar.debounceAttribute);
+    } else {
+      this.setAttribute(SearchBar.debounceAttribute, value.toString());
+    }
   }
 }
 

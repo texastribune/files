@@ -286,6 +286,17 @@ function testStorage(rootDirectory : Directory) {
         expect(parseTextArrayBuffer(data)).toEqual(file2String);
     });
 
+    test('search method', async () => {
+        let files = await addTestFiles();
+
+        let results = await files[0].search(file2Name);
+
+        expect(results).toHaveLength(1);
+        expect(results[0].file.name).toMatch(file2Name);
+        expect(results[0].path).toHaveLength(1);
+        expect(results[0].path[0]).toMatch(file2Name);
+    });
+
     test('change listener', async () => {
 
         // Expect change listeners to be called at least once for each file change.

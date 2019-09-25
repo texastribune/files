@@ -541,7 +541,20 @@ export class LocalStorageDirectory extends files.Directory {
     }
 
     async search(query : string) : Promise<files.SearchResult[]> {
-        return [];
+        let results : files.SearchResult[] = [];
+        for (let child of await this.getChildren()){
+            if (child.name.includes(query)){
+                results.push({path: [child.name,], file: child});
+            }
+            if (child instanceof files.Directory){
+                let subResults = await child.search(query);
+                for (let result of subResults) {
+                    result.path.unshift(child.name);
+                }
+                results = results.concat(subResults);
+            }
+        }
+        return results;
     }
 }
 

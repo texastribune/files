@@ -258,6 +258,7 @@ export class FileBrowser extends CustomElement {
   private maxNumCopy = 30;  // Maximum number of files that can be copied at once
   private busy: Promise<void>;
   private activePromises : Set<Promise<void>> = new Set();
+  private lastSearch : Promise<void> = Promise.resolve();
 
   private readonly actionsContainer: HTMLDivElement;
   private readonly messagesContainer: HTMLDivElement;
@@ -469,6 +470,7 @@ export class FileBrowser extends CustomElement {
   }
 
   set filePath(path: string[]) {
+    this.clearMessages();
     this.logAndLoadWrapper(
       this.rootDirectory.getFile(path.slice(1))
         .then((newDirectory) => {
@@ -1032,13 +1034,14 @@ export class FileBrowser extends CustomElement {
     this.dispatchEvent(new Event(FileBrowser.EVENT_FILES_CHANGE, {bubbles: true}));
   }
 
-  async search(searchTerm: string) {
+  search(searchTerm: string) {
     this.clearMessages();
     if (searchTerm) {
-      this.logAndLoadWrapper(
-        (async () => {
-          let searchResults = await this.currentDirectory.search(searchTerm);
-
+      this.lastSearch = this.lastSearch
+        .then(() => {
+          return this.currentDirectory.search(searchTerm);
+        })
+        .then((searchResults: SearchResult[]) => {
           // Normalize relative path to the root directory for each result
           let currentPath = this.filePath;
           let normalizedResults : SearchResult[] = [];
@@ -1053,9 +1056,10 @@ export class FileBrowser extends CustomElement {
           this.addMessage(
             `${searchResults.length} search results for "${searchTerm}" in ${readablePath}.`
           );
-          await this.setTableData(normalizedResults);
-        })()
-      );
+
+          return this.setTableData(normalizedResults);
+        });
+      this.logAndLoadWrapper(this.lastSearch);
     } else {
       this.logAndLoadWrapper(this.resetFiles());
     }
@@ -1090,8 +1094,6 @@ export class FileBrowser extends CustomElement {
   }
 
   addMessage(message: Error | string, isError?: boolean) {
-    console.log(message);
-    console.trace();
     let errorMessage = document.createElement('user-message') as Message;
     if (message instanceof Error || isError) {
       errorMessage.setAttribute('error', "");

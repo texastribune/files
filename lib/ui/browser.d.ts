@@ -69,6 +69,7 @@ export declare class FileBrowser extends CustomElement {
     private maxNumCopy;
     private busy;
     private activePromises;
+    private lastSearch;
     private readonly actionsContainer;
     private readonly messagesContainer;
     private readonly menusContainer;
@@ -127,7 +128,7 @@ export declare class FileBrowser extends CustomElement {
     protected getNewFileTableRow(rowData: RowData): Row;
     protected getRowDataFromRow(row: Row): RowData;
     protected setTableData(rowData: RowData[]): void;
-    search(searchTerm: string): Promise<void>;
+    search(searchTerm: string): void;
     showVisibleColumnsDialog(positionX: number, positionY: number): void;
     showContextMenu(positionX: number, positionY: number): void;
     execute(path: string[]): void;
