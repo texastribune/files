@@ -2,10 +2,11 @@ import {CustomElement} from "elements/lib/element.js";
 import {createNode} from "../utils.js";
 import * as icons from "./icons.js";
 
+
 export class SearchBar extends CustomElement {
   private readonly input : HTMLInputElement;
   private readonly container : HTMLDivElement;
-  private searchPending : boolean = false;
+  private timeout : NodeJS.Timeout | null = null;
 
   static debounceAttribute = "debounce";
 
@@ -30,16 +31,23 @@ export class SearchBar extends CustomElement {
       if (debounce === null) {
         debounce = SearchBar.DEFAULT_DEBOUNCE;
       }
-      if (!this.searchPending) {
-        this.searchPending = true;
-        setTimeout(() => {
-          this.dispatchSearchEvent();
-          this.searchPending = false;
-        }, debounce);
+
+      if (this.timeout !== null){
+        clearTimeout(this.timeout);
       }
+
+      this.timeout = setTimeout(() => {
+        this.dispatchSearchEvent();
+        this.timeout = null;
+      }, debounce);
     };
     this.input.onkeyup = (event) => {
-      if (!this.searchPending && event.key === 'Enter') {
+      if (event.key === 'Enter') {
+        if (this.timeout !== null){
+          clearTimeout(this.timeout);
+          this.timeout = null;
+        }
+
         this.dispatchSearchEvent();
       }
     };
