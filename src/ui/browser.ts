@@ -362,6 +362,9 @@ export class FileBrowser extends CustomElement {
       // if a file row is double clicked
       let fileRow = getFirstInPath(event, Row);
       if (fileRow !== null){
+        event.preventDefault();
+        event.stopPropagation();
+
         let rowData = this.getRowDataFromRow(fileRow);
         this.onOpen(rowData);
       }
