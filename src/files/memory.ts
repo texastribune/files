@@ -142,8 +142,12 @@ export class MemoryDirectory extends files.Directory {
         return this.getChildrenSync();
     }
 
-    async search(query : string) : Promise<files.SearchResult[]> {
-        return this.searchSync(query);
+    search(query : string) : Promise<files.SearchResult[]> {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(this.searchSync(query));
+            }, 1000);
+        });
     }
 
     async addFile(fileData : ArrayBuffer, filename : string, mimeType : string) {

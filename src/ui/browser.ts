@@ -258,7 +258,7 @@ export class FileBrowser extends CustomElement {
   private maxNumCopy = 30;  // Maximum number of files that can be copied at once
   private busy: Promise<void>;
   private activePromises : Set<Promise<void>> = new Set();
-  private lastSearch : Promise<void> = Promise.resolve();
+  private lastSearch : Promise<SearchResult[]> | null = null;
 
   private readonly actionsContainer: HTMLDivElement;
   private readonly messagesContainer: HTMLDivElement;
@@ -1037,29 +1037,39 @@ export class FileBrowser extends CustomElement {
   search(searchTerm: string) {
     this.clearMessages();
     if (searchTerm) {
-      this.lastSearch = this.lastSearch
-        .then(() => {
-          return this.currentDirectory.search(searchTerm);
-        })
-        .then((searchResults: SearchResult[]) => {
-          // Normalize relative path to the root directory for each result
-          let currentPath = this.filePath;
-          let normalizedResults : SearchResult[] = [];
-          for (let result of searchResults) {
-            normalizedResults.push({
-              file: result.file,
-              path: currentPath.concat(result.path),
-            });
+      let currentSearch : Promise<SearchResult[]>;
+      if (this.lastSearch === null) {
+        currentSearch = this.currentDirectory.search(searchTerm);
+      } else {
+        currentSearch = this.lastSearch
+          .then(() => {
+            return this.currentDirectory.search(searchTerm);
+          });
+      }
+
+      this.lastSearch = currentSearch;
+
+      currentSearch.then((searchResults: SearchResult[]) => {
+          if (this.lastSearch === currentSearch){
+            // Normalize relative path to the root directory for each result
+            let currentPath = this.filePath;
+            let normalizedResults : SearchResult[] = [];
+            for (let result of searchResults) {
+              normalizedResults.push({
+                file: result.file,
+                path: currentPath.concat(result.path),
+              });
+            }
+
+            let readablePath = this.filePath.join('/');
+            this.addMessage(
+              `${searchResults.length} search results for "${searchTerm}" in ${readablePath}.`
+            );
+
+            return this.setTableData(normalizedResults);
           }
-
-          let readablePath = this.filePath.join('/');
-          this.addMessage(
-            `${searchResults.length} search results for "${searchTerm}" in ${readablePath}.`
-          );
-
-          return this.setTableData(normalizedResults);
         });
-      this.logAndLoadWrapper(this.lastSearch);
+      this.logAndLoadWrapper(currentSearch);
     } else {
       this.logAndLoadWrapper(this.resetFiles());
     }
