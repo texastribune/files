@@ -258,7 +258,7 @@ export class FileBrowser extends CustomElement {
   private maxNumCopy = 30;  // Maximum number of files that can be copied at once
   private busy: Promise<void>;
   private activePromises : Set<Promise<void>> = new Set();
-  private lastSearch : Promise<SearchResult[]> | null = null;
+  private lastSearch : Promise<void> = Promise.resolve();
 
   private readonly actionsContainer: HTMLDivElement;
   private readonly messagesContainer: HTMLDivElement;
@@ -679,10 +679,10 @@ export class FileBrowser extends CustomElement {
   /**
    * Add loading class to element while waiting on the async call.
    */
-  loadingWrapper(promise: Promise<any>): void {
+  loadingWrapper(promise: Promise<any>): Promise<void> {
     this.activePromises.add(promise);
     this.tableContainer.classList.add(FileBrowser.activeAjaxClass);
-    promise
+    return promise
       .finally(() => {
         this.activePromises.delete(promise);
         if (this.activePromises.size === 0){
@@ -694,8 +694,8 @@ export class FileBrowser extends CustomElement {
   /**
    * Catch and log any errors that happen during the execution of the call.
    */
-  errorLoggingWrapper(promise: Promise<any>): void {
-    promise
+  errorLoggingWrapper<T>(promise: Promise<T>): Promise<T | void> {
+    return promise
       .catch((error) => {
         this.addMessage(error, true);
       });
@@ -704,9 +704,8 @@ export class FileBrowser extends CustomElement {
   /**
    * Combine the actions in loadingWrapper and errorLoggingWrapper.
    */
-  logAndLoadWrapper(promise: Promise<any>): void {
-    this.errorLoggingWrapper(promise);
-    this.loadingWrapper(promise);
+  logAndLoadWrapper(promise: Promise<any>): Promise<void> {
+    return this.loadingWrapper(this.errorLoggingWrapper(promise));
   }
 
   // Actions
@@ -1040,19 +1039,8 @@ export class FileBrowser extends CustomElement {
   search(searchTerm: string) {
     this.clearMessages();
     if (searchTerm) {
-      let currentSearch : Promise<SearchResult[]>;
-      if (this.lastSearch === null) {
-        currentSearch = this.currentDirectory.search(searchTerm);
-      } else {
-        currentSearch = this.lastSearch
-          .then(() => {
-            return this.currentDirectory.search(searchTerm);
-          });
-      }
-
-      this.lastSearch = currentSearch;
-
-      currentSearch.then((searchResults: SearchResult[]) => {
+      let currentSearch = this.logAndLoadWrapper(
+        this.currentDirectory.search(searchTerm).then((searchResults: SearchResult[]) => {
           if (this.lastSearch === currentSearch){
             // Normalize relative path to the root directory for each result
             let currentPath = this.filePath;
@@ -1066,13 +1054,14 @@ export class FileBrowser extends CustomElement {
 
             let readablePath = this.filePath.join('/');
             this.addMessage(
-              `${searchResults.length} search results for "${searchTerm}" in ${readablePath}.`
+                `${searchResults.length} search results for "${searchTerm}" in ${readablePath}.`
             );
 
             return this.setTableData(normalizedResults);
           }
-        });
-      this.logAndLoadWrapper(currentSearch);
+        })
+      );
+      this.lastSearch = currentSearch;
     } else {
       this.logAndLoadWrapper(this.resetFiles());
     }

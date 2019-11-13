@@ -144,9 +144,7 @@ export class MemoryDirectory extends files.Directory {
 
     search(query : string) : Promise<files.SearchResult[]> {
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                resolve(this.searchSync(query));
-            }, 1000);
+            resolve(this.searchSync(query));
         });
     }
 
