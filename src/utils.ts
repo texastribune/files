@@ -142,3 +142,79 @@ export function getFirstInPath<T extends HTMLElement>(event : Event, type : new 
   }
   return null;
 }
+
+
+const REQUEST_TIMEOUT = 30;
+
+export function getCookie(name : string) : string | null {
+  let parts = document.cookie.split(`${name}=`);
+  if (parts.length > 1) {
+    parts = parts[1].split(';');
+    return parts[0] || null;
+  }
+  return null;
+}
+
+export function isCrossDomain(url : URL) {
+  return window.location.protocol + '//' + window.location.host !==
+    url.protocol + '//' + url.host;
+}
+
+export async function ajax(url : URL, query? : {[name : string] : string}, data? : FormData | Blob | null, method? : 'GET' | 'POST' | 'PUT' | 'DELETE') : Promise<ArrayBuffer> {
+  return await new Promise((resolve, reject) => {
+    data = data || null;
+    query = query || {};
+
+    method = method || 'GET';
+    if (method === 'GET' || method === 'DELETE') {
+      for (let name in query){
+        url.searchParams.append(name, query[name]);
+      }
+    }
+
+    let request = new XMLHttpRequest();
+    request.responseType = "arraybuffer";
+    request.onreadystatechange = () => {
+      if (request.readyState === XMLHttpRequest.DONE) {
+        if (request.status === 0) {
+          reject("An error has occurred");
+        } else {
+          let contentType = request.getResponseHeader('content-type');
+          if (request.status >= 200 && request.status < 400) {
+            resolve(request.response);
+          } else {
+            let errorText = parseTextArrayBuffer(request.response);
+            let errorMessage = `${request.status} response`;
+            if (contentType === 'application/json') {
+              try {
+                let errorJson = JSON.parse(errorText);
+                for (let key in errorJson) {
+                  errorMessage += `: ${key} - ${errorJson[key]}. `;
+                }
+                reject(new Error(errorMessage));
+              } catch (e) {
+                reject("Error parsing response.");
+              }
+            } else if (contentType === 'text/html') {
+              reject(new Error(errorMessage));
+            } else {
+              errorMessage += errorText;
+              reject(new Error(errorMessage));
+            }
+          }
+        }
+      }
+    };
+
+    request.open(method, url.toString(), true);
+    request.timeout = REQUEST_TIMEOUT * 1000;
+    if (!isCrossDomain(url)) {
+      request.withCredentials = true;
+      let cookie = getCookie("csrftoken");
+      if (cookie !== null){
+        request.setRequestHeader("X-CSRFToken", cookie);
+      }
+    }
+    request.send(data);
+  });
+}

@@ -38,3 +38,8 @@ export declare function createNode(htmlString: string): Element;
  * Get the first element of a certain type in the event composedPath
  */
 export declare function getFirstInPath<T extends HTMLElement>(event: Event, type: new () => T): T | null;
+export declare function getCookie(name: string): string | null;
+export declare function isCrossDomain(url: URL): boolean;
+export declare function ajax(url: URL, query?: {
+    [name: string]: string;
+}, data?: FormData | Blob | null, method?: 'GET' | 'POST' | 'PUT' | 'DELETE'): Promise<ArrayBuffer>;

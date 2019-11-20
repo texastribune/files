@@ -2376,7 +2376,13 @@ img {
 <nav class="tsd-navigation secondary">
 	<ul>
 		<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+			<a href="_utils_.html#request_timeout" class="tsd-kind-icon">REQUEST_<wbr>TIMEOUT</a>
+		</li>
+		<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
 			<a href="_utils_.html#units" class="tsd-kind-icon">units</a>
+		</li>
+		<li class=" tsd-kind-function tsd-parent-kind-external-module">
+			<a href="_utils_.html#ajax" class="tsd-kind-icon">ajax</a>
 		</li>
 		<li class=" tsd-kind-function tsd-parent-kind-external-module">
 			<a href="_utils_.html#arraybuffertodataurl" class="tsd-kind-icon">array<wbr>Buffer<wbr>ToData<wbr>Url</a>
@@ -2402,11 +2408,17 @@ img {
 		<li class=" tsd-kind-function tsd-parent-kind-external-module">
 			<a href="_utils_.html#filetoarraybuffer" class="tsd-kind-icon">file<wbr>ToArray<wbr>Buffer</a>
 		</li>
+		<li class=" tsd-kind-function tsd-parent-kind-external-module">
+			<a href="_utils_.html#getcookie" class="tsd-kind-icon">get<wbr>Cookie</a>
+		</li>
 		<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-has-type-parameter">
 			<a href="_utils_.html#getfirstinpath" class="tsd-kind-icon">get<wbr>First<wbr>InPath</a>
 		</li>
 		<li class=" tsd-kind-function tsd-parent-kind-external-module">
 			<a href="_utils_.html#getopt" class="tsd-kind-icon">get<wbr>Opt</a>
+		</li>
+		<li class=" tsd-kind-function tsd-parent-kind-external-module">
+			<a href="_utils_.html#iscrossdomain" class="tsd-kind-icon">is<wbr>Cross<wbr>Domain</a>
 		</li>
 		<li class=" tsd-kind-function tsd-parent-kind-external-module">
 			<a href="_utils_.html#parsejsonarraybuffer" class="tsd-kind-icon">parse<wbr>Json<wbr>Array<wbr>Buffer</a>
@@ -2428,12 +2440,14 @@ img {
 					<section class="tsd-index-section tsd-is-not-exported">
 						<h3>Variables</h3>
 						<ul class="tsd-index-list">
+							<li class="tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported"><a href="_utils_.html#request_timeout" class="tsd-kind-icon">REQUEST_<wbr>TIMEOUT</a></li>
 							<li class="tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported"><a href="_utils_.html#units" class="tsd-kind-icon">units</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
 						<h3>Functions</h3>
 						<ul class="tsd-index-list">
+							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#ajax" class="tsd-kind-icon">ajax</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#arraybuffertodataurl" class="tsd-kind-icon">array<wbr>Buffer<wbr>ToData<wbr>Url</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#comparedatestrings" class="tsd-kind-icon">compare<wbr>Date<wbr>Strings</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#comparenumbers" class="tsd-kind-icon">compare<wbr>Numbers</a></li>
@@ -2442,8 +2456,10 @@ img {
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#copyarraybuffer" class="tsd-kind-icon">copy<wbr>Array<wbr>Buffer</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#createnode" class="tsd-kind-icon">create<wbr>Node</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#filetoarraybuffer" class="tsd-kind-icon">file<wbr>ToArray<wbr>Buffer</a></li>
+							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#getcookie" class="tsd-kind-icon">get<wbr>Cookie</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module tsd-has-type-parameter"><a href="_utils_.html#getfirstinpath" class="tsd-kind-icon">get<wbr>First<wbr>InPath</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#getopt" class="tsd-kind-icon">get<wbr>Opt</a></li>
+							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#iscrossdomain" class="tsd-kind-icon">is<wbr>Cross<wbr>Domain</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#parsejsonarraybuffer" class="tsd-kind-icon">parse<wbr>Json<wbr>Array<wbr>Buffer</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#parsetextarraybuffer" class="tsd-kind-icon">parse<wbr>Text<wbr>Array<wbr>Buffer</a></li>
 							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_utils_.html#stringtoarraybuffer" class="tsd-kind-icon">string<wbr>ToArray<wbr>Buffer</a></li>
@@ -2455,12 +2471,22 @@ img {
 		<section class="tsd-panel-group tsd-member-group tsd-is-not-exported">
 			<h2>Variables</h2>
 			<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+				<a name="request_timeout" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagConst">Const</span> REQUEST_<wbr>TIMEOUT</h3>
+				<div class="tsd-signature tsd-kind-icon">REQUEST_<wbr>TIMEOUT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">30</span><span class="tsd-signature-symbol"> =&nbsp;30</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L147">utils.ts:147</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
 				<a name="units" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagLet">Let</span> units</h3>
 				<div class="tsd-signature tsd-kind-icon">units<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[&#x27;KB&#x27;, &#x27;MB&#x27;, &#x27;GB&#x27;, &#x27;TB&#x27;]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L3">utils.ts:3</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L3">utils.ts:3</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2475,6 +2501,38 @@ img {
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Functions</h2>
 			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+				<a name="ajax" class="tsd-anchor"></a>
+				<h3>ajax</h3>
+				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+					<li class="tsd-signature tsd-kind-icon">ajax<span class="tsd-signature-symbol">(</span>url<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">URL</span>, query<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">object</span>, data<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">FormData</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Blob</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span>, method<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">"GET"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"POST"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"PUT"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"DELETE"</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L163">utils.ts:163</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>url: <span class="tsd-signature-type">URL</span></h5>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> query: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">object</span></h5>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> data: <span class="tsd-signature-type">FormData</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Blob</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> method: <span class="tsd-signature-type">"GET"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"POST"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"PUT"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"DELETE"</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
 				<a name="arraybuffertodataurl" class="tsd-anchor"></a>
 				<h3>array<wbr>Buffer<wbr>ToData<wbr>Url</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
@@ -2484,7 +2542,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L60">utils.ts:60</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L60">utils.ts:60</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2515,7 +2573,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L29">utils.ts:29</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L29">utils.ts:29</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2541,7 +2599,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L25">utils.ts:25</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L25">utils.ts:25</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2567,7 +2625,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L21">utils.ts:21</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L21">utils.ts:21</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2593,7 +2651,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L5">utils.ts:5</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L5">utils.ts:5</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2616,7 +2674,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L100">utils.ts:100</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L100">utils.ts:100</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2644,7 +2702,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L124">utils.ts:124</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L124">utils.ts:124</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2672,7 +2730,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L72">utils.ts:72</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L72">utils.ts:72</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2690,6 +2748,32 @@ img {
 					</li>
 				</ul>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+				<a name="getcookie" class="tsd-anchor"></a>
+				<h3>get<wbr>Cookie</h3>
+				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Cookie<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L149">utils.ts:149</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>name: <span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span>
+							<span class="tsd-signature-symbol"> | </span>
+							<span class="tsd-signature-type">null</span>
+						</h4>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module tsd-has-type-parameter">
 				<a name="getfirstinpath" class="tsd-anchor"></a>
 				<h3>get<wbr>First<wbr>InPath</h3>
@@ -2700,7 +2784,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L137">utils.ts:137</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L137">utils.ts:137</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2742,7 +2826,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L107">utils.ts:107</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L107">utils.ts:107</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2756,6 +2840,29 @@ img {
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+				<a name="iscrossdomain" class="tsd-anchor"></a>
+				<h3>is<wbr>Cross<wbr>Domain</h3>
+				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Cross<wbr>Domain<span class="tsd-signature-symbol">(</span>url<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">URL</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L158">utils.ts:158</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>url: <span class="tsd-signature-type">URL</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
 				<a name="parsejsonarraybuffer" class="tsd-anchor"></a>
 				<h3>parse<wbr>Json<wbr>Array<wbr>Buffer</h3>
 				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
@@ -2765,7 +2872,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L51">utils.ts:51</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L51">utils.ts:51</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2793,7 +2900,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L37">utils.ts:37</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L37">utils.ts:37</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2821,7 +2928,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/6d16aa9/src/utils.ts#L93">utils.ts:93</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/55b2311/src/utils.ts#L93">utils.ts:93</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
