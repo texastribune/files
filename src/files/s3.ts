@@ -33,7 +33,11 @@ export class S3Bucket {
   }
 
   get url() : string {
-    return this.data.customUrl || `https://s3.amazonaws.com/${this.data.name}`;
+    let url = this.data.customUrl || `https://s3.amazonaws.com/${this.data.name}`;
+    if (url[url.length-1] == "/") {
+      url = url.slice(0, url.length-1);
+    }
+    return url;
   }
 }
 
