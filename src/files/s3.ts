@@ -1,5 +1,5 @@
 import * as files from "./base.js";
-import {SearchResult} from "./base.js";
+import {FileNotFoundError, SearchResult} from "./base.js";
 import {ajax} from "../utils.js";
 
 
@@ -145,7 +145,7 @@ export class S3Directory extends files.Directory {
     throw new Error("not implemented");
   }
 
-  private async getChildrenForPrefix(prefix : string): Promise<files.File[]> {
+  private async getFilesForPrefix(prefix : string): Promise<files.File[]> {
     let url = new URL(this.bucket.url);
     url.searchParams.append('prefix', prefix);
     url.searchParams.append('encoding-type', 'url');
@@ -188,8 +188,17 @@ export class S3Directory extends files.Directory {
     return files
   }
 
+  async getFile(pathArray: string[]): Promise<files.File> {
+    let prefix = pathArray.join(this.bucket.delimiter);
+    let files = await this.getFilesForPrefix(prefix);
+    if (files.length === 1 && files[0].id == prefix){
+      return files[0];
+    }
+    throw new FileNotFoundError(`no files found on S3 for prefix ${prefix}`);
+  }
+
   async getChildren(): Promise<files.File[]> {
-    return this.getChildrenForPrefix(this.id)
+    return this.getFilesForPrefix(this.id)
   }
 
   rename(newName: string): Promise<void> {
@@ -198,7 +207,7 @@ export class S3Directory extends files.Directory {
 
   async search(query: string): Promise<SearchResult[]> {
     let results : SearchResult[] = [];
-    let files = await this.getChildrenForPrefix(this.id + query);
+    let files = await this.getFilesForPrefix(this.id + query);
     for (let file of files){
       let pathString = file.id;
       if (this.id == pathString.slice(0, this.id.length)){
