@@ -1,6 +1,6 @@
 {
   "name": "ttfiles",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "The Texas Tribune Files App",
   "private": true,
   "scripts": {

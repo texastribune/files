@@ -161,6 +161,12 @@ export class S3Directory extends files.Directory {
     let doc = new DOMParser().parseFromString(text,"text/xml");
     let contentElements = doc.querySelectorAll('Contents');
     let prefixElements = doc.querySelectorAll('CommonPrefixes');
+    for (let prefixElement of prefixElements) {
+      let prefix = prefixElement.querySelector('Prefix');
+      if (prefix != null) {
+        files.push(new S3Directory(prefix.innerHTML, this.bucket, this.maxKeys));
+      }
+    }
     for (let contentElement of contentElements) {
       let fileData : {[key : string] : string} = {};
       for (let dataElement of contentElement.children) {
@@ -174,12 +180,6 @@ export class S3Directory extends files.Directory {
         StorageClass: fileData['StorageClass'],
       };
       files.push(new S3File(s3ObjectData, this.bucket))
-    }
-    for (let prefixElement of prefixElements) {
-      let prefix = prefixElement.querySelector('Prefix');
-      if (prefix != null) {
-        files.push(new S3Directory(prefix.innerHTML, this.bucket, this.maxKeys));
-      }
     }
     return files
   }
