@@ -228,14 +228,18 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
     return ret;
   }
 
-  protected createChild(child : files.File) : ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>{
+  protected createChild(child : files.File) : ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File> {
+    let newChild :  ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;
     if (child instanceof files.Directory){
-      return new ChangeEventProxyDirectory(child);
+      newChild = new ChangeEventProxyDirectory(child);
     } else {
-      return new ChangeEventProxyFile(child);
+      newChild = new ChangeEventProxyFile(child);
     }
+    newChild.addOnChangeListener(() => {
+      this.dispatchChangeEvent();
+    });
+    return newChild;
   }
-
 
   async getFile(pathArray: string[]): Promise<files.File> {
     return this.createChild(await super.getFile(pathArray));
@@ -245,9 +249,6 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
     let children = [];
     for (let child of await super.getChildren()){
       child = this.createChild(child);
-      child.addOnChangeListener(() => {
-        this.dispatchChangeEvent();
-      });
       children.push(child);
     }
     return children;

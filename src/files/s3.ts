@@ -191,7 +191,7 @@ export class S3Directory extends files.Directory {
   async getFile(pathArray: string[]): Promise<files.File> {
     let prefix = this.id + pathArray.join(this.bucket.delimiter);
     let files = await this.getFilesForPrefix(prefix);
-    if (files.length === 1 && files[0].id == prefix){
+    if (files.length === 1 && files[0].id == prefix + this.bucket.delimiter){
       return files[0];
     }
     throw new FileNotFoundError(`no files found on S3 for prefix ${prefix}`);
