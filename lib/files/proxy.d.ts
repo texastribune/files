@@ -45,6 +45,7 @@ export declare class ProxyDirectory<T extends Directory> extends files.Directory
     search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
+    getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
 }
 /**

@@ -157,6 +157,10 @@ export class ProxyDirectory<T extends Directory> extends files.Directory {
     return this.concreteDirectory.addDirectory(name);
   }
 
+  getFile(pathArray: string[]) {
+    return this.concreteDirectory.getFile(pathArray);
+  }
+
   getChildren() {
     return this.concreteDirectory.getChildren();
   }
