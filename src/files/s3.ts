@@ -196,8 +196,10 @@ export class S3Directory extends files.Directory {
     let results : SearchResult[] = [];
     let files = await this.getChildrenForPrefix(this.id + query);
     for (let file of files){
-      let path = this.id.split(this.bucket.delimiter);
-      path = path.slice(0, path.length-1);
+      let path = file.id.split(this.bucket.delimiter);
+      if (path[path.length-1] == "") {
+        path = path.slice(0, path.length-1);
+      }
       results.push({
         file: file,
         path: path,
