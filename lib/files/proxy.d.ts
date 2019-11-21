@@ -61,13 +61,11 @@ export declare class ChangeEventProxyFile<T extends files.File> extends ProxyFil
  * when those changes happen on children of the directory.
  */
 export declare class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyDirectory<T> {
-    protected readonly parent: CachedProxyDirectory<T> | null;
-    constructor(concreteDirectory: T, parentDirectory?: CachedProxyDirectory<T>);
+    protected constructor(concreteDirectory: T);
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
-    protected createChild(child: files.File): ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;
     getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
 }
@@ -76,12 +74,14 @@ export declare class ChangeEventProxyDirectory<T extends files.Directory> extend
  * to invalidate the cache.
  */
 export declare class CachedProxyDirectory<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
+    protected readonly parent: CachedProxyDirectory<T> | null;
     private cachedChildren;
     constructor(concreteDirectory: T, parentDirectory?: CachedProxyDirectory<T>);
     dispatchChangeEvent(): void;
     readonly root: CachedProxyDirectory<T>;
     readonly path: files.Directory[];
     protected createChild(child: files.File): ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;
+    getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
     clearCache(): void;
 }
