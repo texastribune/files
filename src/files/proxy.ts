@@ -157,10 +157,6 @@ export class ProxyDirectory<T extends Directory> extends files.Directory {
     return this.concreteDirectory.addDirectory(name);
   }
 
-  getFile(pathArray: string[]) {
-    return this.concreteDirectory.getFile(pathArray);
-  }
-
   getChildren() {
     return this.concreteDirectory.getChildren();
   }
@@ -225,14 +221,6 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
     return ret;
   }
 
-  async getFile(pathArray: string[]): Promise<files.File> {
-    let child =  await super.getFile(pathArray);
-    child.addOnChangeListener(() => {
-      this.dispatchChangeEvent();
-    });
-    return child;
-  }
-
   async getChildren(): Promise<files.File[]> {
     let children = [];
     for (let child of await super.getChildren()){
@@ -283,12 +271,6 @@ export class CachedProxyDirectory<T extends files.Directory> extends ChangeEvent
     } else {
       return new ChangeEventProxyFile(child);
     }
-  }
-
-  async getFile(pathArray: string[]): Promise<files.File> {
-    let file = await super.getFile(pathArray);
-    file = this.createChild(file);
-    return file;
   }
 
   async getChildren() {

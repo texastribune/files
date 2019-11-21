@@ -45,7 +45,6 @@ export declare class ProxyDirectory<T extends Directory> extends files.Directory
     search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
-    getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
 }
 /**
@@ -66,7 +65,6 @@ export declare class ChangeEventProxyDirectory<T extends files.Directory> extend
     delete(): Promise<void>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
-    getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
 }
 /**
@@ -81,7 +79,6 @@ export declare class CachedProxyDirectory<T extends files.Directory> extends Cha
     readonly root: CachedProxyDirectory<T>;
     readonly path: files.Directory[];
     protected createChild(child: files.File): ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;
-    getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
     clearCache(): void;
 }
