@@ -50,7 +50,6 @@ export declare class S3Directory extends files.Directory {
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File>;
     delete(): Promise<void>;
     private getFilesForPrefix;
-    getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
     rename(newName: string): Promise<void>;
     search(query: string): Promise<SearchResult[]>;
