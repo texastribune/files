@@ -1,5 +1,5 @@
 import * as files from "./base.js";
-import {Directory} from "./base.js";
+import {Directory, FileNotFoundError} from "./base.js";
 
 
 /**
@@ -157,6 +157,10 @@ export class ProxyDirectory<T extends Directory> extends files.Directory {
     return this.concreteDirectory.addDirectory(name);
   }
 
+  getFile(pathArray: string[]) {
+    return this.concreteDirectory.getFile(pathArray);
+  }
+
   getChildren() {
     return this.concreteDirectory.getChildren();
   }
@@ -221,6 +225,14 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
     return ret;
   }
 
+  async getFile(pathArray: string[]): Promise<files.File> {
+    let child =  await super.getFile(pathArray);
+    child.addOnChangeListener(() => {
+      this.dispatchChangeEvent();
+    });
+    return child;
+  }
+
   async getChildren(): Promise<files.File[]> {
     let children = [];
     for (let child of await super.getChildren()){
@@ -265,19 +277,38 @@ export class CachedProxyDirectory<T extends files.Directory> extends ChangeEvent
     return this.parent.path.concat([this]);
   }
 
-  protected createChild(child : files.File) : ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File> {
+  protected createFile(child : files.File, parent : CachedProxyDirectory<files.Directory>) : CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File> {
     if (child instanceof files.Directory){
-      return new CachedProxyDirectory(child, this);
+      return new CachedProxyDirectory(child, parent);
     } else {
       return new ChangeEventProxyFile(child);
     }
+  }
+
+  async getFile(pathArray: string[]): Promise<CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>> {
+    if (pathArray.length === 0){
+      return this;
+    }
+    else if (pathArray.length === 1 && this.cachedChildren !== null){
+      for (let child of this.cachedChildren){
+        if (child.name === pathArray[0]){
+          return this.createFile(child, this);
+        }
+      }
+    }
+    let parent = await this.getFile(pathArray.slice(0, pathArray.length-1));
+    if (!(parent instanceof CachedProxyDirectory)){
+      throw new FileNotFoundError(`${parent.name} is not a directory`)
+    }
+    let file = await super.getFile(pathArray);
+    return this.createFile(file, parent);
   }
 
   async getChildren() {
     if (this.cachedChildren === null){
       this.cachedChildren = [];
       for (let child of await super.getChildren()){
-        this.cachedChildren.push(this.createChild(child));
+        this.cachedChildren.push(this.createFile(child, this));
       }
     }
     return this.cachedChildren.slice();
