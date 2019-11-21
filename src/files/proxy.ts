@@ -236,6 +236,11 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
     }
   }
 
+
+  async getFile(pathArray: string[]): Promise<files.File> {
+    return this.createChild(await super.getFile(pathArray));
+  }
+
   async getChildren(): Promise<files.File[]> {
     let children = [];
     for (let child of await super.getChildren()){

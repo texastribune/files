@@ -68,6 +68,7 @@ export declare class ChangeEventProxyDirectory<T extends files.Directory> extend
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
     protected createChild(child: files.File): ChangeEventProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;
+    getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
 }
 /**
