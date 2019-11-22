@@ -213,17 +213,17 @@ export class MemoryDirectory extends files.Directory {
 
     // utilities
 
-    addChild(memoryFile : MemoryFile | MemoryDirectory){
+    private addChild(memoryFile : MemoryFile | MemoryDirectory){
         this.children.push(memoryFile);
         this.dispatchChangeEvent();
     }
 
-    removeChild(memoryFile : MemoryFile | MemoryDirectory){
+    private removeChild(memoryFile : MemoryFile | MemoryDirectory){
         this.children = this.children.filter((file) => {return file !== memoryFile});
         this.dispatchChangeEvent();
     }
 
-    nameExists(name : string){
+    private nameExists(name : string){
         let names = this.children.reduce((names, file) => {
             names.add(file.name);
             return names;

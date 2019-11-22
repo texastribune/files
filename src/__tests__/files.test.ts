@@ -1,7 +1,7 @@
 /* eslint-disable import/first */
 /* global jest, test, expect, describe */
 
-import {MemoryDirectory} from "../files/memory";
+import {MemoryDirectory, MemoryFile} from "../files/memory";
 import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 import IndexedDB from "fake-indexeddb/build/index";
 import {LocalStorageRoot, database} from "../files/local";
@@ -9,7 +9,7 @@ import {VirtualFS} from "../files/virtual";
 import {BasicFile, Directory, DirectoryData, File, FileAlreadyExistsError, FileNotFoundError} from "../files/base";
 import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
-import {CachedProxyDirectory} from "../files/proxy";
+import {CachedProxyDirectory, CachedProxyRootDirectory} from "../files/proxy";
 
 
 function compareById(a : DirectoryData, b : DirectoryData) : number {
@@ -435,7 +435,7 @@ describe('Test virtual file storage', () => {
 
 describe('Test cached proxy file storage', () => {
     let rootMounted = new MemoryDirectory(null, 'mounted');
-    let storage = new CachedProxyDirectory(rootMounted, [], null);
+    let storage = new CachedProxyRootDirectory(rootMounted);
 
     testStorage(storage);
 });
@@ -468,3 +468,41 @@ describe('Test cached proxy file storage', () => {
 //       await storage.delete();
 //   })
 // });
+
+describe('Test directory caching', () => {
+    class TestDirectory extends MemoryDirectory {
+        public callCount : number = 0;
+
+        async getFile(pathArray: string[]): Promise<File> {
+            this.callCount ++;
+            return super.getFile(pathArray);
+        }
+
+        async getChildren(): Promise<File[]> {
+            this.callCount ++;
+            return super.getChildren();
+        }
+    }
+
+    test('new directories cached', async () => {
+        let root = new TestDirectory(null, "root");
+        let rootCache = new CachedProxyRootDirectory(root);
+        let dir1 = await rootCache.addDirectory("test1");
+        let dir2 = await rootCache.addDirectory("test2");
+
+        let children = await rootCache.getChildren();
+        expect(children.length).toEqual(2);
+        expect(root.callCount).toEqual(1); // Nothing should be cached the first time.
+
+        // Reset call count
+        root.callCount = 0;
+
+        children = await rootCache.getChildren();
+        expect(children.length).toEqual(2);
+        expect(root.callCount).toEqual(0); // Should be cached the second time.
+
+        let file = await rootCache.getFile([dir1.name]);
+        expect(file.name).toEqual(dir1.name);
+        expect(root.callCount).toEqual(0);  // Child should be cached now
+    })
+});

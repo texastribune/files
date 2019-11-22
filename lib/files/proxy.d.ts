@@ -73,12 +73,12 @@ export declare class ChangeEventProxyDirectory<T extends files.Directory> extend
  * Caches the children of the directory for when getChildren is called. Listens for change events
  * to invalidate the cache.
  */
-export declare class CachedProxyDirectory<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
+declare class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
     private readonly cachedRoot;
     protected readonly parentPath: string[];
     private pathCache;
     private childCache;
-    constructor(concreteDirectory: T, parentPath: string[], rootDirectory: CachedProxyDirectory<T> | null);
+    protected constructor(concreteDirectory: T, parentPath: string[], rootDirectory: CachedProxyDirectory<T> | null);
     readonly root: CachedProxyDirectory<T>;
     dispatchChangeEvent(): void;
     readonly path: string[];
@@ -90,4 +90,10 @@ export declare class CachedProxyDirectory<T extends files.Directory> extends Cha
     clearCache(): void;
 }
 declare type CachableFile = CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;
+export declare class CachedProxyDirectory<T extends files.Directory> extends CachedProxyDirectoryBase<T> {
+    constructor(concreteDirectory: T, parentPath: string[], rootDirectory: CachedProxyDirectory<T>);
+}
+export declare class CachedProxyRootDirectory<T extends files.Directory> extends CachedProxyDirectoryBase<T> {
+    constructor(concreteDirectory: T);
+}
 export {};

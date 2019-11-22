@@ -14,7 +14,7 @@ import * as icons from './icons.js';
 import {ConfirmDialog} from "elements/lib/dialog.js";
 import {TextData, TimeData, AbstractTableData, Header, Row, Table} from "elements/lib/table.js";
 import {MemoryDirectory} from "../files/memory.js";
-import {CachedProxyDirectory} from "../files/proxy.js";
+import {CachedProxyDirectory, CachedProxyRootDirectory} from "../files/proxy.js";
 import {SearchBar} from "./search.js";
 import {Process} from "../processes/base.js";
 import {ConsoleFile} from "../devices/console.js";
@@ -395,7 +395,7 @@ export class FileBrowser extends CustomElement {
 
     // Set initial directory
     this.busy = Promise.resolve();
-    this.cachedCurrentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'), [], null);
+    this.cachedCurrentDirectory = new CachedProxyRootDirectory(new MemoryDirectory(null, 'root'));
   }
 
   static get observedAttributes() {
@@ -411,7 +411,7 @@ export class FileBrowser extends CustomElement {
   }
 
   set rootDirectory(value : Directory){
-    this.setCurrentDirectory(new CachedProxyDirectory(value, [], null));
+    this.setCurrentDirectory(new CachedProxyRootDirectory(value));
   }
 
   get currentDirectory(): Directory {

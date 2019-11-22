@@ -249,14 +249,14 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
  * Caches the children of the directory for when getChildren is called. Listens for change events
  * to invalidate the cache.
  */
-export class CachedProxyDirectory<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
+class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
   private readonly cachedRoot : CachedProxyDirectory<T> | null;
   protected readonly parentPath : string[];
   private pathCache : {[encodedPath: string]: CachableFile} = {};
   private childCache : CachableFile[] | null = null;
 
 
-  constructor(concreteDirectory : T, parentPath : string[], rootDirectory : CachedProxyDirectory<T> | null){
+  protected constructor(concreteDirectory : T, parentPath : string[], rootDirectory : CachedProxyDirectory<T> | null){
     super(concreteDirectory);
     this.cachedRoot = rootDirectory;
     this.parentPath = parentPath;
@@ -345,3 +345,16 @@ export class CachedProxyDirectory<T extends files.Directory> extends ChangeEvent
 
 
 type CachableFile = CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;
+
+
+export class CachedProxyDirectory<T extends files.Directory> extends CachedProxyDirectoryBase<T> {
+  constructor(concreteDirectory : T, parentPath : string[], rootDirectory : CachedProxyDirectory<T>) {
+    super(concreteDirectory, parentPath, rootDirectory);
+  }
+}
+
+export class CachedProxyRootDirectory<T extends files.Directory> extends CachedProxyDirectoryBase<T> {
+  constructor(concreteDirectory : T) {
+    super(concreteDirectory, [], null);
+  }
+}
