@@ -395,7 +395,7 @@ export class FileBrowser extends CustomElement {
 
     // Set initial directory
     this.busy = Promise.resolve();
-    this.cachedCurrentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'));
+    this.cachedCurrentDirectory = new CachedProxyDirectory(new MemoryDirectory(null, 'root'), [], null);
   }
 
   static get observedAttributes() {
@@ -411,7 +411,7 @@ export class FileBrowser extends CustomElement {
   }
 
   set rootDirectory(value : Directory){
-    this.setCurrentDirectory(new CachedProxyDirectory(value));
+    this.setCurrentDirectory(new CachedProxyDirectory(value, [], null));
   }
 
   get currentDirectory(): Directory {
@@ -467,9 +467,7 @@ export class FileBrowser extends CustomElement {
   }
 
   get filePath(): string[] {
-    return this.cachedCurrentDirectory.path.map((directory: Directory) => {
-      return directory.name;
-    });
+    return this.cachedCurrentDirectory.path;
   }
 
   set filePath(path: string[]) {
@@ -698,6 +696,7 @@ export class FileBrowser extends CustomElement {
     return promise
       .catch((error) => {
         this.addMessage(error, true);
+        console.debug(error);
       });
   }
 
@@ -814,7 +813,6 @@ export class FileBrowser extends CustomElement {
     if (pathsJson) {
       let dataTransfer : FileDataTransfer = JSON.parse(pathsJson);
       if (!isFileTransfer(dataTransfer)){
-        console.log(pathsJson);
         this.addMessage('invalid data', true);
         return;
       }

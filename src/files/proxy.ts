@@ -250,12 +250,27 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
  * to invalidate the cache.
  */
 export class CachedProxyDirectory<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
-  protected readonly parent : CachedProxyDirectory<T> | null;
-  private cachedChildren : files.File[] | null = null;
+  private readonly cachedRoot : CachedProxyDirectory<T> | null;
+  protected readonly parentPath : string[];
+  private pathCache : {[encodedPath: string]: CachableFile} = {};
+  private childCache : CachableFile[] | null = null;
 
-  constructor(concreteDirectory : T, parentDirectory? : CachedProxyDirectory<T>){
+
+  constructor(concreteDirectory : T, parentPath : string[], rootDirectory : CachedProxyDirectory<T> | null){
     super(concreteDirectory);
-    this.parent = parentDirectory || null;
+    this.cachedRoot = rootDirectory;
+    this.parentPath = parentPath;
+
+    if (this.cachedRoot !== null){
+      this.cachedRoot.add(this.parentPath.concat([this.name]), this);
+    }
+  }
+
+  get root() : CachedProxyDirectory<T> {
+    if (this.cachedRoot === null){
+      return this
+    }
+    return this.cachedRoot;
   }
 
   dispatchChangeEvent() {
@@ -263,58 +278,70 @@ export class CachedProxyDirectory<T extends files.Directory> extends ChangeEvent
     super.dispatchChangeEvent();
   }
 
-  get root() : CachedProxyDirectory<T> {
-    if (this.parent === null){
-      return this;
-    }
-    return this.parent.root;
+  get path() : string[] {
+    return this.parentPath.concat([this.name]);
   }
 
-  get path() : files.Directory[] {
-    if (this.parent === null){
-      return [this];
-    }
-    return this.parent.path.concat([this]);
-  }
-
-  protected createFile(child : files.File, parent : CachedProxyDirectory<files.Directory>) : CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File> {
-    if (child instanceof files.Directory){
-      return new CachedProxyDirectory(child, parent);
+  protected createFile(file : files.File, parentPath : string[]) : CachableFile {
+    if (file instanceof files.Directory){
+      return new CachedProxyDirectory(file, parentPath, this.root);
     } else {
-      return new ChangeEventProxyFile(child);
+      return new ChangeEventProxyFile(file);
     }
   }
 
-  async getFile(pathArray: string[]): Promise<CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>> {
+  async getFile(pathArray: string[]): Promise<CachableFile> {
     if (pathArray.length === 0){
       return this;
     }
-    else if (pathArray.length === 1 && this.cachedChildren !== null){
-      for (let child of this.cachedChildren){
-        if (child.name === pathArray[0]){
-          return this.createFile(child, this);
-        }
-      }
-    }
-    let parent = await this.getFile(pathArray.slice(0, pathArray.length-1));
-    if (!(parent instanceof CachedProxyDirectory)){
-      throw new FileNotFoundError(`${parent.name} is not a directory`)
+    let absolutePath = this.path.concat(pathArray);
+    let cached = this.root.getCached(absolutePath);
+    if (cached !== null){
+      return cached;
     }
     let file = await super.getFile(pathArray);
-    return this.createFile(file, parent);
+    return this.createFile(file, absolutePath.slice(0, absolutePath.length-1));
   }
 
-  async getChildren() {
-    if (this.cachedChildren === null){
-      this.cachedChildren = [];
-      for (let child of await super.getChildren()){
-        this.cachedChildren.push(this.createFile(child, this));
+  async getChildren(): Promise<CachableFile[]> {
+    if (this.childCache === null){
+      let children = await super.getChildren();
+      this.childCache = [];
+      for (let child of children){
+        let cachedChild = this.createFile(child, this.path);
+        this.childCache.push(cachedChild);
       }
     }
-    return this.cachedChildren.slice();
+    return this.childCache.slice();
   }
 
-  clearCache(){
-    this.cachedChildren = null;
+  add(absolutePath : string[], file : CachableFile) {
+    if (this.cachedRoot === null){
+      let key = absolutePath.map(encodeURIComponent).join('/');
+      this.pathCache[key] = file;
+    } else {
+      this.cachedRoot.add(absolutePath, file);
+    }
+  }
+
+  getCached(absolutePath : string[]) : CachableFile | null {
+    if (this.cachedRoot === null){
+      let key = absolutePath.map(encodeURIComponent).join('/');
+      return this.pathCache[key] || null;
+    } else {
+      return this.cachedRoot.getCached(absolutePath);
+    }
+  }
+
+  clearCache() {
+    this.childCache = null;
+    if (this.cachedRoot === null){
+      this.pathCache = {};
+    } else {
+      this.cachedRoot.clearCache();
+    }
   }
 }
+
+
+type CachableFile = CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;

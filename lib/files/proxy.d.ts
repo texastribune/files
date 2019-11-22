@@ -74,14 +74,20 @@ export declare class ChangeEventProxyDirectory<T extends files.Directory> extend
  * to invalidate the cache.
  */
 export declare class CachedProxyDirectory<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
-    protected readonly parent: CachedProxyDirectory<T> | null;
-    private cachedChildren;
-    constructor(concreteDirectory: T, parentDirectory?: CachedProxyDirectory<T>);
-    dispatchChangeEvent(): void;
+    private readonly cachedRoot;
+    protected readonly parentPath: string[];
+    private pathCache;
+    private childCache;
+    constructor(concreteDirectory: T, parentPath: string[], rootDirectory: CachedProxyDirectory<T> | null);
     readonly root: CachedProxyDirectory<T>;
-    readonly path: files.Directory[];
-    protected createFile(child: files.File, parent: CachedProxyDirectory<files.Directory>): CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;
-    getFile(pathArray: string[]): Promise<CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>>;
-    getChildren(): Promise<files.File[]>;
+    dispatchChangeEvent(): void;
+    readonly path: string[];
+    protected createFile(file: files.File, parentPath: string[]): CachableFile;
+    getFile(pathArray: string[]): Promise<CachableFile>;
+    getChildren(): Promise<CachableFile[]>;
+    add(absolutePath: string[], file: CachableFile): void;
+    getCached(absolutePath: string[]): CachableFile | null;
     clearCache(): void;
 }
+declare type CachableFile = CachedProxyDirectory<files.Directory> | ChangeEventProxyFile<files.File>;
+export {};
