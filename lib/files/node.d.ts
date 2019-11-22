@@ -20,7 +20,6 @@ export declare class NodeFile extends files.BasicFile {
     readonly mimeType: string;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
-    search(query: string): Promise<void>;
     read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<Buffer>;
 }
@@ -37,6 +36,7 @@ export declare class NodeDirectory extends files.Directory {
     readonly created: Date;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
+    private searchDir;
     search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<NodeFile>;
     addDirectory(name: string): Promise<NodeDirectory>;

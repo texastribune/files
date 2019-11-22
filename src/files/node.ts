@@ -3,7 +3,7 @@ import * as files from "./base.js";
 import {statSync, Stats, watch, FSWatcher, existsSync} from "fs";
 import {promises as fs} from "fs";
 import * as path from 'path';
-import {FileAlreadyExistsError} from "./base.js";
+import {FileAlreadyExistsError, SearchResult} from "./base.js";
 
 
 /**
@@ -75,10 +75,6 @@ export class NodeFile extends files.BasicFile {
     await fs.unlink(this.id);
   }
 
-  async search(query : string) {
-    throw new Error("Not implemented")
-  }
-
   async read() : Promise<ArrayBuffer> {
     let typedArray = await fs.readFile(this.id);
     return typedArray.buffer.slice(typedArray.byteOffset, typedArray.byteLength + typedArray.byteOffset);
@@ -147,8 +143,51 @@ export class NodeDirectory extends files.Directory {
     await fs.rmdir(this.id);
   }
 
+  private async searchDir(id: string, query: string) {
+    let results : {path: string[], id: string, stat: Stats}[] = [];
+    let nameArray = await fs.readdir(id);
+    for (let childName of nameArray){
+      let childId = path.join(id, childName);
+      try{
+        let stat = await fs.stat(childId);
+        let isDir = stat.isDirectory();
+
+        if (childName.includes(query)) {
+          results.push({path: [childName,], id: childId, stat: stat});
+        }
+        if (isDir){
+          let subResults = await this.searchDir(childId, query);
+          for (let result of subResults) {
+            result.path.unshift(childName)
+          }
+          results = results.concat(subResults);
+        }
+      } catch (e) {
+        // File possible not found. Could have been removed concurrently.
+      }
+    }
+
+    return results;
+  }
+
   async search(query : string) : Promise<files.SearchResult[]> {
-    throw new Error("Not implemented")
+    let results : files.SearchResult[] = [];
+    let statResults = await this.searchDir(this.id, query);
+    for (let result of statResults){
+      if (result.stat.isDirectory()) {
+        results.push({
+          path: result.path,
+          file: new NodeDirectory(result.id, result.stat),
+        })
+      } else {
+        results.push({
+          path: result.path,
+          file: new NodeFile(result.id, result.stat),
+        })
+      }
+
+    }
+    return results;
   }
 
   async addFile(fileData: ArrayBuffer, filename: string, mimeType?: string) {
