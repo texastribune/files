@@ -6,13 +6,13 @@ import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
 import IndexedDB from "fake-indexeddb/build/index";
 import {LocalStorageRoot, database} from "../files/local";
 import {VirtualFS} from "../files/virtual";
-import {BasicFile, Directory, File, FileAlreadyExistsError, FileNotFoundError} from "../files/base";
+import {BasicFile, Directory, DirectoryData, File, FileAlreadyExistsError, FileNotFoundError} from "../files/base";
 import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
 import {CachedProxyDirectory} from "../files/proxy";
 
 
-function compareById(a : File, b : File) {
+function compareById(a : DirectoryData, b : DirectoryData) : number {
     if (a.id > b.id){
         return 1;
     }
@@ -26,7 +26,7 @@ async function listDirectoryDataFromRead(directory : Directory) {
     return await directory.readJSON();
 }
 
-async function listDirectoryDataFromGetChildren(directory : Directory){
+async function listDirectoryDataFromGetChildren(directory : Directory) : Promise<DirectoryData[]> {
     let children = await directory.getChildren();
     let dataArray = [];
     for (let file of children){
@@ -435,7 +435,7 @@ describe('Test virtual file storage', () => {
 
 describe('Test cached proxy file storage', () => {
     let rootMounted = new MemoryDirectory(null, 'mounted');
-    let storage = new CachedProxyDirectory(rootMounted);
+    let storage = new CachedProxyDirectory(rootMounted, [], null);
 
     testStorage(storage);
 });

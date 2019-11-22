@@ -297,3 +297,17 @@ export interface SearchResult {
    */
   file: File,
 }
+
+
+export interface DirectoryData {
+  id: string,
+  name: string,
+  directory: boolean,
+  url: string | null,
+  icon: string | null,
+  size: number,
+  mimeType: string,
+  lastModified: string,
+  created: string,
+  extra: Object,
+}

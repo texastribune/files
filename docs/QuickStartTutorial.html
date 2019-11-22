@@ -29,10 +29,20 @@
                 </header>
 
                 <article>
-                    <h3>Using the file system</h3>
+                    <h3>Creating a file browser</h3>
                     <p>
-                        Go to /src/\&lt;version>/index.html for a desktop view using a simple version of a filesystem created using the features in this app.
+                        The file browser can be added by using the file-browser custom element in your HTML. For instance
+                        you can add the following for a file browser for an s3 bucket with public list permissions
+                        as the root level directory.
                     </p>
+                    <code>
+                        &lt;file-browser&gt;<br>
+                        &nbsp;&nbsp;&lt;s3-directory bucket=&quot;bucket-name&quot;&gt;&lt;/s3-directory&gt;<br>
+                        &lt;/file-browser&gt;<br>
+                    </code>
+
+                    <h3>Using the file system</h3>
+                    <a href="UserInterfaceTutorial.html">User Interface Tutorial</a>
                 </article>
             </section>
         </div>
