@@ -525,6 +525,7 @@ export class FileBrowser extends CustomElement {
           --dialog-header-background-color: var(--focus-item-color);
           --dialog-header-text-color: black;
           
+          display: block;
           position: relative;
           font-family: var(--browser-font, sans-serif);
         }
