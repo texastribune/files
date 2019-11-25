@@ -7,7 +7,7 @@ import "elements/lib/dialog.js";
 import { BreadCrumbs } from "./breadCrumbs.js";
 import { Directory, File } from "../files/base.js";
 import { AbstractTableData, Header, Row } from "elements/lib/table.js";
-import { CachedProxyDirectory } from "../files/proxy.js";
+import { CachedProxyDirectoryBase } from "../files/proxy.js";
 import { CustomElement } from "elements/lib/element.js";
 export declare class FileSizeTableData extends AbstractTableData<File | null> {
     private file;
@@ -87,7 +87,7 @@ export declare class FileBrowser extends CustomElement {
     static readonly observedAttributes: string[];
     rootDirectory: Directory;
     readonly currentDirectory: Directory;
-    protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<T>): void;
+    protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectoryBase<T>): void;
     readonly files: File[];
     readonly selectedFileRows: Row[];
     readonly selectedRowData: RowData[];

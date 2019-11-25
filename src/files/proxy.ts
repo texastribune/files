@@ -249,7 +249,7 @@ export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyD
  * Caches the children of the directory for when getChildren is called. Listens for change events
  * to invalidate the cache.
  */
-class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
+export class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
   private readonly cachedRoot : CachedProxyDirectory<T> | null;
   protected readonly parentPath : string[];
   private pathCache : {[encodedPath: string]: CachableFile} = {};

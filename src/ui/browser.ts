@@ -14,7 +14,7 @@ import * as icons from './icons.js';
 import {ConfirmDialog} from "elements/lib/dialog.js";
 import {TextData, TimeData, AbstractTableData, Header, Row, Table} from "elements/lib/table.js";
 import {MemoryDirectory} from "../files/memory.js";
-import {CachedProxyDirectory, CachedProxyRootDirectory} from "../files/proxy.js";
+import {CachedProxyRootDirectory, CachedProxyDirectoryBase} from "../files/proxy.js";
 import {SearchBar} from "./search.js";
 import {Process} from "../processes/base.js";
 import {ConsoleFile} from "../devices/console.js";
@@ -268,7 +268,7 @@ export class FileBrowser extends CustomElement {
   private readonly tableBusyOverlay: HTMLDivElement;
   private readonly breadCrumbs: BreadCrumbs;
 
-  private cachedCurrentDirectory: CachedProxyDirectory<Directory>;
+  private cachedCurrentDirectory: CachedProxyDirectoryBase<Directory>;
 
   private readonly table: Table;
   private readonly dropdownMenuIcon: Element;
@@ -418,7 +418,7 @@ export class FileBrowser extends CustomElement {
     return this.cachedCurrentDirectory;
   }
 
-  protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectory<T>) {
+  protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectoryBase<T>) {
     this.cachedCurrentDirectory = value;
     this.cachedCurrentDirectory.addOnChangeListener(() => {
       this.logAndLoadWrapper(this.refreshFiles());
@@ -475,7 +475,7 @@ export class FileBrowser extends CustomElement {
     this.logAndLoadWrapper(
       this.rootDirectory.getFile(path.slice(1))
         .then((newDirectory) => {
-          if (newDirectory instanceof CachedProxyDirectory) {
+          if (newDirectory instanceof CachedProxyDirectoryBase) {
             this.setCurrentDirectory(newDirectory);
           } else {
             throw new FileNotFoundError("file must be a directory");

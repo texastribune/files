@@ -73,7 +73,7 @@ export declare class ChangeEventProxyDirectory<T extends files.Directory> extend
  * Caches the children of the directory for when getChildren is called. Listens for change events
  * to invalidate the cache.
  */
-declare class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
+export declare class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
     private readonly cachedRoot;
     protected readonly parentPath: string[];
     private pathCache;
