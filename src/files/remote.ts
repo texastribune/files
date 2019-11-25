@@ -63,11 +63,11 @@ class RemoteFile extends files.BasicFile {
   }
 
   read(): Promise<ArrayBuffer> {
-    return ajax(new URL(this.url), {}, null, 'GET');
+    return ajax(new URL(this.url, this.apiUrl), {}, null, 'GET');
   }
 
   async write(data : ArrayBuffer) : Promise<ArrayBuffer> {
-    return await ajax(new URL(this.url), {}, new Blob([data], {type: this.mimeType}), 'POST');
+    return await ajax(new URL(this.url, this.apiUrl), {}, new Blob([data], {type: this.mimeType}), 'POST');
   }
 
   async rename(newName : string) {
@@ -157,7 +157,7 @@ class RemoteDirectory extends files.Directory {
   }
 
   read(): Promise<ArrayBuffer> {
-    return ajax(new URL(this.url), {}, null, 'GET');
+    return ajax(new URL(this.url, this.apiUrl), {}, null, 'GET');
   }
 
   async rename(newName : string) {
@@ -199,7 +199,7 @@ class RemoteDirectory extends files.Directory {
     );
     formData.append('read', RemoteDirectory.searchFileName);
 
-    let responseData = await ajax(new URL(this.url), {}, formData, 'POST');
+    let responseData = await ajax(new URL(this.url, this.apiUrl), {}, formData, 'POST');
 
     let fileDataMap = parseJsonArrayBuffer(responseData);
     if (fileDataMap instanceof Array){
@@ -234,7 +234,7 @@ class RemoteDirectory extends files.Directory {
     );
     formData.append('read', RemoteDirectory.addFileName);
 
-    let responseData = await ajax(new URL(this.url), {}, formData, 'POST');
+    let responseData = await ajax(new URL(this.url, this.apiUrl), {}, formData, 'POST');
     let newFile = new RemoteFile(this, parseJsonArrayBuffer(responseData), this.apiUrl);
     try {
       await newFile.write(data);
@@ -260,7 +260,7 @@ class RemoteDirectory extends files.Directory {
       );
     formData.append('read', RemoteDirectory.addDirectoryName);
 
-    let responseData = await ajax(new URL(this.url), {}, formData, 'POST');
+    let responseData = await ajax(new URL(this.url, this.apiUrl), {}, formData, 'POST');
     return new RemoteDirectory(this, parseJsonArrayBuffer(responseData), this.apiUrl);
   }
 

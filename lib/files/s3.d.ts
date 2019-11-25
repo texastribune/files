@@ -17,7 +17,7 @@ export declare class S3Bucket {
     constructor(data: S3BucketData);
     readonly name: string;
     readonly delimiter: string;
-    readonly url: string;
+    readonly url: URL;
 }
 export declare class S3File extends files.BasicFile {
     private readonly bucket;
@@ -30,6 +30,7 @@ export declare class S3File extends files.BasicFile {
     readonly size: number;
     constructor(metadata: S3ObjectData, bucket: S3Bucket);
     readonly name: string;
+    private readonly urlObject;
     readonly url: string;
     delete(): Promise<void>;
     read(): Promise<ArrayBuffer>;

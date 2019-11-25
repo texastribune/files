@@ -32,12 +32,17 @@ export class S3Bucket {
     return this.data.delimiter;
   }
 
-  get url() : string {
-    let url = this.data.customUrl || `https://s3.amazonaws.com/${this.data.name}`;
-    if (url[url.length-1] == "/") {
-      url = url.slice(0, url.length-1);
+  get url() : URL {
+    let url;
+    if (this.data.customUrl){
+      url = this.data.customUrl;
+      if (url[url.length-1] != "/") {
+        this.data.customUrl += "/";
+      }
+    } else {
+      url = `https://s3.amazonaws.com/${this.data.name}/`;
     }
-    return url;
+    return new URL(url, window.location.href);
   }
 }
 
@@ -75,8 +80,12 @@ export class S3File extends files.BasicFile {
     return path[path.length-1];
   }
 
+  private get urlObject() {
+    return new URL(this.id, this.bucket.url);
+  }
+
   get url() {
-    return `${this.bucket.url}/${this.id}`;
+    return this.urlObject.toString();
   }
 
   delete(): Promise<void> {
@@ -84,7 +93,7 @@ export class S3File extends files.BasicFile {
   }
 
   read(): Promise<ArrayBuffer> {
-    return ajax(new URL(this.url), {}, null, 'GET');
+    return ajax(this.urlObject, {}, null, 'GET');
   }
 
   rename(newName: string): Promise<void> {
@@ -146,7 +155,7 @@ export class S3Directory extends files.Directory {
   }
 
   private async getFilesForPrefix(prefix : string): Promise<files.File[]> {
-    let url = new URL(this.bucket.url);
+    let url = this.bucket.url;
     url.searchParams.append('prefix', prefix);
     url.searchParams.append('encoding-type', 'url');
     url.searchParams.append('delimiter', this.bucket.delimiter);
