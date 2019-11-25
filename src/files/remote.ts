@@ -50,8 +50,12 @@ class RemoteFile extends files.BasicFile {
     return new Date(this.fileData.created);
   }
 
+  private get urlObject(){
+    return new URL(this.fileData.url || this.id, this.apiUrl);
+  }
+
   get url() : string {
-    return this.fileData.url || this.apiUrl.toString() + this.id;
+    return this.urlObject.toString();
   }
 
   get icon() {
@@ -63,11 +67,11 @@ class RemoteFile extends files.BasicFile {
   }
 
   read(): Promise<ArrayBuffer> {
-    return ajax(new URL(this.url, this.apiUrl), {}, null, 'GET');
+    return ajax(this.urlObject, {}, null, 'GET');
   }
 
   async write(data : ArrayBuffer) : Promise<ArrayBuffer> {
-    return await ajax(new URL(this.url, this.apiUrl), {}, new Blob([data], {type: this.mimeType}), 'POST');
+    return await ajax(this.urlObject, {}, new Blob([data], {type: this.mimeType}), 'POST');
   }
 
   async rename(newName : string) {
@@ -144,8 +148,12 @@ class RemoteDirectory extends files.Directory {
     return new Date(this.fileData.created);
   }
 
+  private get urlObject(){
+    return new URL(this.fileData.url || this.id, this.apiUrl);
+  }
+
   get url() : string {
-    return this.fileData.url || this.apiUrl.toString() + this.id;
+    return this.urlObject.toString();
   }
 
   get icon() {
@@ -157,7 +165,7 @@ class RemoteDirectory extends files.Directory {
   }
 
   read(): Promise<ArrayBuffer> {
-    return ajax(new URL(this.url, this.apiUrl), {}, null, 'GET');
+    return ajax(this.urlObject, {}, null, 'GET');
   }
 
   async rename(newName : string) {
@@ -199,7 +207,7 @@ class RemoteDirectory extends files.Directory {
     );
     formData.append('read', RemoteDirectory.searchFileName);
 
-    let responseData = await ajax(new URL(this.url, this.apiUrl), {}, formData, 'POST');
+    let responseData = await ajax(this.urlObject, {}, formData, 'POST');
 
     let fileDataMap = parseJsonArrayBuffer(responseData);
     if (fileDataMap instanceof Array){
@@ -234,7 +242,7 @@ class RemoteDirectory extends files.Directory {
     );
     formData.append('read', RemoteDirectory.addFileName);
 
-    let responseData = await ajax(new URL(this.url, this.apiUrl), {}, formData, 'POST');
+    let responseData = await ajax(this.urlObject, {}, formData, 'POST');
     let newFile = new RemoteFile(this, parseJsonArrayBuffer(responseData), this.apiUrl);
     try {
       await newFile.write(data);
@@ -260,7 +268,7 @@ class RemoteDirectory extends files.Directory {
       );
     formData.append('read', RemoteDirectory.addDirectoryName);
 
-    let responseData = await ajax(new URL(this.url, this.apiUrl), {}, formData, 'POST');
+    let responseData = await ajax(this.urlObject, {}, formData, 'POST');
     return new RemoteDirectory(this, parseJsonArrayBuffer(responseData), this.apiUrl);
   }
 

@@ -22,6 +22,7 @@ declare class RemoteFile extends files.BasicFile {
     readonly mimeType: string;
     readonly lastModified: Date;
     readonly created: Date;
+    private readonly urlObject;
     readonly url: string;
     readonly icon: string | null;
     readonly size: number;
@@ -49,6 +50,7 @@ declare class RemoteDirectory extends files.Directory {
     readonly name: string;
     readonly lastModified: Date;
     readonly created: Date;
+    private readonly urlObject;
     readonly url: string;
     readonly icon: string | null;
     readonly size: number;
