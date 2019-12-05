@@ -1,18 +1,22 @@
 import {ProxyDirectory} from "./proxy.js";
 import * as files from "./base.js";
+import {walkPath} from "./base.js";
 
 
 abstract class AbstractVirtualDirectory<T extends files.Directory> extends ProxyDirectory<T> {
   abstract readonly virtualRoot : AbstractVirtualRootDirectory<files.Directory>;
   abstract readonly path : string[];
 
-  async getChildren() : Promise<files.File[]> {
-    let root = this.virtualRoot;
+  getFile(pathArray: string[]): Promise<files.File> {
+    // Force to walk path so that mount points are checked.
+    return walkPath(pathArray, this);
+  }
 
+  async getChildren() : Promise<files.File[]> {
     let children = await super.getChildren();
     let virtualChildren = [];
     for (let child of children){
-      let mountPointData = root.getMountedData(child.id);
+      let mountPointData = this.virtualRoot.getMountedData(child.id);
       if (mountPointData !== null){
         child = new VirtualRootDirectory(mountPointData.directory, mountPointData.subMounts, child, this);
       } else if (child instanceof files.Directory) {

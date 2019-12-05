@@ -49,7 +49,7 @@ export declare class MemoryDirectory extends files.Directory {
     getChildrenSync(): files.File[];
     addFileSync(fileData: ArrayBuffer, filename: string, mimeType: string): MemoryFile;
     addDirectorySync(name: string): MemoryDirectory;
-    private addChild;
-    private removeChild;
-    private nameExists;
+    addChild(memoryFile: MemoryFile | MemoryDirectory): void;
+    removeChild(memoryFile: MemoryFile | MemoryDirectory): void;
+    nameExists(name: string): boolean;
 }

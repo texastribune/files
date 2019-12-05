@@ -80,7 +80,7 @@ export class ContextMenu extends Dialog {
 
   createOpenButton(browser : FileBrowser, rowData : RowData){
     let openButton = document.createElement('div');
-    openButton.innerText = 'Open';
+    openButton.textContent = 'Open';
     openButton.onclick = () => {
       browser.onOpen(rowData);
       this.visible = false;
@@ -90,7 +90,7 @@ export class ContextMenu extends Dialog {
 
   createCopyButton(){
     let urlButton = document.createElement('div');
-    urlButton.innerText = 'Copy Url';
+    urlButton.textContent = 'Copy Url';
     urlButton.onclick = () => {
       document.execCommand('copy');
     };
@@ -99,7 +99,7 @@ export class ContextMenu extends Dialog {
 
   createRenameButton(browser : FileBrowser, selectedFile : File){
     let renameButton = document.createElement('div');
-    renameButton.innerText = 'Rename';
+    renameButton.textContent = 'Rename';
     renameButton.onclick = () => {
       browser.logAndLoadWrapper(
         (async () => {
@@ -116,7 +116,7 @@ export class ContextMenu extends Dialog {
 
   createRunButton(browser : FileBrowser, path : string[]){
     let runButton = document.createElement('div');
-    runButton.innerText = 'Run';
+    runButton.textContent = 'Run';
     runButton.onclick = () => {
       try {
         browser.execute(path);
@@ -129,7 +129,7 @@ export class ContextMenu extends Dialog {
 
   createDeleteButton(browser : FileBrowser, selectedFiles : File[]){
     let deleteButton = document.createElement('div');
-    deleteButton.innerText = 'Delete';
+    deleteButton.textContent = 'Delete';
     deleteButton.onclick = (event: MouseEvent) => {
       event.preventDefault();
       event.stopPropagation(); // Prevent from closing new dialog immediately
@@ -144,7 +144,7 @@ export class ContextMenu extends Dialog {
       for (let file of selectedFiles) {
         names.push(file.name);
       }
-      removeText.innerText = `Are you sure you want to remove ${names.join(', ')}?`;
+      removeText.textContent = `Are you sure you want to remove ${names.join(', ')}?`;
       let promises: Promise<void>[] = [];
       deleteDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
         for (let file of selectedFiles) {
@@ -162,7 +162,7 @@ export class ContextMenu extends Dialog {
 
   createMoveButton(browser : FileBrowser, selectedFiles : File[]) {
     let moveButton = document.createElement('div');
-    moveButton.innerText = 'Move';
+    moveButton.textContent = 'Move';
     moveButton.onclick = (event) => {
       // Prevent from closing dialog immediately due to outside click
       event.preventDefault();
@@ -205,7 +205,7 @@ export class ContextMenu extends Dialog {
 
   createAddFileButton(browser : FileBrowser){
     let addFileButton = document.createElement('div');
-    addFileButton.innerText = 'Add File';
+    addFileButton.textContent = 'Add File';
     addFileButton.onclick = (event) => {
       event.preventDefault();
       event.stopPropagation(); // Prevent from closing new dialog immediately
@@ -215,7 +215,7 @@ export class ContextMenu extends Dialog {
       fileDialog.confirmationText = 'Add';
       let fileInputDiv = document.createElement('div');
       let fileInputLabel = document.createElement('span');
-      fileInputLabel.innerText = 'File';
+      fileInputLabel.textContent = 'File';
       let fileInput = document.createElement('input');
       fileInput.type = 'file';
       fileInputDiv.appendChild(fileInputLabel);
@@ -245,7 +245,7 @@ export class ContextMenu extends Dialog {
 
   createAddDirectoryButton(browser : FileBrowser){
     let addDirectoryButton = document.createElement('div');
-    addDirectoryButton.innerText = 'Add Directory';
+    addDirectoryButton.textContent = 'Add Directory';
     addDirectoryButton.onclick = () => {
       let name = prompt("Directory Name");
       if (name !== null) {
@@ -262,7 +262,7 @@ export class ContextMenu extends Dialog {
     let showHiddenCheckbox = document.createElement('input');
     showHiddenCheckbox.type = 'checkbox';
     showHiddenCheckbox.checked = browser.showHidden;
-    showHiddenLabel.innerText = 'Show Hidden';
+    showHiddenLabel.textContent = 'Show Hidden';
     showHiddenCheckbox.onchange = () => {
       browser.showHidden = showHiddenCheckbox.checked;
     };
@@ -273,7 +273,7 @@ export class ContextMenu extends Dialog {
 
   createVisibleColumnsButton(browser : FileBrowser){
     let visibleColumnsButton = document.createElement('div');
-    visibleColumnsButton.innerText = 'Visible Columns';
+    visibleColumnsButton.textContent = 'Visible Columns';
     visibleColumnsButton.onclick = (event) => {
       event.preventDefault();
 

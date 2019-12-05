@@ -78,7 +78,7 @@ export class BreadCrumbs extends CustomElement {
     let crumbs = this.crumbs;
     let path = [];
     for (let a of crumbs){
-      path.push(a.innerText);
+      path.push(a.textContent || "");
     }
     return path;
   }
@@ -102,7 +102,7 @@ export class BreadCrumbs extends CustomElement {
     let li = document.createElement('li');
     let crumb = document.createElement('a');
     crumb.href = '#';
-    crumb.innerText = path[path.length-1];
+    crumb.textContent = path[path.length-1];
 
     crumb.onclick = (event : Event) => {
       event.preventDefault();
@@ -116,7 +116,7 @@ export class BreadCrumbs extends CustomElement {
 
   buildDelimiter(char : string) : HTMLElement {
     let delimiter = document.createElement('li');
-    delimiter.innerText = char;
+    delimiter.textContent = char;
     return delimiter;
   }
 }

@@ -3,6 +3,7 @@ import * as files from "./base.js";
 declare abstract class AbstractVirtualDirectory<T extends files.Directory> extends ProxyDirectory<T> {
     abstract readonly virtualRoot: AbstractVirtualRootDirectory<files.Directory>;
     abstract readonly path: string[];
+    getFile(pathArray: string[]): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
     addDirectory(name: string): Promise<VirtualDirectory<files.Directory>>;
     mount(file: files.Directory): void;

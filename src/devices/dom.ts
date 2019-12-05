@@ -156,12 +156,20 @@ class TextFile extends AbstractElementFile {
         super(element);
     }
 
+    private get textData() {
+        return this.element.textContent || "";
+    }
+
+    private set textData(value : string) {
+        this.element.textContent = value;
+    }
+
     get name(){
         return 'text';
     }
 
     get size(){
-        return stringToArrayBuffer(this.element.innerText).byteLength;
+        return stringToArrayBuffer(this.textData).byteLength;
     }
 
     get mimeType() {
@@ -169,15 +177,15 @@ class TextFile extends AbstractElementFile {
     }
 
     get url(){
-        return `data:,${encodeURIComponent(this.element.innerText)},`;
+        return `data:,${encodeURIComponent(this.textData)},`;
     }
 
     async read() : Promise<ArrayBuffer>{
-        return stringToArrayBuffer(this.element.innerText)
+        return stringToArrayBuffer(this.textData)
     }
 
     async write(data : ArrayBuffer) : Promise<ArrayBuffer>{
-        this.element.innerText = parseTextArrayBuffer(data);
+        this.textData = parseTextArrayBuffer(data);
         return data;
     }
 }

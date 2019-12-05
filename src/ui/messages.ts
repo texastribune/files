@@ -60,12 +60,12 @@ export class Message extends CustomElement {
     `
   }
 
-  get message(){
-    return this.innerText;
+  get message() : string {
+    return this.textContent || "";
   }
 
-  set message(value){
-    this.innerText = value;
+  set message(value : string){
+    this.textContent = value;
   }
 
 

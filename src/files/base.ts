@@ -15,6 +15,43 @@ export class FileAlreadyExistsError extends Error {
 }
 
 
+/**
+ * Get the file object at the given path relative to the given directory.
+ * @async
+ * @param pathArray - The path relative to the given directory.
+ * @param directory - The directory from which to walk the path.
+ * @returns {Promise<File>} - The file object located at the given path.
+ * @throws FileNotFoundError
+ */
+export async function walkPath(pathArray : string[], directory : Directory) : Promise<File> {
+  if (pathArray.length === 0) {
+    return directory;
+  }
+
+  let name = pathArray[pathArray.length - 1];
+  let parentPath = pathArray.slice(0, pathArray.length - 1);
+  let parentFile = await walkPath(parentPath, directory);
+  let fileObjectsArray;
+  if (parentFile instanceof Directory){
+    fileObjectsArray = await parentFile.getChildren();
+  } else {
+    throw new FileNotFoundError(`File ${name} not found.`);
+  }
+
+  let matchingFile;
+  while (matchingFile === undefined) {
+    let fileObject = fileObjectsArray.pop();
+    if (fileObject === undefined){
+      throw new FileNotFoundError(`File ${name} not found.`);
+    }
+    if (fileObject.name === name) {
+      matchingFile = fileObject;
+    }
+  }
+  return matchingFile;
+}
+
+
 export interface File {
   addOnChangeListener(listener : (file : File) => void): void;
   removeOnChangeListener(listener : (file : File) => void): void;
@@ -239,32 +276,8 @@ export abstract class Directory extends BasicFile {
    * @returns {Promise<File>} - The file object located at the given path.
    * @throws FileNotFoundError
    */
-  async getFile(pathArray : string[]) : Promise<File> {
-    if (pathArray.length === 0) {
-      return this;
-    }
-
-    let name = pathArray[pathArray.length - 1];
-    let parentPath = pathArray.slice(0, pathArray.length - 1);
-    let parentFile = await this.getFile(parentPath);
-    let fileObjectsArray;
-    if (parentFile instanceof Directory){
-      fileObjectsArray = await parentFile.getChildren();
-    } else {
-      throw new FileNotFoundError(`File ${name} not found.`);
-    }
-
-    let matchingFile;
-    while (matchingFile === undefined) {
-      let fileObject = fileObjectsArray.pop();
-      if (fileObject === undefined){
-        throw new FileNotFoundError(`File ${name} not found.`);
-      }
-      if (fileObject.name === name) {
-        matchingFile = fileObject;
-      }
-    }
-    return matchingFile;
+  getFile(pathArray : string[]) : Promise<File> {
+    return walkPath(pathArray, this);
   }
 
   /**

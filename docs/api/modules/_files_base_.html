@@ -2396,6 +2396,9 @@ img {
 		<li class=" tsd-kind-interface tsd-parent-kind-external-module">
 			<a href="../interfaces/_files_base_.searchresult.html" class="tsd-kind-icon">Search<wbr>Result</a>
 		</li>
+		<li class=" tsd-kind-function tsd-parent-kind-external-module">
+			<a href="_files_base_.html#walkpath" class="tsd-kind-icon">walk<wbr>Path</a>
+		</li>
 	</ul>
 </nav>
 <div class="container container-main">
@@ -2421,7 +2424,63 @@ img {
 							<li class="tsd-kind-interface tsd-parent-kind-external-module"><a href="../interfaces/_files_base_.searchresult.html" class="tsd-kind-icon">Search<wbr>Result</a></li>
 						</ul>
 					</section>
+					<section class="tsd-index-section ">
+						<h3>Functions</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_files_base_.html#walkpath" class="tsd-kind-icon">walk<wbr>Path</a></li>
+						</ul>
+					</section>
 				</div>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Functions</h2>
+			<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+				<a name="walkpath" class="tsd-anchor"></a>
+				<h3>walk<wbr>Path</h3>
+				<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+					<li class="tsd-signature tsd-kind-icon">walk<wbr>Path<span class="tsd-signature-symbol">(</span>pathArray<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, directory<span class="tsd-signature-symbol">: </span><a href="../classes/_files_base_.directory.html" class="tsd-signature-type">Directory</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_files_base_.file.html" class="tsd-signature-type">File</a><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/f01ee27/src/files/base.ts#L26">files/base.ts:26</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Get the file object at the given path relative to the given directory.</p>
+							</div>
+							<dl class="tsd-comment-tags">
+								<dt>async</dt>
+								<dd></dd>
+								<dt>throws</dt>
+								<dd><p>FileNotFoundError</p>
+								</dd>
+							</dl>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>pathArray: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The path relative to the given directory.</p>
+								</div>
+							</li>
+							<li>
+								<h5>directory: <a href="../classes/_files_base_.directory.html" class="tsd-signature-type">Directory</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The directory from which to walk the path.</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_files_base_.file.html" class="tsd-signature-type">File</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<ul>
+							<li>The file object located at the given path.</li>
+						</ul>
+					</li>
+				</ul>
 			</section>
 		</section>
 		<footer class="with-border-bottom">

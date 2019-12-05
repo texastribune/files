@@ -4,6 +4,15 @@ export declare class FileNotFoundError extends Error {
 export declare class FileAlreadyExistsError extends Error {
     constructor(message: string);
 }
+/**
+ * Get the file object at the given path relative to the given directory.
+ * @async
+ * @param pathArray - The path relative to the given directory.
+ * @param directory - The directory from which to walk the path.
+ * @returns {Promise<File>} - The file object located at the given path.
+ * @throws FileNotFoundError
+ */
+export declare function walkPath(pathArray: string[], directory: Directory): Promise<File>;
 export interface File {
     addOnChangeListener(listener: (file: File) => void): void;
     removeOnChangeListener(listener: (file: File) => void): void;

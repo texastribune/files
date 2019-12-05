@@ -15,12 +15,12 @@ describe('Test Device Directory', () => {
     let deviceDirectory : Directory;
     let log = console.log;
     let elementId = 'el-id';
-    let initialInnerText = 'Initial Text';
+    let initialTextContent = 'Initial Text';
     let initialClass = 'device';
 
     beforeEach(async () => {
         console.log = log;
-        document.body.innerHTML = `<div id="${elementId}" class="${initialClass}">${initialInnerText}</div>`;
+        document.body.innerHTML = `<div id="${elementId}" class="${initialClass}">${initialTextContent}</div>`;
         deviceDirectory = new DeviceDirectory();
     });
 
@@ -96,15 +96,14 @@ describe('Test Device Directory', () => {
         if (domElementDeviceDirectory instanceof Directory){
             let domTextFile = await domElementDeviceDirectory.getFile(['text']);
 
-            // TODO This not working because innerText in jest returns undefined
-            // // When reading element text device it should return buffer of element current innerText
-            // let readText = await domTextFile.read();
-            // expect(parseTextArrayBuffer(readText)).toMatch(initialInnerText);
+            // When reading element text device it should return buffer of element current textContent
+            let readText = await domTextFile.read();
+            expect(parseTextArrayBuffer(readText)).toMatch(initialTextContent);
 
-            // When writing element text device it should change element innerText
+            // When writing element text device it should change element textContent
             await domTextFile.write(stringToArrayBuffer('test text'));
             let deviceElement = document.querySelector('.device') as HTMLDivElement;
-            expect(deviceElement.innerText).toMatch('test text');
+            expect(deviceElement.textContent).toMatch('test text');
         } else {
             throw new Error('device expected to be Directory');
         }

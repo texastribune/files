@@ -31,9 +31,9 @@ export class FileSizeTableData extends AbstractTableData<File | null> {
 
   set data(value : File | null){
     if (value === null || value.size === 0 && value instanceof Directory){
-      this.innerText = "";
+      this.textContent = "";
     } else {
-      this.innerText = convertBytesToReadable(value.size);
+      this.textContent = convertBytesToReadable(value.size);
     }
     this.file = value;
   }
@@ -167,19 +167,22 @@ export class FileTableData extends AbstractTableData<File | null> {
 
 export class PathTableData extends AbstractTableData<string[]> {
   get data() : string[] {
-    return this.innerText.split('/').map((segment : string) => {
+    let text = this.textContent || "";
+    return text.split('/').map((segment : string) => {
       return decodeURIComponent(segment);
     });
   }
 
   set data(value : string[]){
-    this.innerText = value.map((segment : string) => {
+    this.textContent = value.map((segment : string) => {
       return encodeURIComponent(segment);
     }).join('/');
   }
 
   compare(dataElement: AbstractTableData<string[]>): number {
-    return this.innerText.localeCompare(dataElement.innerText);
+    let text1 = this.textContent || "";
+    let text2 = dataElement.textContent || "";
+    return text1.localeCompare(text2);
   }
 }
 
@@ -731,7 +734,7 @@ export class FileBrowser extends CustomElement {
     let fileNames = files.map((file) => {
       return file.name;
     });
-    confirmText.innerText = `Are you sure you want to move ${fileNames.join(', ')} to ${this.currentDirectory.name}?`;
+    confirmText.textContent = `Are you sure you want to move ${fileNames.join(', ')} to ${this.currentDirectory.name}?`;
     moveConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
       // Make sure object isn't already in this directory, and if not move it here.
       let movePromises : Promise<void>[] = [];
@@ -760,7 +763,7 @@ export class FileBrowser extends CustomElement {
     let fileNames = files.map((file) => {
       return file.name;
     });
-    confirmText.innerText = `Are you sure you want to copy ${fileNames.join(', ')} to ${this.currentDirectory.name}?`;
+    confirmText.textContent = `Are you sure you want to copy ${fileNames.join(', ')} to ${this.currentDirectory.name}?`;
     copyConfirmDialog.addEventListener(ConfirmDialog.EVENT_CONFIRMED, () => {
       // Make sure object isn't already in this directory, and if not move it here.
       let movePromises : Promise<void>[] = [];
@@ -918,13 +921,13 @@ export class FileBrowser extends CustomElement {
     let typeColumn = document.createElement('text-data') as TextData;
     let pathColumn = document.createElement('text-data') as TextData;
 
-    idColumn.innerText = 'ID';
-    nameColumn.innerText = "Name";
-    sizeColumn.innerText = "Size";
-    lastModifiedColumn.innerText = "Last Modified";
-    createdColumn.innerText = "Created";
-    typeColumn.innerText = "Type";
-    pathColumn.innerText = "Path";
+    idColumn.textContent = 'ID';
+    nameColumn.textContent = "Name";
+    sizeColumn.textContent = "Size";
+    lastModifiedColumn.textContent = "Last Modified";
+    createdColumn.textContent = "Created";
+    typeColumn.textContent = "Type";
+    pathColumn.textContent = "Path";
 
     return [
       idColumn,
@@ -1099,7 +1102,7 @@ export class FileBrowser extends CustomElement {
     if (message instanceof Error || isError) {
       errorMessage.setAttribute('error', "");
     }
-    errorMessage.innerText = message.toString();
+    errorMessage.textContent = message.toString();
     this.messagesContainer.appendChild(errorMessage);
   }
 
