@@ -260,6 +260,7 @@ class RemoteDirectory extends files.Directory {
       throw e;
     }
 
+    newFile.addOnChangeListener(this.dispatchChangeEvent);
     return newFile;
   }
 
@@ -279,7 +280,9 @@ class RemoteDirectory extends files.Directory {
 
     let responseData = await ajax(this.urlObject, {}, formData, 'POST');
     this.dispatchChangeEvent();
-    return new RemoteDirectory(this, parseJsonArrayBuffer(responseData), this.apiUrl);
+    let dir = new RemoteDirectory(this, parseJsonArrayBuffer(responseData), this.apiUrl);
+    dir.addOnChangeListener(this.dispatchChangeEvent);
+    return dir;
   }
 
   async getChildren() : Promise<files.File[]> {
@@ -287,11 +290,14 @@ class RemoteDirectory extends files.Directory {
     let fileDataArray = parseJsonArrayBuffer(data) as FileData[];
     let files = [];
     for (let fileData of fileDataArray){
+      let file : files.File;
       if (fileData.directory){
-        files.push(new RemoteDirectory(this, fileData, this.apiUrl));
+        file = new RemoteDirectory(this, fileData, this.apiUrl);
       } else {
-        files.push(new RemoteFile(this, fileData, this.apiUrl));
+        file = new RemoteFile(this, fileData, this.apiUrl);
       }
+      file.addOnChangeListener(this.dispatchChangeEvent);
+      files.push(file);
     }
     return files;
   }
