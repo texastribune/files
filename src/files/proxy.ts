@@ -11,9 +11,7 @@ export class ProxyFile<T extends files.File> extends files.BasicFile {
   constructor(concreteFile : T){
     super();
     this.concreteFile = concreteFile;
-    this.concreteFile.addOnChangeListener(() =>{
-      this.dispatchChangeEvent();
-    });
+    this.concreteFile.addOnChangeListener(this.dispatchChangeEvent.bind(this));
   }
 
   get id() {
@@ -92,7 +90,7 @@ export class ProxyDirectory<T extends Directory> extends files.Directory {
   constructor(concreteDirectory : T){
     super();
     this.concreteDirectory = concreteDirectory;
-    this.concreteDirectory.addOnChangeListener(this.dispatchChangeEvent);
+    this.concreteDirectory.addOnChangeListener(this.dispatchChangeEvent.bind(this));
   }
 
   get id() {
@@ -209,7 +207,7 @@ export class CachedProxyDirectoryBase<T extends files.Directory> extends ProxyDi
       this.cachedRoot.add(this.parentPath.concat([this.name]), this);
     }
 
-    this.addOnChangeListener(this.clearCache);
+    this.addOnChangeListener(this.clearCache.bind(this));
   }
 
   get root() : CachedProxyDirectory<T> {
