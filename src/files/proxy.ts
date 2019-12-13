@@ -192,64 +192,10 @@ export class ChangeEventProxyFile<T extends files.File> extends ProxyFile<T> {
 
 
 /**
- * Fires change event for local file changes such as rename, delete, etc. as well as
- * when those changes happen on children of the directory.
- */
-export class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyDirectory<T> {
-
-  protected constructor(concreteDirectory : T){
-    super(concreteDirectory);
-  }
-
-  async rename(newName : string) {
-    let ret = await super.rename(newName);
-    this.dispatchChangeEvent();
-    return ret;
-  }
-
-  async delete(): Promise<void> {
-    let ret = await super.delete();
-    this.dispatchChangeEvent();
-    return ret;
-  }
-
-  async addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File> {
-    let ret = await super.addFile(fileData, filename, mimeType);
-    this.dispatchChangeEvent();
-    return ret;
-  }
-
-  async addDirectory(name: string): Promise<files.Directory> {
-    let ret = await super.addDirectory(name);
-    this.dispatchChangeEvent();
-    return ret;
-  }
-
-  async getFile(pathArray: string[]): Promise<files.File> {
-    let child =  await super.getFile(pathArray);
-    child.addOnChangeListener(() => {
-      this.dispatchChangeEvent();
-    });
-    return child;
-  }
-
-  async getChildren(): Promise<files.File[]> {
-    let children = [];
-    for (let child of await super.getChildren()){
-      child.addOnChangeListener(() => {
-        this.dispatchChangeEvent();
-      });
-      children.push(child);
-    }
-    return children;
-  }
-}
-
-/**
  * Caches the children of the directory for when getChildren is called. Listens for change events
  * to invalidate the cache.
  */
-export class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
+export class CachedProxyDirectoryBase<T extends files.Directory> extends ProxyDirectory<T> {
   private readonly cachedRoot : CachedProxyDirectory<T> | null;
   protected readonly parentPath : string[];
   private pathCache : {[encodedPath: string]: CachableFile} = {};
@@ -264,6 +210,10 @@ export class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeE
     if (this.cachedRoot !== null){
       this.cachedRoot.add(this.parentPath.concat([this.name]), this);
     }
+
+    this.addOnChangeListener(() => {
+      this.clearCache();
+    });
   }
 
   get root() : CachedProxyDirectory<T> {
@@ -273,16 +223,12 @@ export class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeE
     return this.cachedRoot;
   }
 
-  dispatchChangeEvent() {
-    this.clearCache();
-    super.dispatchChangeEvent();
-  }
-
   get path() : string[] {
     return this.parentPath.concat([this.name]);
   }
 
-  protected createFile(file : files.File, parentPath : string[]) : CachableFile {
+  protected createDescendant(file : files.File, parentPath : string[]) : CachableFile {
+    let f : CachableFile;
     if (file instanceof files.Directory){
       return new CachedProxyDirectory(file, parentPath, this.root);
     } else {
@@ -300,7 +246,7 @@ export class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeE
       return cached;
     }
     let file = await super.getFile(pathArray);
-    return this.createFile(file, absolutePath.slice(0, absolutePath.length-1));
+    return this.createDescendant(file, absolutePath.slice(0, absolutePath.length-1));
   }
 
   async getChildren(): Promise<CachableFile[]> {
@@ -308,11 +254,21 @@ export class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeE
       let children = await super.getChildren();
       this.childCache = [];
       for (let child of children){
-        let cachedChild = this.createFile(child, this.path);
+        let cachedChild = this.createDescendant(child, this.path);
         this.childCache.push(cachedChild);
       }
     }
     return this.childCache.slice();
+  }
+
+  async addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File> {
+    let f = await super.addFile(fileData, filename, mimeType);
+    return new ChangeEventProxyFile(f);
+  }
+
+  async addDirectory(name: string): Promise<files.Directory> {
+    let f = await super.addDirectory(name);
+    return new CachedProxyDirectory(f, this.path, this.root);
   }
 
   add(absolutePath : string[], file : CachableFile) {
