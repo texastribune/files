@@ -308,11 +308,16 @@ function testStorage(rootDirectory : Directory) {
         let file2 = await rootDirectory.getFile([dir1Name, file2Name]);
 
         let calls = {
+            root: 0,
             dir1: 0,
             file1: 0,
             file2: 0,
         };
 
+        let rootListener = (file : File) => {
+            expect(file.id).toEqual(rootDirectory.id);
+            calls.root ++;
+        };
         let dir1Listener = (file : File) => {
             expect(file.id).toEqual(dir1.id);
             calls.dir1 ++;
@@ -327,75 +332,86 @@ function testStorage(rootDirectory : Directory) {
         };
 
         // add change listeners for each file that increment the count when called
+        rootDirectory.addOnChangeListener(rootListener);
         dir1.addOnChangeListener(dir1Listener);
         file1.addOnChangeListener(file1Listener);
         file2.addOnChangeListener(file2Listener);
 
-        // write should trigger call change listener only on file1 because it has no parent directory
+        // write should trigger call change listener only on file1 and root directory
         await file1.write(stringToArrayBuffer("change"));
+        expect(calls.root).toBeGreaterThanOrEqual(1);
         expect(calls.dir1).toEqual(0);
         expect(calls.file1).toBeGreaterThanOrEqual(1);
         expect(calls.file2).toEqual(0);
 
         // reset counts
+        calls.root = 0;
         calls.dir1 = 0;
         calls.file1 = 0;
         calls.file2 = 0;
 
         // write should trigger call change listener on file and parent directory
         await file2.write(stringToArrayBuffer("change2"));
+        expect(calls.root).toBeGreaterThanOrEqual(1);
         expect(calls.dir1).toBeGreaterThanOrEqual(1);
         expect(calls.file1).toEqual(0);
         expect(calls.file2).toBeGreaterThanOrEqual(1);
 
         // reset counts
+        calls.root = 0;
         calls.dir1 = 0;
         calls.file1 = 0;
         calls.file2 = 0;
 
         // rename should trigger call change listener on file and parent directory
         await file2.rename("new name");
-        if (!(dir1 instanceof NodeDirectory)){
-            // Node fs.watch is not catching this
-            expect(calls.dir1).toBeGreaterThanOrEqual(1);
-        }
+        expect(calls.root).toBeGreaterThanOrEqual(1);
+        expect(calls.dir1).toBeGreaterThanOrEqual(1);
+        expect(calls.dir1).toBeGreaterThanOrEqual(1);
         expect(calls.file1).toEqual(0);
         expect(calls.file2).toBeGreaterThanOrEqual(1);
 
         // reset counts
+        calls.root = 0;
         calls.dir1 = 0;
         calls.file1 = 0;
         calls.file2 = 0;
 
-        // add should trigger call change listener on parent directory only
+        // add should trigger call change listener on parent directories only
         await dir1.addFile(new ArrayBuffer(0), 'added-file', 'text/plain');
+        expect(calls.root).toBeGreaterThanOrEqual(1);
         expect(calls.dir1).toBeGreaterThanOrEqual(1);
         expect(calls.file1).toEqual(0);
         expect(calls.file2).toEqual(0);
 
         // reset counts
+        calls.root = 0;
         calls.dir1 = 0;
         calls.file1 = 0;
         calls.file2 = 0;
 
         // delete should trigger call change listener on parent directory/may or may not on file itself
         await file2.delete();
+        expect(calls.root).toBeGreaterThanOrEqual(1);
         expect(calls.dir1).toBeGreaterThanOrEqual(1);
         expect(calls.file1).toEqual(0);
         expect(calls.file2).toBeLessThanOrEqual(1);
 
         // reset counts
+        calls.root = 0;
         calls.dir1 = 0;
         calls.file1 = 0;
         calls.file2 = 0;
 
         // If we remove listeners, no calls should happen
+        rootDirectory.removeOnChangeListener(rootListener);
         dir1.removeOnChangeListener(dir1Listener);
         file1.removeOnChangeListener(file1Listener);
         file2.removeOnChangeListener(file2Listener);
 
         await file1.write(stringToArrayBuffer("change2"));
         await dir1.rename("new name");
+        expect(calls.root).toBeGreaterThanOrEqual(0);
         expect(calls.dir1).toBeGreaterThanOrEqual(0);
         expect(calls.file1).toEqual(0);
         expect(calls.file2).toEqual(0);

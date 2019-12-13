@@ -33,6 +33,7 @@ export declare class MemoryDirectory extends files.Directory {
     constructor(parent: MemoryDirectory | null, name: string);
     readonly lastModified: Date;
     private readonly path;
+    dispatchChangeEvent(): void;
     /**
      * Register change on parent when child changes.
      */
