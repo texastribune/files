@@ -57,34 +57,22 @@ export declare class ChangeEventProxyFile<T extends files.File> extends ProxyFil
     delete(): Promise<void>;
 }
 /**
- * Fires change event for local file changes such as rename, delete, etc. as well as
- * when those changes happen on children of the directory.
- */
-export declare class ChangeEventProxyDirectory<T extends files.Directory> extends ProxyDirectory<T> {
-    protected constructor(concreteDirectory: T);
-    rename(newName: string): Promise<void>;
-    delete(): Promise<void>;
-    addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
-    addDirectory(name: string): Promise<files.Directory>;
-    getFile(pathArray: string[]): Promise<files.File>;
-    getChildren(): Promise<files.File[]>;
-}
-/**
  * Caches the children of the directory for when getChildren is called. Listens for change events
  * to invalidate the cache.
  */
-export declare class CachedProxyDirectoryBase<T extends files.Directory> extends ChangeEventProxyDirectory<T> {
+export declare class CachedProxyDirectoryBase<T extends files.Directory> extends ProxyDirectory<T> {
     private readonly cachedRoot;
     protected readonly parentPath: string[];
     private pathCache;
     private childCache;
     protected constructor(concreteDirectory: T, parentPath: string[], rootDirectory: CachedProxyDirectory<T> | null);
     readonly root: CachedProxyDirectory<T>;
-    dispatchChangeEvent(): void;
     readonly path: string[];
-    protected createFile(file: files.File, parentPath: string[]): CachableFile;
+    protected createDescendant(file: files.File, parentPath: string[]): CachableFile;
     getFile(pathArray: string[]): Promise<CachableFile>;
     getChildren(): Promise<CachableFile[]>;
+    addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
+    addDirectory(name: string): Promise<files.Directory>;
     add(absolutePath: string[], file: CachableFile): void;
     getCached(absolutePath: string[]): CachableFile | null;
     clearCache(): void;

@@ -71,7 +71,9 @@ class RemoteFile extends files.BasicFile {
   }
 
   async write(data : ArrayBuffer) : Promise<ArrayBuffer> {
-    return await ajax(this.urlObject, {}, new Blob([data], {type: this.mimeType}), 'POST');
+    let buf = await ajax(this.urlObject, {}, new Blob([data], {type: this.mimeType}), 'POST');
+    this.dispatchChangeEvent();
+    return buf;
   }
 
   async rename(newName : string) {
@@ -89,6 +91,7 @@ class RemoteFile extends files.BasicFile {
   async delete() {
     let file = await this.parent.getFile([RemoteDirectory.deleteFileName]);
     await file.write(stringToArrayBuffer(this.id));
+    this.dispatchChangeEvent();
   }
 
   async copy(targetDirectory : Directory) {
@@ -99,6 +102,7 @@ class RemoteFile extends files.BasicFile {
   async move(targetDirectory : Directory) {
     let file = await targetDirectory.getFile([RemoteDirectory.moveFileName]);
     await file.write(stringToArrayBuffer(this.id));
+    this.dispatchChangeEvent();
   }
 }
 
@@ -164,8 +168,8 @@ class RemoteDirectory extends files.Directory {
     return this.fileData.size;
   }
 
-  read(): Promise<ArrayBuffer> {
-    return ajax(this.urlObject, {}, null, 'GET');
+  async read(): Promise<ArrayBuffer> {
+    return await ajax(this.urlObject, {}, null, 'GET');
   }
 
   async rename(newName : string) {
@@ -178,11 +182,13 @@ class RemoteDirectory extends files.Directory {
       id: this.id,
       name: newName,
     })));
+    this.dispatchChangeEvent();
   }
 
   async delete() : Promise<void> {
     let file = await this.parent.getFile([RemoteDirectory.deleteFileName]);
     await file.write(stringToArrayBuffer(this.id));
+    this.dispatchChangeEvent();
   }
 
   async copy(targetDirectory : Directory) {
@@ -193,6 +199,7 @@ class RemoteDirectory extends files.Directory {
   async move(targetDirectory : Directory) {
     let file = await targetDirectory.getFile([RemoteDirectory.moveFileName]);
     await file.write(stringToArrayBuffer(this.id));
+    this.dispatchChangeEvent();
   }
 
   async search(query: string) : Promise<files.SearchResult[]> {
@@ -243,6 +250,7 @@ class RemoteDirectory extends files.Directory {
     formData.append('read', RemoteDirectory.addFileName);
 
     let responseData = await ajax(this.urlObject, {}, formData, 'POST');
+    this.dispatchChangeEvent();
     let newFile = new RemoteFile(this, parseJsonArrayBuffer(responseData), this.apiUrl);
     try {
       await newFile.write(data);
@@ -251,6 +259,8 @@ class RemoteDirectory extends files.Directory {
       await newFile.delete();
       throw e;
     }
+
+    newFile.addOnChangeListener(this.dispatchChangeEvent.bind(this));
     return newFile;
   }
 
@@ -269,7 +279,10 @@ class RemoteDirectory extends files.Directory {
     formData.append('read', RemoteDirectory.addDirectoryName);
 
     let responseData = await ajax(this.urlObject, {}, formData, 'POST');
-    return new RemoteDirectory(this, parseJsonArrayBuffer(responseData), this.apiUrl);
+    this.dispatchChangeEvent();
+    let dir = new RemoteDirectory(this, parseJsonArrayBuffer(responseData), this.apiUrl);
+    dir.addOnChangeListener(this.dispatchChangeEvent.bind(this));
+    return dir;
   }
 
   async getChildren() : Promise<files.File[]> {
@@ -277,11 +290,14 @@ class RemoteDirectory extends files.Directory {
     let fileDataArray = parseJsonArrayBuffer(data) as FileData[];
     let files = [];
     for (let fileData of fileDataArray){
+      let file : files.File;
       if (fileData.directory){
-        files.push(new RemoteDirectory(this, fileData, this.apiUrl));
+        file = new RemoteDirectory(this, fileData, this.apiUrl);
       } else {
-        files.push(new RemoteFile(this, fileData, this.apiUrl));
+        file = new RemoteFile(this, fileData, this.apiUrl);
       }
+      file.addOnChangeListener(this.dispatchChangeEvent.bind(this));
+      files.push(file);
     }
     return files;
   }
