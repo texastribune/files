@@ -1,4 +1,5 @@
 import * as files from "./base.js";
+import { Requester } from "../utils.js";
 import { Directory } from "./base.js";
 interface FileData {
     id: string;
@@ -15,8 +16,9 @@ declare class RemoteFile extends files.BasicFile {
     private readonly parent;
     private readonly fileData;
     private readonly apiUrl;
+    private readonly requester;
     readonly extra: {};
-    constructor(parent: RemoteDirectory, fileData: FileData, apiUrl: URL);
+    constructor(parent: RemoteDirectory, fileData: FileData, apiUrl: URL, requester?: Requester);
     readonly id: string;
     readonly name: string;
     readonly mimeType: string;
@@ -44,8 +46,9 @@ declare class RemoteDirectory extends files.Directory {
     private readonly parent;
     private readonly fileData;
     private readonly apiUrl;
+    private readonly requester;
     readonly extra: {};
-    constructor(parent: RemoteDirectory | null, fileData: FileData, apiUrl: URL);
+    constructor(parent: RemoteDirectory | null, fileData: FileData, apiUrl: URL, requester?: Requester);
     readonly id: string;
     readonly name: string;
     readonly lastModified: Date;

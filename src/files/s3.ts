@@ -1,6 +1,6 @@
 import * as files from "./base.js";
 import {FileNotFoundError, SearchResult} from "./base.js";
-import {ajax} from "../utils.js";
+import {ajaxRequester, Requester} from "../utils.js";
 
 
 interface S3ObjectData {
@@ -49,6 +49,7 @@ export class S3Bucket {
 
 export class S3File extends files.BasicFile {
   private readonly bucket : S3Bucket;
+  private readonly requester : Requester;
 
   readonly created: Date;
   readonly extra: Object;
@@ -58,7 +59,7 @@ export class S3File extends files.BasicFile {
   readonly mimeType: string;
   readonly size: number;
 
-  constructor(metadata : S3ObjectData, bucket : S3Bucket) {
+  constructor(metadata : S3ObjectData, bucket : S3Bucket, requester? : Requester) {
     super();
 
     this.id = metadata.Key;
@@ -73,6 +74,7 @@ export class S3File extends files.BasicFile {
     this.size = metadata.Size;
 
     this.bucket = bucket;
+    this.requester = requester || ajaxRequester;
   }
 
   get name() : string {
@@ -93,7 +95,7 @@ export class S3File extends files.BasicFile {
   }
 
   read(): Promise<ArrayBuffer> {
-    return ajax(this.urlObject, {}, null, 'GET');
+    return this.requester.request(this.urlObject, {}, null, 'GET');
   }
 
   rename(newName: string): Promise<void> {
@@ -108,6 +110,7 @@ export class S3File extends files.BasicFile {
 export class S3Directory extends files.Directory {
   private readonly bucket : S3Bucket;
   private readonly maxKeys : number | null;
+  private readonly requester : Requester;
 
   readonly created: Date;
   readonly extra: Object;
@@ -115,7 +118,7 @@ export class S3Directory extends files.Directory {
   readonly id: string;
   readonly lastModified: Date;
 
-  constructor(prefix : string, bucket : S3Bucket, maxKeys : number | null) {
+  constructor(prefix : string, bucket : S3Bucket, maxKeys : number | null, requester? : Requester) {
     super();
 
     this.id = prefix;
@@ -127,6 +130,7 @@ export class S3Directory extends files.Directory {
 
     this.bucket = bucket;
     this.maxKeys = maxKeys;
+    this.requester = requester || ajaxRequester;
   }
 
   get name() : string {

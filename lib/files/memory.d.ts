@@ -5,8 +5,8 @@ export declare class MemoryFile extends files.BasicFile {
     readonly icon: null;
     readonly mimeType: string;
     readonly extra: {};
-    private parent;
-    private fileData;
+    protected readonly parent: MemoryDirectory;
+    protected fileData: ArrayBuffer;
     name: string;
     lastModified: Date;
     constructor(parent: MemoryDirectory, name: string, mimeType?: string, data?: ArrayBuffer);
@@ -27,7 +27,7 @@ export declare class MemoryDirectory extends files.Directory {
     readonly created: Date;
     readonly icon: null;
     readonly extra: {};
-    private readonly parent;
+    protected readonly parent: MemoryDirectory | null;
     name: string;
     private children;
     constructor(parent: MemoryDirectory | null, name: string);

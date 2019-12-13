@@ -40,6 +40,14 @@ export declare function createNode(htmlString: string): Element;
 export declare function getFirstInPath<T extends HTMLElement>(event: Event, type: new () => T): T | null;
 export declare function getCookie(name: string): string | null;
 export declare function isCrossDomain(url: URL): boolean;
-export declare function ajax(url: URL, query?: {
-    [name: string]: string;
-}, data?: FormData | Blob | null, method?: 'GET' | 'POST' | 'PUT' | 'DELETE'): Promise<ArrayBuffer>;
+export interface Requester {
+    request(url: URL, query?: {
+        [name: string]: string;
+    }, data?: FormData | Blob | null, method?: 'GET' | 'POST' | 'PUT' | 'DELETE'): Promise<ArrayBuffer>;
+}
+export declare class AjaxRequester implements Requester {
+    request(url: URL, query?: {
+        [p: string]: string;
+    }, data?: FormData | Blob | null, method?: "GET" | "POST" | "PUT" | "DELETE"): Promise<ArrayBuffer>;
+}
+export declare const ajaxRequester: AjaxRequester;

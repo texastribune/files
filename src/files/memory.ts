@@ -13,8 +13,8 @@ export class MemoryFile extends files.BasicFile {
     public readonly mimeType : string;
     public readonly extra = {};
 
-    private parent : MemoryDirectory;
-    private fileData : ArrayBuffer;
+    protected readonly parent : MemoryDirectory;
+    protected fileData : ArrayBuffer;
     public name : string;
     public lastModified : Date;
 
@@ -92,7 +92,7 @@ export class MemoryDirectory extends files.Directory {
     public readonly icon = null;
     public readonly extra = {};
 
-    private readonly parent : MemoryDirectory | null;
+    protected readonly parent : MemoryDirectory | null;
     public name : string;
     private children : (MemoryFile | MemoryDirectory)[] = [];
 

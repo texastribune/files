@@ -2,7 +2,7 @@
 /* global jest, test, expect, describe */
 
 import {MemoryDirectory, MemoryFile} from "../files/memory";
-import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
+import {parseTextArrayBuffer, Requester, stringToArrayBuffer} from "../utils";
 import IndexedDB from "fake-indexeddb/build/index";
 import {LocalStorageRoot, database} from "../files/local";
 import {VirtualFS} from "../files/virtual";
@@ -506,3 +506,79 @@ describe('Test directory caching', () => {
         expect(root.callCount).toEqual(0);  // Child should be cached now
     })
 });
+
+class AddFile extends MemoryFile {
+    get name() : string {
+        return MockBackendDirectory.addFileName;
+    }
+
+    writeSync(data: ArrayBuffer): ArrayBuffer {
+        this.parent.addChild(new MemoryFile(this.parent, ))
+    }
+}
+
+class MockBackendDirectory extends MemoryDirectory {
+    static addDirectoryName = '.mkdir';
+    static addFileName = '.add';
+    static renameFileName = '.rename';
+    static deleteFileName = '.delete';
+    static copyFileName = '.copy';
+    static moveFileName = '.move';
+    static searchFileName = '.search';
+
+    getChildrenSync(): File[] {
+        let children = super.getChildrenSync();
+
+    }
+}
+
+class MockRemoteRequester implements Requester {
+    private readonly rootDirectory : MemoryDirectory;
+
+    constructor(rootDirectory : MemoryDirectory) {
+        this.rootDirectory = rootDirectory;
+    }
+
+    private getChildById(directory : MemoryDirectory, id : string) : File | null {
+        let children = directory.getChildrenSync();
+        for (let child of children){
+            if (child.id === id){
+                return child;
+            }
+            if (child instanceof MemoryDirectory){
+                let found = this.getChildById(child, id);
+                if (found !== null){
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    private getId(url : URL) : string {
+        return url.pathname.substring(url.pathname.lastIndexOf('/'));
+    }
+
+    private getFile(id : string) : File | null {
+
+        if (this.rootDirectory.id === id){
+            return this.rootDirectory;
+        } else {
+            return this.getChildById(this.rootDirectory, id);
+        }
+    }
+
+    async request(url: URL, query?: { [p: string]: string }, data?: FormData | Blob | null, method?: "GET" | "POST" | "PUT" | "DELETE"): Promise<ArrayBuffer> {
+        let id = this.getId(url);
+        let requestedFile = this.getFile(id);
+        if (requestedFile === null){
+            throw new Error("404 file does not exist");
+        }
+        if (requestedFile.name === MockBackendDirectory.addFileName) {
+            if (data instanceof FormData) {
+                data.forEach()
+            }
+        }
+    }
+
+}
