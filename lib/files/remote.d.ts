@@ -1,6 +1,6 @@
 import * as files from "./base.js";
 import { Requester } from "../utils.js";
-import { Directory } from "./base.js";
+import { Directory, listener } from "./base.js";
 interface FileData {
     id: string;
     name: string;
@@ -16,9 +16,12 @@ declare class RemoteFile extends files.BasicFile {
     private readonly parent;
     private readonly fileData;
     private readonly apiUrl;
+    private readonly listenerMap;
     private readonly requester;
     readonly extra: {};
-    constructor(parent: RemoteDirectory, fileData: FileData, apiUrl: URL, requester?: Requester);
+    constructor(parent: RemoteDirectory, fileData: FileData, apiUrl: URL, listenerMap: {
+        [name: string]: Set<listener>;
+    }, requester?: Requester);
     readonly id: string;
     readonly name: string;
     readonly mimeType: string;
@@ -28,8 +31,9 @@ declare class RemoteFile extends files.BasicFile {
     readonly url: string;
     readonly icon: string | null;
     readonly size: number;
+    dispatchChangeEvent(): void;
     read(): Promise<ArrayBuffer>;
-    write(data: ArrayBuffer): Promise<ArrayBuffer>;
+    write(data: ArrayBuffer | FormData): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     copy(targetDirectory: Directory): Promise<void>;
@@ -46,9 +50,12 @@ declare class RemoteDirectory extends files.Directory {
     private readonly parent;
     private readonly fileData;
     private readonly apiUrl;
+    private readonly listenerMap;
     private readonly requester;
     readonly extra: {};
-    constructor(parent: RemoteDirectory | null, fileData: FileData, apiUrl: URL, requester?: Requester);
+    constructor(parent: RemoteDirectory | null, fileData: FileData, apiUrl: URL, listenerMap: {
+        [name: string]: Set<listener>;
+    }, requester?: Requester);
     readonly id: string;
     readonly name: string;
     readonly lastModified: Date;
@@ -57,6 +64,7 @@ declare class RemoteDirectory extends files.Directory {
     readonly url: string;
     readonly icon: string | null;
     readonly size: number;
+    dispatchChangeEvent(): void;
     read(): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
@@ -68,7 +76,7 @@ declare class RemoteDirectory extends files.Directory {
     getChildren(): Promise<files.File[]>;
 }
 export declare class RemoteFS extends RemoteDirectory {
-    constructor(name: string, apiUrl: URL | string);
+    constructor(name: string, apiUrl: URL | string, rootId: string, requester?: Requester);
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
     move(targetDirectory: Directory): Promise<void>;

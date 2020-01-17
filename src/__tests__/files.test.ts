@@ -2,14 +2,16 @@
 /* global jest, test, expect, describe */
 
 import {MemoryDirectory, MemoryFile} from "../files/memory";
-import {parseTextArrayBuffer, Requester, stringToArrayBuffer} from "../utils";
+import {fileToArrayBuffer, parseJsonArrayBuffer, parseTextArrayBuffer, Requester, stringToArrayBuffer} from "../utils";
 import IndexedDB from "fake-indexeddb/build/index";
 import {LocalStorageRoot, database} from "../files/local";
 import {VirtualFS} from "../files/virtual";
 import {BasicFile, Directory, DirectoryData, File, FileAlreadyExistsError, FileNotFoundError} from "../files/base";
 import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
-import {CachedProxyDirectory, CachedProxyRootDirectory} from "../files/proxy";
+import {CachedProxyRootDirectory} from "../files/proxy";
+import {RemoteFS} from "../files/remote.js";
+import {MockBackendDirectory, MockRemoteRequester} from "./mockFiles.js";
 
 
 function compareById(a : DirectoryData, b : DirectoryData) : number {
@@ -72,15 +74,15 @@ function testStorage(rootDirectory : Directory) {
         expect(rootDirectory).toBeInstanceOf(BasicFile);
 
         let childData = await rootDirectory.readJSON();
-        if (childData instanceof Array){
-            expect(childData.length).toEqual(0);
-        } else {
-            throw new Error('directory data is not an array')
+        if (!(childData instanceof Array)){
+            throw new Error('directory data is not an array');
         }
     });
 
     test('Storage can add files and directories', async () => {
+        console.log("ROOT", rootDirectory);
         let files = await addTestFiles();
+        console.log("STARTED", files);
         let rootChildFiles = await rootDirectory.getChildren();
         let dir1ChildFiles = await files[0].getChildren();
 
@@ -147,6 +149,10 @@ function testStorage(rootDirectory : Directory) {
             return map;
         }, {});
         let dir1ChildFiles = await files[0].getChildren();
+        let dir1ChildFileMap : FileMap = dir1ChildFiles.reduce((map : FileMap, file) => {
+            map[file.name] = file;
+            return map;
+        }, {});
 
         // Get the data from an instance of AbstractFile which should not change since it was added or
         // directly written to Directory size, lastModified, and url can change when child files are added.
@@ -154,10 +160,9 @@ function testStorage(rootDirectory : Directory) {
             return file1.id === file2.id && file1.name === file2.name && file1.directory === file2.directory;
         }
 
-        expect(rootChildFiles.length).toEqual(2);
         expect(areFilesSame(rootChildFileMap[files[0].name], files[0])).toBeTruthy();
         expect(areFilesSame(rootChildFileMap[files[1].name], files[1])).toBeTruthy();
-        expect(areFilesSame(dir1ChildFiles[0], files[2])).toBeTruthy();
+        expect(areFilesSame(dir1ChildFileMap[files[2].name], files[2])).toBeTruthy();
     });
 
     test('Reading directory return json of FileData for all children', async () => {
@@ -440,6 +445,13 @@ describe('Test cached proxy file storage', () => {
     testStorage(storage);
 });
 
+describe('Test remote file storage', () => {
+    let root = new MockBackendDirectory(null, "root");
+    let storage = new RemoteFS("root", "http://api.com", root.id, new MockRemoteRequester(root));
+
+    testStorage(storage);
+});
+
 
 // TODO NodeJS tests have issues with fs.watcher causing JEST to hang.
 // describe('Test node file storage', () => {
@@ -507,78 +519,4 @@ describe('Test directory caching', () => {
     })
 });
 
-class AddFile extends MemoryFile {
-    get name() : string {
-        return MockBackendDirectory.addFileName;
-    }
 
-    writeSync(data: ArrayBuffer): ArrayBuffer {
-        this.parent.addChild(new MemoryFile(this.parent, ))
-    }
-}
-
-class MockBackendDirectory extends MemoryDirectory {
-    static addDirectoryName = '.mkdir';
-    static addFileName = '.add';
-    static renameFileName = '.rename';
-    static deleteFileName = '.delete';
-    static copyFileName = '.copy';
-    static moveFileName = '.move';
-    static searchFileName = '.search';
-
-    getChildrenSync(): File[] {
-        let children = super.getChildrenSync();
-
-    }
-}
-
-class MockRemoteRequester implements Requester {
-    private readonly rootDirectory : MemoryDirectory;
-
-    constructor(rootDirectory : MemoryDirectory) {
-        this.rootDirectory = rootDirectory;
-    }
-
-    private getChildById(directory : MemoryDirectory, id : string) : File | null {
-        let children = directory.getChildrenSync();
-        for (let child of children){
-            if (child.id === id){
-                return child;
-            }
-            if (child instanceof MemoryDirectory){
-                let found = this.getChildById(child, id);
-                if (found !== null){
-                    return found;
-                }
-            }
-        }
-        return null;
-    }
-
-    private getId(url : URL) : string {
-        return url.pathname.substring(url.pathname.lastIndexOf('/'));
-    }
-
-    private getFile(id : string) : File | null {
-
-        if (this.rootDirectory.id === id){
-            return this.rootDirectory;
-        } else {
-            return this.getChildById(this.rootDirectory, id);
-        }
-    }
-
-    async request(url: URL, query?: { [p: string]: string }, data?: FormData | Blob | null, method?: "GET" | "POST" | "PUT" | "DELETE"): Promise<ArrayBuffer> {
-        let id = this.getId(url);
-        let requestedFile = this.getFile(id);
-        if (requestedFile === null){
-            throw new Error("404 file does not exist");
-        }
-        if (requestedFile.name === MockBackendDirectory.addFileName) {
-            if (data instanceof FormData) {
-                data.forEach()
-            }
-        }
-    }
-
-}

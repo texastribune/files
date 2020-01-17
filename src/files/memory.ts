@@ -194,18 +194,12 @@ export class MemoryDirectory extends files.Directory {
     }
 
     addFileSync(fileData : ArrayBuffer, filename : string, mimeType : string) : MemoryFile {
-        if (this.nameExists(filename)){
-            throw new FileAlreadyExistsError(`file named ${filename} already exists`);
-        }
         let newFile = new MemoryFile(this, filename, mimeType, fileData);
         this.addChild(newFile);
         return newFile;
     }
 
     addDirectorySync(name : string) : MemoryDirectory {
-        if (this.nameExists(name)){
-            throw new FileAlreadyExistsError(`file named ${name} already exists`);
-        }
         let newDir = new MemoryDirectory(this, name);
         this.addChild(newDir);
         return newDir;
@@ -214,6 +208,9 @@ export class MemoryDirectory extends files.Directory {
     // utilities
 
     addChild(memoryFile : MemoryFile | MemoryDirectory){
+        if (this.nameExists(memoryFile.name)){
+            throw new FileAlreadyExistsError(`file named ${memoryFile.name} already exists`);
+        }
         this.children.push(memoryFile);
         this.dispatchChangeEvent();
     }

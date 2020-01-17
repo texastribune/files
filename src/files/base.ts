@@ -138,12 +138,14 @@ export interface File {
 }
 
 
+export type listener = (file : File) => void;
+
 /**
  * @abstract
  * An object representing a file.
  */
 export abstract class BasicFile implements File {
-  private readonly onChangeListeners : Set<(file : File) => void> = new Set();
+  private readonly onChangeListeners : Set<listener> = new Set();
 
   abstract readonly id : string;
   abstract readonly name : string;
