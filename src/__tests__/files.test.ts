@@ -11,7 +11,7 @@ import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
 import {CachedProxyRootDirectory} from "../files/proxy";
 import {RemoteFS} from "../files/remote.js";
-import {MockBackendDirectory, MockRemoteRequester} from "./mockFiles.js";
+import {MockBackendDirectory, MockRemoteRequester} from "../testUtils.js";
 
 
 function compareById(a : DirectoryData, b : DirectoryData) : number {
@@ -80,9 +80,7 @@ function testStorage(rootDirectory : Directory) {
     });
 
     test('Storage can add files and directories', async () => {
-        console.log("ROOT", rootDirectory);
         let files = await addTestFiles();
-        console.log("STARTED", files);
         let rootChildFiles = await rootDirectory.getChildren();
         let dir1ChildFiles = await files[0].getChildren();
 
@@ -388,6 +386,7 @@ function testStorage(rootDirectory : Directory) {
         expect(calls.dir1).toBeGreaterThanOrEqual(1);
         expect(calls.file1).toEqual(0);
         expect(calls.file2).toBeLessThanOrEqual(1);
+        // TODO should it trigger after it's been deleted. Probably not on parents, so need to add test.
 
         // reset counts
         calls.dir1 = 0;

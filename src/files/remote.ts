@@ -72,9 +72,30 @@ class RemoteFile extends files.BasicFile {
   }
 
   public dispatchChangeEvent() {
-    super.dispatchChangeEvent();
-    console.log("DISPPARTE", this.parent.name, this.parent.onChangeListeners);
+    let listeners = this.listenerMap[this.id];
+    if (listeners !== undefined){
+      for (let listener of listeners) {
+        listener(this);
+      }
+    }
+
     this.parent.dispatchChangeEvent();
+  }
+
+  addOnChangeListener(listener: (file: File) => void) {
+    let listeners = this.listenerMap[this.id];
+    if (listeners === undefined){
+      listeners = new Set<listener>();
+      this.listenerMap[this.id] = listeners;
+    }
+    listeners.add(listener);
+  }
+
+  removeOnChangeListener(listener: (file: File) => void) {
+    let listeners = this.listenerMap[this.id];
+    if (listeners !== undefined){
+      listeners.delete(listener);
+    }
   }
 
   read(): Promise<ArrayBuffer> {
@@ -107,6 +128,7 @@ class RemoteFile extends files.BasicFile {
     let file = await this.parent.getFile([RemoteDirectory.deleteFileName]);
     await file.write(stringToArrayBuffer(this.id));
     this.dispatchChangeEvent();
+    delete this.listenerMap[this.id];
   }
 
   async copy(targetDirectory : Directory) {
@@ -188,12 +210,31 @@ class RemoteDirectory extends files.Directory {
   }
 
   public dispatchChangeEvent() {
-    super.dispatchChangeEvent();
+    let listeners = this.listenerMap[this.id];
+    if (listeners !== undefined){
+      for (let listener of listeners) {
+        listener(this);
+      }
+    }
+
     if (this.parent !== this) {
-      console.log("DISPPARTE", this.parent.name, this.parent.onChangeListeners);
       this.parent.dispatchChangeEvent();
-    } else {
-      console.log("FOOBAR");
+    }
+  }
+
+  addOnChangeListener(listener: (file: File) => void) {
+    let listeners = this.listenerMap[this.id];
+    if (listeners === undefined){
+      listeners = new Set<listener>();
+      this.listenerMap[this.id] = listeners;
+    }
+    listeners.add(listener);
+  }
+
+  removeOnChangeListener(listener: (file: File) => void) {
+    let listeners = this.listenerMap[this.id];
+    if (listeners !== undefined){
+      listeners.delete(listener);
     }
   }
 
@@ -215,6 +256,7 @@ class RemoteDirectory extends files.Directory {
     let file = await this.parent.getFile([RemoteDirectory.deleteFileName]);
     await file.write(stringToArrayBuffer(this.id));
     this.dispatchChangeEvent();
+    delete this.listenerMap[this.id];
   }
 
   async copy(targetDirectory : Directory) {
@@ -247,9 +289,9 @@ class RemoteDirectory extends files.Directory {
       let results : files.SearchResult[] = [];
       for (let data of fileDataMap){
         if (data.file.directory){
-          results.push({path: data.path, file: new RemoteDirectory(this, data.file, this.apiUrl, this.requester)});
+          results.push({path: data.path, file: new RemoteDirectory(this, data.file, this.apiUrl, this.listenerMap, this.requester)});
         } else {
-          results.push({path: data.path, file: new RemoteFile(this, data.file, this.apiUrl, this.requester)});
+          results.push({path: data.path, file: new RemoteFile(this, data.file, this.apiUrl, this.listenerMap, this.requester)});
         }
       }
       return results;
@@ -277,7 +319,7 @@ class RemoteDirectory extends files.Directory {
 
     let responseData = await this.requester.request(this.urlObject, {}, formData, 'POST');
     this.dispatchChangeEvent();
-    let newFile = new RemoteFile(this, parseJsonArrayBuffer(responseData), this.apiUrl, this.requester);
+    let newFile = new RemoteFile(this, parseJsonArrayBuffer(responseData), this.apiUrl, this.listenerMap, this.requester);
     try {
       await newFile.write(data);
     } catch (e) {
@@ -297,17 +339,16 @@ class RemoteDirectory extends files.Directory {
     formData.append(
       'write',
       new File(
-          [JSON.stringify({name: name})],
-          RemoteDirectory.addDirectoryName,
-          {type: mkDirFile.mimeType},
-        ),
-      );
+        [JSON.stringify({name: name})],
+        RemoteDirectory.addDirectoryName,
+        {type: mkDirFile.mimeType},
+      ),
+    );
     formData.append('read', RemoteDirectory.addDirectoryName);
 
     let responseData = await this.requester.request(this.urlObject, {}, formData, 'POST');
     this.dispatchChangeEvent();
-    console.log("ABCD", parseJsonArrayBuffer(responseData));
-    let dir = new RemoteDirectory(this, parseJsonArrayBuffer(responseData), this.apiUrl, this.requester);
+    let dir = new RemoteDirectory(this, parseJsonArrayBuffer(responseData), this.apiUrl, this.listenerMap, this.requester);
     dir.addOnChangeListener(this.dispatchChangeEvent.bind(this));
     return dir;
   }
@@ -319,9 +360,9 @@ class RemoteDirectory extends files.Directory {
     for (let fileData of fileDataArray){
       let file : RemoteFile | RemoteDirectory;
       if (fileData.directory){
-        file = new RemoteDirectory(this, fileData, this.apiUrl, this.requester);
+        file = new RemoteDirectory(this, fileData, this.apiUrl, this.listenerMap, this.requester);
       } else {
-        file = new RemoteFile(this, fileData, this.apiUrl, this.requester);
+        file = new RemoteFile(this, fileData, this.apiUrl, this.listenerMap, this.requester);
       }
 
       file.addOnChangeListener(this.dispatchChangeEvent.bind(this));
@@ -345,7 +386,7 @@ export class RemoteFS extends RemoteDirectory {
       url: null,
       icon: null,
       size: 0,
-    }, normalizedApiUrl, requester);
+    }, normalizedApiUrl, {}, requester);
   }
 
   async rename(newName : string) {

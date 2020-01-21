@@ -1,6 +1,7 @@
 import * as files from "./base.js";
 import { Requester } from "../utils.js";
 import { Directory, listener } from "./base.js";
+import { File } from "./base.js";
 interface FileData {
     id: string;
     name: string;
@@ -32,6 +33,8 @@ declare class RemoteFile extends files.BasicFile {
     readonly icon: string | null;
     readonly size: number;
     dispatchChangeEvent(): void;
+    addOnChangeListener(listener: (file: File) => void): void;
+    removeOnChangeListener(listener: (file: File) => void): void;
     read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer | FormData): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
@@ -65,6 +68,8 @@ declare class RemoteDirectory extends files.Directory {
     readonly icon: string | null;
     readonly size: number;
     dispatchChangeEvent(): void;
+    addOnChangeListener(listener: (file: File) => void): void;
+    removeOnChangeListener(listener: (file: File) => void): void;
     read(): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;

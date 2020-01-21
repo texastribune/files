@@ -1,13 +1,13 @@
-import {MemoryDirectory, MemoryFile} from "../files/memory.js";
+import {MemoryDirectory, MemoryFile} from "./files/memory.js";
 import {
-  fileToArrayBuffer, parseJsonArrayBuffer,
+  fileToArrayBuffer,
+  parseJsonArrayBuffer,
   parseTextArrayBuffer,
   Requester,
   stringToArrayBuffer
-} from "../utils.js";
-import * as files from "../files/base.js";
-import {FileNotFoundError, SearchResult} from "../files/base.js";
-import {FileAlreadyExistsError} from "../files/base.js";
+} from "./utils.js";
+import {FileNotFoundError, SearchResult} from "./files/base.js";
+import * as files from "./files/base.js";
 
 
 class MockBackendFile extends MemoryFile {
@@ -234,33 +234,35 @@ export class MockRemoteRequester implements Requester {
       throw new Error("404 file does not exist");
     }
 
-    if (data instanceof FormData && requestedFile instanceof files.Directory) {
-      let resp = new ArrayBuffer(0);
+    if (data instanceof FormData) {
+      if (requestedFile instanceof files.Directory) {
+        let resp = new ArrayBuffer(0);
 
-      let formData : {name: string, value: FormDataEntryValue}[] = [];
-      data.forEach((formDataEntry, name :string) => {
-        formData.push({
-          name: name,
-          value: formDataEntry,
+        let formData : {name: string, value: FormDataEntryValue}[] = [];
+        data.forEach((formDataEntry, name :string) => {
+          formData.push({
+            name: name,
+            value: formDataEntry,
+          });
         });
-      });
 
-      for (let entry of formData) {
-        if (entry.name === "write") {
-          if (entry.value instanceof File) {
-            let data = await fileToArrayBuffer(entry.value);
-            let f = await requestedFile.getFile([entry.value.name]);
-            await f.write(data);
-          }
-        } else if (entry.name === "read") {
-          if (typeof entry.value === "string") {
-            let f = await requestedFile.getFile([entry.value]);
-            resp = await f.read();
+        for (let entry of formData) {
+          if (entry.name === "write") {
+            if (entry.value instanceof File) {
+              let data = await fileToArrayBuffer(entry.value);
+              let f = await requestedFile.getFile([entry.value.name]);
+              await f.write(data);
+            }
+          } else if (entry.name === "read") {
+            if (typeof entry.value === "string") {
+              let f = await requestedFile.getFile([entry.value]);
+              resp = await f.read();
+            }
           }
         }
-      }
 
-      return resp;
+        return resp;
+      }
     } else {
       method = method || "GET";
       if (method === "GET") {
@@ -273,5 +275,4 @@ export class MockRemoteRequester implements Requester {
 
     throw new Error("method not allowed");
   }
-
 }

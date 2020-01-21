@@ -1,6 +1,6 @@
-import { MemoryDirectory, MemoryFile } from "../files/memory.js";
-import { Requester } from "../utils.js";
-import * as files from "../files/base.js";
+import { MemoryDirectory, MemoryFile } from "./files/memory.js";
+import { Requester } from "./utils.js";
+import * as files from "./files/base.js";
 export declare class MockBackendDirectory extends MemoryDirectory {
     static addDirectoryName: string;
     static addFileName: string;
