@@ -81,6 +81,7 @@ export interface File {
      */
     move(targetDirectory: Directory): Promise<void>;
 }
+export declare type listener = (file: File) => void;
 /**
  * @abstract
  * An object representing a file.

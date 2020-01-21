@@ -1,5 +1,6 @@
 import * as files from "./base.js";
 import { SearchResult } from "./base.js";
+import { Requester } from "../utils.js";
 interface S3ObjectData {
     Key: string;
     LastModified: string;
@@ -21,6 +22,7 @@ export declare class S3Bucket {
 }
 export declare class S3File extends files.BasicFile {
     private readonly bucket;
+    private readonly requester;
     readonly created: Date;
     readonly extra: Object;
     readonly icon: string | null;
@@ -28,7 +30,7 @@ export declare class S3File extends files.BasicFile {
     readonly lastModified: Date;
     readonly mimeType: string;
     readonly size: number;
-    constructor(metadata: S3ObjectData, bucket: S3Bucket);
+    constructor(metadata: S3ObjectData, bucket: S3Bucket, requester?: Requester);
     readonly name: string;
     private readonly urlObject;
     readonly url: string;
@@ -40,12 +42,13 @@ export declare class S3File extends files.BasicFile {
 export declare class S3Directory extends files.Directory {
     private readonly bucket;
     private readonly maxKeys;
+    private readonly requester;
     readonly created: Date;
     readonly extra: Object;
     readonly icon: string | null;
     readonly id: string;
     readonly lastModified: Date;
-    constructor(prefix: string, bucket: S3Bucket, maxKeys: number | null);
+    constructor(prefix: string, bucket: S3Bucket, maxKeys: number | null, requester?: Requester);
     readonly name: string;
     addDirectory(name: string): Promise<files.Directory>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File>;

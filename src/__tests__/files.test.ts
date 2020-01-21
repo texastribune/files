@@ -2,14 +2,16 @@
 /* global jest, test, expect, describe */
 
 import {MemoryDirectory, MemoryFile} from "../files/memory";
-import {parseTextArrayBuffer, stringToArrayBuffer} from "../utils";
+import {fileToArrayBuffer, parseJsonArrayBuffer, parseTextArrayBuffer, Requester, stringToArrayBuffer} from "../utils";
 import IndexedDB from "fake-indexeddb/build/index";
 import {LocalStorageRoot, database} from "../files/local";
 import {VirtualFS} from "../files/virtual";
 import {BasicFile, Directory, DirectoryData, File, FileAlreadyExistsError, FileNotFoundError} from "../files/base";
 import {NodeDirectory} from "../files/node";
 import * as fs from 'fs';
-import {CachedProxyDirectory, CachedProxyRootDirectory} from "../files/proxy";
+import {CachedProxyRootDirectory} from "../files/proxy";
+import {RemoteFS} from "../files/remote.js";
+import {MockBackendDirectory, MockRemoteRequester} from "../testUtils.js";
 
 
 function compareById(a : DirectoryData, b : DirectoryData) : number {
@@ -72,10 +74,8 @@ function testStorage(rootDirectory : Directory) {
         expect(rootDirectory).toBeInstanceOf(BasicFile);
 
         let childData = await rootDirectory.readJSON();
-        if (childData instanceof Array){
-            expect(childData.length).toEqual(0);
-        } else {
-            throw new Error('directory data is not an array')
+        if (!(childData instanceof Array)){
+            throw new Error('directory data is not an array');
         }
     });
 
@@ -147,6 +147,10 @@ function testStorage(rootDirectory : Directory) {
             return map;
         }, {});
         let dir1ChildFiles = await files[0].getChildren();
+        let dir1ChildFileMap : FileMap = dir1ChildFiles.reduce((map : FileMap, file) => {
+            map[file.name] = file;
+            return map;
+        }, {});
 
         // Get the data from an instance of AbstractFile which should not change since it was added or
         // directly written to Directory size, lastModified, and url can change when child files are added.
@@ -154,10 +158,9 @@ function testStorage(rootDirectory : Directory) {
             return file1.id === file2.id && file1.name === file2.name && file1.directory === file2.directory;
         }
 
-        expect(rootChildFiles.length).toEqual(2);
         expect(areFilesSame(rootChildFileMap[files[0].name], files[0])).toBeTruthy();
         expect(areFilesSame(rootChildFileMap[files[1].name], files[1])).toBeTruthy();
-        expect(areFilesSame(dir1ChildFiles[0], files[2])).toBeTruthy();
+        expect(areFilesSame(dir1ChildFileMap[files[2].name], files[2])).toBeTruthy();
     });
 
     test('Reading directory return json of FileData for all children', async () => {
@@ -396,6 +399,7 @@ function testStorage(rootDirectory : Directory) {
         expect(calls.dir1).toBeGreaterThanOrEqual(1);
         expect(calls.file1).toEqual(0);
         expect(calls.file2).toBeLessThanOrEqual(1);
+        // TODO should it trigger after it's been deleted. Probably not on parents, so need to add test.
 
         // reset counts
         calls.root = 0;
@@ -452,6 +456,13 @@ describe('Test virtual file storage', () => {
 describe('Test cached proxy file storage', () => {
     let rootMounted = new MemoryDirectory(null, 'mounted');
     let storage = new CachedProxyRootDirectory(rootMounted);
+
+    testStorage(storage);
+});
+
+describe('Test remote file storage', () => {
+    let root = new MockBackendDirectory(null, "root");
+    let storage = new RemoteFS("root", "http://api.com", root.id, new MockRemoteRequester(root));
 
     testStorage(storage);
 });
@@ -522,3 +533,5 @@ describe('Test directory caching', () => {
         expect(root.callCount).toEqual(0);  // Child should be cached now
     })
 });
+
+

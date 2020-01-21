@@ -13,8 +13,8 @@ export class MemoryFile extends files.BasicFile {
     public readonly mimeType : string;
     public readonly extra = {};
 
-    private parent : MemoryDirectory;
-    private fileData : ArrayBuffer;
+    protected readonly parent : MemoryDirectory;
+    protected fileData : ArrayBuffer;
     public name : string;
     public lastModified : Date;
 
@@ -92,7 +92,7 @@ export class MemoryDirectory extends files.Directory {
     public readonly icon = null;
     public readonly extra = {};
 
-    private readonly parent : MemoryDirectory | null;
+    protected readonly parent : MemoryDirectory | null;
     public name : string;
     private children : (MemoryFile | MemoryDirectory)[] = [];
 
@@ -202,18 +202,12 @@ export class MemoryDirectory extends files.Directory {
     }
 
     addFileSync(fileData : ArrayBuffer, filename : string, mimeType : string) : MemoryFile {
-        if (this.nameExists(filename)){
-            throw new FileAlreadyExistsError(`file named ${filename} already exists`);
-        }
         let newFile = new MemoryFile(this, filename, mimeType, fileData);
         this.addChild(newFile);
         return newFile;
     }
 
     addDirectorySync(name : string) : MemoryDirectory {
-        if (this.nameExists(name)){
-            throw new FileAlreadyExistsError(`file named ${name} already exists`);
-        }
         let newDir = new MemoryDirectory(this, name);
         this.addChild(newDir);
         return newDir;
@@ -222,6 +216,9 @@ export class MemoryDirectory extends files.Directory {
     // utilities
 
     addChild(memoryFile : MemoryFile | MemoryDirectory){
+        if (this.nameExists(memoryFile.name)){
+            throw new FileAlreadyExistsError(`file named ${memoryFile.name} already exists`);
+        }
         this.children.push(memoryFile);
         this.dispatchChangeEvent();
     }
