@@ -123,6 +123,13 @@ export class MemoryDirectory extends files.Directory {
         return this.parent.path.concat([this.name]);
     }
 
+    public dispatchChangeEvent() {
+        super.dispatchChangeEvent();
+        if (this.parent !== null){
+            this.parent.onChildChange();
+        }
+    }
+
     /**
      * Register change on parent when child changes.
      */
@@ -170,6 +177,7 @@ export class MemoryDirectory extends files.Directory {
         if (this.parent !== null) {
             this.parent.removeChild(this);
         }
+        this.dispatchChangeEvent();
     }
 
     searchSync(query : string) : files.SearchResult[] {
