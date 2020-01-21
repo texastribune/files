@@ -167,8 +167,6 @@ export interface Requester {
 
 export class AjaxRequester implements Requester {
   request(url: URL, query?: { [p: string]: string }, data?: FormData | Blob | null, method?: "GET" | "POST" | "PUT" | "DELETE"): Promise<ArrayBuffer> {
-    console.log("AJAX!");
-    console.trace();
     return new Promise((resolve, reject) => {
       data = data || null;
       query = query || {};
