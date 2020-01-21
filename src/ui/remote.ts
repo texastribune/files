@@ -7,11 +7,12 @@ export class RemoteDirectoryElement extends DirectoryElement {
 
     static urlAttribute : string = 'url';
     static nameAttribute : string = 'name';
+    static rootIdAttribute : string = 'root-id';
 
     constructor(){
         super();
 
-        this.directory = new RemoteFS("root", "");
+        this.directory = new RemoteFS(this.name, this.url, this.rootId);
     }
 
     static get observedAttributes() {
@@ -34,8 +35,16 @@ export class RemoteDirectoryElement extends DirectoryElement {
         this.setAttribute(RemoteDirectoryElement.urlAttribute, value);
     }
 
+    get rootId() : string {
+        return this.getAttribute(RemoteDirectoryElement.rootIdAttribute) || "";
+    }
+
+    set rootId(value : string){
+        this.setAttribute(RemoteDirectoryElement.rootIdAttribute, value);
+    }
+
     updateFromAttributes(attributes: { [p: string]: string | null }): void {
-        this.directory = new RemoteFS(this.name, this.url);
+        this.directory = new RemoteFS(this.name, this.url, this.rootId);
     }
 }
 
