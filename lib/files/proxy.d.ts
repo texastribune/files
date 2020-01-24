@@ -1,5 +1,4 @@
 import * as files from "./base.js";
-import { Directory } from "./base.js";
 /**
  * Proxy to a file
  */
@@ -20,14 +19,14 @@ export declare class ProxyFile<T extends files.File> extends files.BasicFile {
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
-    copy(targetDirectory: Directory): Promise<void>;
-    move(targetDirectory: Directory): Promise<void>;
+    copy(targetDirectory: files.Directory): Promise<void>;
+    move(targetDirectory: files.Directory): Promise<void>;
 }
 /**
  * Proxy to a directory
  * @property {Directory} concreteDirectory - The directory to proxy
  */
-export declare class ProxyDirectory<T extends Directory> extends files.Directory {
+export declare class ProxyDirectory<T extends files.Directory> extends files.Directory {
     readonly concreteDirectory: T;
     constructor(concreteDirectory: T);
     readonly id: string;
@@ -40,8 +39,8 @@ export declare class ProxyDirectory<T extends Directory> extends files.Directory
     readonly extra: Object;
     rename(newName: string): Promise<void>;
     delete(): Promise<void>;
-    copy(targetDirectory: Directory): Promise<void>;
-    move(targetDirectory: Directory): Promise<void>;
+    copy(targetDirectory: files.Directory): Promise<void>;
+    move(targetDirectory: files.Directory): Promise<void>;
     search(query: string): Promise<files.SearchResult[]>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;

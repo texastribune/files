@@ -2452,6 +2452,9 @@ img {
 		<li class=" tsd-kind-interface tsd-parent-kind-external-module">
 			<a href="_files_base_.searchresult.html" class="tsd-kind-icon">Search<wbr>Result</a>
 		</li>
+		<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
+			<a href="../modules/_files_base_.html#listener" class="tsd-kind-icon">listener</a>
+		</li>
 		<li class=" tsd-kind-function tsd-parent-kind-external-module">
 			<a href="../modules/_files_base_.html#walkpath" class="tsd-kind-icon">walk<wbr>Path</a>
 		</li>
@@ -2474,6 +2477,7 @@ img {
 				<li><a href="../classes/_devices_dom_.abstracteventfile.html" class="tsd-signature-type">AbstractEventFile</a></li>
 				<li><a href="../classes/_files_virtual_.abstractvirtualdirectory.html" class="tsd-signature-type">AbstractVirtualDirectory</a></li>
 				<li><a href="../classes/_files_virtual_.abstractvirtualrootdirectory.html" class="tsd-signature-type">AbstractVirtualRootDirectory</a></li>
+				<li><a href="../classes/_testutils_.addfile.html" class="tsd-signature-type">AddFile</a></li>
 				<li><a href="../classes/_files_base_.basicfile.html" class="tsd-signature-type">BasicFile</a></li>
 				<li><a href="../classes/_files_proxy_.cachedproxydirectory.html" class="tsd-signature-type">CachedProxyDirectory</a></li>
 				<li><a href="../classes/_files_proxy_.cachedproxydirectorybase.html" class="tsd-signature-type">CachedProxyDirectoryBase</a></li>
@@ -2481,6 +2485,8 @@ img {
 				<li><a href="../classes/_files_proxy_.changeeventproxyfile.html" class="tsd-signature-type">ChangeEventProxyFile</a></li>
 				<li><a href="../classes/_devices_dom_.classfile.html" class="tsd-signature-type">ClassFile</a></li>
 				<li><a href="../classes/_devices_console_.consolefile.html" class="tsd-signature-type">ConsoleFile</a></li>
+				<li><a href="../classes/_testutils_.copyfile.html" class="tsd-signature-type">CopyFile</a></li>
+				<li><a href="../classes/_testutils_.deletefile.html" class="tsd-signature-type">DeleteFile</a></li>
 				<li><a href="../classes/_devices_base_.devicedirectory.html" class="tsd-signature-type">DeviceDirectory</a></li>
 				<li><a href="../classes/_files_base_.directory.html" class="tsd-signature-type">Directory</a></li>
 				<li><a href="../classes/_devices_dom_.domelementdevice.html" class="tsd-signature-type">DomElementDevice</a></li>
@@ -2490,7 +2496,11 @@ img {
 				<li><a href="../classes/_files_local_.localstorageroot.html" class="tsd-signature-type">LocalStorageRoot</a></li>
 				<li><a href="../classes/_files_memory_.memorydirectory.html" class="tsd-signature-type">MemoryDirectory</a></li>
 				<li><a href="../classes/_files_memory_.memoryfile.html" class="tsd-signature-type">MemoryFile</a></li>
+				<li><a href="../classes/_testutils_.mkdirfile.html" class="tsd-signature-type">MkDirFile</a></li>
+				<li><a href="../classes/_testutils_.mockbackenddirectory.html" class="tsd-signature-type">MockBackendDirectory</a></li>
+				<li><a href="../classes/_testutils_.mockbackendfile.html" class="tsd-signature-type">MockBackendFile</a></li>
 				<li><a href="../classes/_devices_dom_.mousedevice.html" class="tsd-signature-type">MouseDevice</a></li>
+				<li><a href="../classes/_testutils_.movefile.html" class="tsd-signature-type">MoveFile</a></li>
 				<li><a href="../classes/_files_node_.nodedirectory.html" class="tsd-signature-type">NodeDirectory</a></li>
 				<li><a href="../classes/_files_node_.nodefile.html" class="tsd-signature-type">NodeFile</a></li>
 				<li><a href="../classes/_devices_null_.nullfile.html" class="tsd-signature-type">NullFile</a></li>
@@ -2505,8 +2515,10 @@ img {
 				<li><a href="../classes/_files_remote_.remotedirectory.html" class="tsd-signature-type">RemoteDirectory</a></li>
 				<li><a href="../classes/_files_remote_.remotefs.html" class="tsd-signature-type">RemoteFS</a></li>
 				<li><a href="../classes/_files_remote_.remotefile.html" class="tsd-signature-type">RemoteFile</a></li>
+				<li><a href="../classes/_testutils_.renamefile.html" class="tsd-signature-type">RenameFile</a></li>
 				<li><a href="../classes/_files_s3_.s3directory.html" class="tsd-signature-type">S3Directory</a></li>
 				<li><a href="../classes/_files_s3_.s3file.html" class="tsd-signature-type">S3File</a></li>
+				<li><a href="../classes/_testutils_.searchfile.html" class="tsd-signature-type">SearchFile</a></li>
 				<li><a href="../classes/___tests___process_test_.testfs.html" class="tsd-signature-type">TestFS</a></li>
 				<li><a href="../classes/_devices_dom_.textfile.html" class="tsd-signature-type">TextFile</a></li>
 				<li><a href="../classes/_files_virtual_.virtualdirectory.html" class="tsd-signature-type">VirtualDirectory</a></li>
@@ -2557,7 +2569,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">created<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L97">files/base.ts:97</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L97">files/base.ts:97</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2572,7 +2584,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">directory<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L72">files/base.ts:72</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L72">files/base.ts:72</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2587,7 +2599,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">extra<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L107">files/base.ts:107</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L107">files/base.ts:107</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2602,7 +2614,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">icon<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L82">files/base.ts:82</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L82">files/base.ts:82</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2617,7 +2629,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L62">files/base.ts:62</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L62">files/base.ts:62</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2632,7 +2644,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">last<wbr>Modified<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L102">files/base.ts:102</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L102">files/base.ts:102</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2647,7 +2659,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">mime<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L92">files/base.ts:92</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L92">files/base.ts:92</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2662,7 +2674,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L67">files/base.ts:67</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L67">files/base.ts:67</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2677,7 +2689,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">size<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L87">files/base.ts:87</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L87">files/base.ts:87</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2692,7 +2704,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L77">files/base.ts:77</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L77">files/base.ts:77</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2714,7 +2726,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L56">files/base.ts:56</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L56">files/base.ts:56</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2755,7 +2767,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L132">files/base.ts:132</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L132">files/base.ts:132</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2783,7 +2795,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L127">files/base.ts:127</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L127">files/base.ts:127</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2805,7 +2817,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L137">files/base.ts:137</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L137">files/base.ts:137</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2833,7 +2845,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L112">files/base.ts:112</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L112">files/base.ts:112</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2855,7 +2867,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L57">files/base.ts:57</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L57">files/base.ts:57</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2896,7 +2908,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L122">files/base.ts:122</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L122">files/base.ts:122</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2924,7 +2936,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/texastribune/files/blob/57567fd/src/files/base.ts#L117">files/base.ts:117</a></li>
+								<li>Defined in <a href="https://github.com/texastribune/files/blob/c1a0332/src/files/base.ts#L117">files/base.ts:117</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">

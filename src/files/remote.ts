@@ -1,6 +1,6 @@
 import * as files from "./base.js";
 import {parseJsonArrayBuffer, stringToArrayBuffer, Requester, ajaxRequester} from "../utils.js";
-import {Directory, FileNotFoundError, listener} from "./base.js";
+import {Directory, listener} from "./base.js";
 import {File} from "./base.js";
 
 
@@ -360,7 +360,6 @@ class RemoteDirectory extends files.Directory {
       } else {
         file = new RemoteFile(this, fileData, this.apiUrl, this.listenerMap, this.requester);
       }
-
       children.push(file);
     }
     return children;

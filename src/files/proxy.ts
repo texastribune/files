@@ -1,5 +1,4 @@
 import * as files from "./base.js";
-import {Directory, FileNotFoundError} from "./base.js";
 
 
 /**
@@ -70,11 +69,11 @@ export class ProxyFile<T extends files.File> extends files.BasicFile {
     return this.concreteFile.delete();
   }
 
-  copy(targetDirectory : Directory){
+  copy(targetDirectory : files.Directory){
     return this.concreteFile.copy(targetDirectory);
   };
 
-  move(targetDirectory : Directory){
+  move(targetDirectory : files.Directory){
     return this.concreteFile.move(targetDirectory);
   }
 }
@@ -84,7 +83,7 @@ export class ProxyFile<T extends files.File> extends files.BasicFile {
  * Proxy to a directory
  * @property {Directory} concreteDirectory - The directory to proxy
  */
-export class ProxyDirectory<T extends Directory> extends files.Directory {
+export class ProxyDirectory<T extends files.Directory> extends files.Directory {
   readonly concreteDirectory : T;
 
   constructor(concreteDirectory : T){
@@ -133,11 +132,11 @@ export class ProxyDirectory<T extends Directory> extends files.Directory {
     return this.concreteDirectory.delete();
   }
 
-  copy(targetDirectory : Directory){
+  copy(targetDirectory : files.Directory){
     return this.concreteDirectory.copy(targetDirectory);
   };
 
-  move(targetDirectory : Directory){
+  move(targetDirectory : files.Directory){
     return this.concreteDirectory.move(targetDirectory);
   }
 
