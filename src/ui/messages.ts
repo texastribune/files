@@ -32,7 +32,7 @@ export class Message extends CustomElement {
         --height: var(--message-height, 24px);
         --delete-button: url(${Dialog.DETETE_BUTTON_URL});
 
-        display: inline-block;
+        display: block;
         box-sizing: border-box;
         position: relative;
         width: 75%;
