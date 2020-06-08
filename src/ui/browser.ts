@@ -642,6 +642,10 @@ export class FileBrowser extends CustomElement {
         #${FileBrowser.menuContainerId} {
             float: left;
         }
+        
+        #${FileBrowser.messageContainerId} {
+            min-height: var(--message-height, 24px);
+        }
     `;
   }
 
