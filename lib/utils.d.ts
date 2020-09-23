@@ -46,6 +46,8 @@ export interface Requester {
     }, data?: FormData | Blob | null, method?: 'GET' | 'POST' | 'PUT' | 'DELETE'): Promise<ArrayBuffer>;
 }
 export declare class AjaxRequester implements Requester {
+    timeout: number;
+    constructor(timeout: number);
     request(url: URL, query?: {
         [p: string]: string;
     }, data?: FormData | Blob | null, method?: "GET" | "POST" | "PUT" | "DELETE"): Promise<ArrayBuffer>;

@@ -144,8 +144,6 @@ export function getFirstInPath<T extends HTMLElement>(event : Event, type : new 
 }
 
 
-const REQUEST_TIMEOUT = 30;
-
 export function getCookie(name : string) : string | null {
   let parts = document.cookie.split(`${name}=`);
   if (parts.length > 1) {
@@ -166,6 +164,12 @@ export interface Requester {
 
 
 export class AjaxRequester implements Requester {
+  public timeout : number = 30;
+
+  constructor(timeout : number) {
+    this.timeout = timeout
+  }
+
   request(url: URL, query?: { [p: string]: string }, data?: FormData | Blob | null, method?: "GET" | "POST" | "PUT" | "DELETE"): Promise<ArrayBuffer> {
     return new Promise((resolve, reject) => {
       data = data || null;
@@ -213,7 +217,7 @@ export class AjaxRequester implements Requester {
       };
 
       request.open(method, url.toString(), true);
-      request.timeout = REQUEST_TIMEOUT * 1000;
+      request.timeout = this.timeout * 1000;
       if (!isCrossDomain(url)) {
         request.withCredentials = true;
         let cookie = getCookie("csrftoken");
@@ -226,4 +230,4 @@ export class AjaxRequester implements Requester {
   }
 }
 
-export const ajaxRequester = new AjaxRequester();
+export const ajaxRequester = new AjaxRequester(30);
