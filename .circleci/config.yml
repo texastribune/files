@@ -8,6 +8,9 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/node:10.13
+        auth:
+          username: ttcircleci
+          password: $DOCKERHUB_TTCIRCLECI_PASSWORD # set in the UI at organization level
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
