@@ -11,7 +11,7 @@
     "doc": "typedoc --options typedoc.json src/ && webpack --config ./docs/webpack.config.js"
   },
   "devDependencies": {
-    "@babel/core": "^7.3.4",
+    "@babel/core": "^7.12.8",
     "@babel/preset-env": "^7.3.4",
     "@types/jest": "^24.0.9",
     "@types/node": "^11.9.0",
