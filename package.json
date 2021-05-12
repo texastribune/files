@@ -26,6 +26,6 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "elements": "git://github.com/tjb346/elements.git#v1.1.7"
+    "elements": "git://github.com/texastribune/elements.git#v1.1.7"
   }
 }
