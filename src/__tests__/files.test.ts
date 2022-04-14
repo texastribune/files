@@ -3,7 +3,7 @@
 
 import {MemoryDirectory, MemoryFile} from "../files/memory";
 import {fileToArrayBuffer, parseJsonArrayBuffer, parseTextArrayBuffer, Requester, stringToArrayBuffer} from "../utils";
-import IndexedDB from "fake-indexeddb/build/index";
+import IndexedDB from "fake-indexeddb";
 import {LocalStorageRoot, database} from "../files/local";
 import {VirtualFS} from "../files/virtual";
 import {BasicFile, Directory, DirectoryData, File, FileAlreadyExistsError, FileNotFoundError} from "../files/base";
