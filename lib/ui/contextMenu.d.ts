@@ -6,7 +6,8 @@ export declare class ContextMenu extends Dialog {
     readonly css: string;
     getItems(browser: FileBrowser, selectedRowData: RowData[]): HTMLDivElement[];
     createOpenButton(browser: FileBrowser, rowData: RowData): HTMLDivElement;
-    createCopyButton(): HTMLDivElement;
+    createCopyUrlButton(): HTMLDivElement;
+    createCopyIdButton(id: string): HTMLDivElement;
     createRenameButton(browser: FileBrowser, selectedFile: File): HTMLDivElement;
     createRunButton(browser: FileBrowser, path: string[]): HTMLDivElement;
     createDeleteButton(browser: FileBrowser, selectedFiles: File[]): HTMLDivElement;
