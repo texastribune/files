@@ -49,7 +49,7 @@ export class ContextMenu extends Dialog {
         const selectedPath = selectedRowData[0].path;
 
         if (selectedFile.url) {
-          items.push(this.createCopyUrlButton());
+          items.push(this.createCopyUrlButton(selectedFile.url));
         }
         
         items.push(this.createCopyIdButton(selectedFile.id));
@@ -89,11 +89,15 @@ export class ContextMenu extends Dialog {
     return openButton;
   }
 
-  createCopyUrlButton(){
+  createCopyUrlButton(url: string){
     let urlButton = document.createElement('div');
     urlButton.textContent = 'Copy Url';
     urlButton.onclick = () => {
-      document.execCommand('copy');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url);
+      } else {
+        document.execCommand('copy');
+      }
     };
     return urlButton;
   }
