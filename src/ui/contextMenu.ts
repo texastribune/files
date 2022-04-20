@@ -106,7 +106,9 @@ export class ContextMenu extends Dialog {
     let idButton = document.createElement('div');
     idButton.textContent = 'Copy ID';
     idButton.onclick = () => {
-      navigator.clipboard.writeText(id);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(id);
+      }
     }
     return idButton;
   }
