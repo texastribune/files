@@ -49,9 +49,10 @@ export class ContextMenu extends Dialog {
         const selectedPath = selectedRowData[0].path;
 
         if (selectedFile.url) {
-          items.push(this.createCopyButton());
+          items.push(this.createCopyUrlButton(selectedFile.url));
         }
-
+        
+        items.push(this.createCopyIdButton(selectedFile.id));
         items.push(this.createRenameButton(browser, selectedFile));
 
         if (executableMimeTypes.includes(selectedFile.mimeType)) {
@@ -88,13 +89,28 @@ export class ContextMenu extends Dialog {
     return openButton;
   }
 
-  createCopyButton(){
+  createCopyUrlButton(url: string){
     let urlButton = document.createElement('div');
     urlButton.textContent = 'Copy Url';
     urlButton.onclick = () => {
-      document.execCommand('copy');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url);
+      } else {
+        document.execCommand('copy');
+      }
     };
     return urlButton;
+  }
+
+  createCopyIdButton(id: string) {
+    let idButton = document.createElement('div');
+    idButton.textContent = 'Copy ID';
+    idButton.onclick = () => {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(id);
+      }
+    }
+    return idButton;
   }
 
   createRenameButton(browser : FileBrowser, selectedFile : File){

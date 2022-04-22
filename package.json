@@ -4,8 +4,8 @@
   "description": "The Texas Tribune Files App",
   "private": true,
   "scripts": {
-    "build": "webpack",
-    "run": "webpack --watch",
+    "build": "tsc -p tsconfig.json",
+    "run": "tsc --watch -p tsconfig.json",
     "test": "jest --coverage -i --verbose --bail --ci",
     "test:basic": "jest -i",
     "doc": "typedoc --options typedoc.json src/ && webpack --config ./docs/webpack.config.js"
@@ -26,6 +26,6 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "elements": "git://github.com/texastribune/elements.git#v1.1.7"
+    "elements": "https://github.com/texastribune/elements#v1.1.8"
   }
 }
