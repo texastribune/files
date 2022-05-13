@@ -26,6 +26,6 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "elements": "https://github.com/texastribune/elements#v1.1.8"
+    "elements": "github:texastribune/elements#touch-dialog-buttons"
   }
 }
