@@ -36,9 +36,17 @@ NOTE: You may encounter CORS issues if your webpage is not being served from the
 
 View [full documentation](https://texastribune.github.io/files)
 
-## Development
+## Install
 
-Run `npm install` to install dependencies.
+This app requires node 16+. If you use [nvm](https://https://github.com/nvm-sh/nvm), then you can ensure you are using the appropriate version of node.js by running the following command in the root of your project:
+
+```
+nvm use
+```
+
+Then run `npm install` to install dependencies.
+
+# Development
 
 This repository uses `tsc` for code compilation. Run `npm run build` to build `src` into `lib`. Or run `npm run dev` to watch for changes and rebuild automatically.
 
