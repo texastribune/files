@@ -10,18 +10,6 @@
 
 #### What are the relevant tickets?
 
-#### Have you done the following, if applicable:
-***(optional: add explanation between parentheses)***
-
-* [ ] Added automated tests? *( )*
-* [ ] Added migrations? *( )*
-* [ ] Tested manually on mobile? *( )*
-* [ ] Checked BrowserStack? *( )*
-* [ ] Checked for performance implications? *( )*
-* [ ] Checked accessibility? *( )*
-* [ ] Checked for security implications? *( )*
-* [ ] Updated the documentation/wiki? *( )*
-
 #### TODOs / next steps:
 
 * [ ] *your TODO here*
