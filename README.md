@@ -24,8 +24,8 @@ To create an S3 bucket file browser, use the following custom elements on your w
 
 <file-browser select-multiple>
     <s3-directory
-      url="http://static.texastribune.org/"
-      prefix="graphics/"
+      url="http://yours3bucket.com/"
+      prefix="myfiles/"
       max-keys="100"
     ></s3-directory>
   <file-browser-context-menu></file-browser-context-menu>
