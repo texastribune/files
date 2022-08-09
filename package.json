@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "run": "tsc --watch -p tsconfig.json",
+    "dev": "tsc --watch -p tsconfig.json",
     "test": "jest --coverage -i --verbose --bail --ci",
     "test:basic": "jest -i",
     "doc": "typedoc --options typedoc.json src/ && webpack --config ./docs/webpack.config.js"
