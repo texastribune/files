@@ -8,6 +8,7 @@
     "dev": "tsc --watch -p tsconfig.json",
     "test": "jest --coverage -i --verbose --bail --ci",
     "test:basic": "jest -i",
+    "serve:doc": "python -m http.server --directory=docs",
     "doc": "typedoc --options typedoc.json src/ && webpack --config ./docs/webpack.config.js"
   },
   "devDependencies": {
