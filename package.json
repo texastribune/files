@@ -5,9 +5,10 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "run": "tsc --watch -p tsconfig.json",
+    "dev": "tsc --watch -p tsconfig.json",
     "test": "jest --coverage -i --verbose --bail --ci",
     "test:basic": "jest -i",
+    "serve:doc": "python -m http.server 3000 --directory=docs",
     "doc": "typedoc --options typedoc.json src/ && webpack --config ./docs/webpack.config.js"
   },
   "devDependencies": {
