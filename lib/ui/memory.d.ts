@@ -4,8 +4,8 @@ export declare class MemoryDirectoryElement extends DirectoryElement {
     readonly directory: MemoryDirectory;
     static nameAttribute: string;
     constructor();
-    static get observedAttributes(): string[];
-    get name(): string;
+    static readonly observedAttributes: string[];
+    readonly name: string;
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;

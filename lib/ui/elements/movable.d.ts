@@ -22,19 +22,17 @@ export declare class Movable extends CustomElement {
     /**
      The current location of the upper left corner of the element to its closes relatively positioned ancestor in pixels.
      */
-    get position(): Vector;
-    set position(value: Vector);
+    position: Vector;
     private _velocity;
     /**
      The current motion of the element in pixels per second.
      */
-    get velocity(): Vector;
-    set velocity(value: Vector);
-    get frictionForce(): {
+    velocity: Vector;
+    readonly frictionForce: {
         x: number;
         y: number;
     };
-    get speed(): number;
+    readonly speed: number;
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
@@ -66,7 +64,7 @@ export declare class Scrollable extends Movable {
     protected scrollSpeed: number;
     private touchStartPosition;
     constructor();
-    static get observedAttributes(): string[];
+    static readonly observedAttributes: string[];
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;

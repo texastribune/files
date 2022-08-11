@@ -16,9 +16,9 @@ interface S3BucketData {
 export declare class S3Bucket {
     private readonly data;
     constructor(data: S3BucketData);
-    get name(): string;
-    get delimiter(): string;
-    get url(): URL;
+    readonly name: string;
+    readonly delimiter: string;
+    readonly url: URL;
 }
 export declare class S3File extends files.BasicFile {
     private readonly bucket;
@@ -31,9 +31,9 @@ export declare class S3File extends files.BasicFile {
     readonly mimeType: string;
     readonly size: number;
     constructor(metadata: S3ObjectData, bucket: S3Bucket, requester?: Requester);
-    get name(): string;
-    private get urlObject();
-    get url(): string;
+    readonly name: string;
+    private readonly urlObject;
+    readonly url: string;
     delete(): Promise<void>;
     read(): Promise<ArrayBuffer>;
     rename(newName: string): Promise<void>;
@@ -49,7 +49,7 @@ export declare class S3Directory extends files.Directory {
     readonly id: string;
     readonly lastModified: Date;
     constructor(prefix: string, bucket: S3Bucket, maxKeys: number | null, requester?: Requester);
-    get name(): string;
+    readonly name: string;
     addDirectory(name: string): Promise<files.Directory>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File>;
     delete(): Promise<void>;
