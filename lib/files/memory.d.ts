@@ -11,8 +11,8 @@ export declare class MemoryFile extends files.BasicFile {
     lastModified: Date;
     constructor(parent: MemoryDirectory, name: string, mimeType?: string, data?: ArrayBuffer);
     dispatchChangeEvent(): void;
-    readonly url: string;
-    readonly size: number;
+    get url(): string;
+    get size(): number;
     read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     delete(): Promise<void>;
@@ -31,8 +31,8 @@ export declare class MemoryDirectory extends files.Directory {
     name: string;
     private children;
     constructor(parent: MemoryDirectory | null, name: string);
-    readonly lastModified: Date;
-    private readonly path;
+    get lastModified(): Date;
+    private get path();
     dispatchChangeEvent(): void;
     /**
      * Register change on parent when child changes.

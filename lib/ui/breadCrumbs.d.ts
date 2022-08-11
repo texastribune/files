@@ -1,4 +1,4 @@
-import { CustomElement } from 'elements/lib/element.js';
+import { CustomElement } from './elements/element.js';
 export declare class BreadCrumbs extends CustomElement {
     private delimiter;
     private readonly ul;
@@ -11,9 +11,10 @@ export declare class BreadCrumbs extends CustomElement {
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
-    readonly css: string;
-    readonly crumbs: Iterable<HTMLAnchorElement>;
-    path: string[];
+    get css(): string;
+    get crumbs(): Iterable<HTMLAnchorElement>;
+    get path(): string[];
+    set path(value: string[]);
     buildCrumb(path: string[]): HTMLLIElement;
     buildDelimiter(char: string): HTMLElement;
 }

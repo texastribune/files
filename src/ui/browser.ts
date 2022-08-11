@@ -3,23 +3,23 @@ import "./breadCrumbs.js";
 import "./messages.js";
 import "./search.js";
 import "./contextMenu.js";
-import "elements/lib/table.js";
-import "elements/lib/dialog.js";
+import "./elements/table.js";
+import "./elements/dialog.js";
 
 import {BreadCrumbs} from "./breadCrumbs.js";
 import {Message} from "./messages.js";
 import {Directory, File, FileNotFoundError, SearchResult} from "../files/base.js";
 import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath} from "../utils.js";
 import * as icons from './icons.js';
-import {ConfirmDialog} from "elements/lib/dialog.js";
-import {TextData, TimeData, AbstractTableData, Header, Row, Table} from "elements/lib/table.js";
+import {ConfirmDialog} from "./elements/dialog.js";
+import {TextData, TimeData, AbstractTableData, Header, Row, Table} from "./elements/table.js";
 import {MemoryDirectory} from "../files/memory.js";
 import {CachedProxyRootDirectory, CachedProxyDirectoryBase} from "../files/proxy.js";
 import {SearchBar} from "./search.js";
 import {Process} from "../processes/base.js";
 import {ConsoleFile} from "../devices/console.js";
 import {ContextMenu} from "./contextMenu.js";
-import {CustomElement} from "elements/lib/element.js";
+import {CustomElement} from "./elements/element.js";
 
 
 export class FileSizeTableData extends AbstractTableData<File | null> {

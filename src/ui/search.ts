@@ -1,4 +1,4 @@
-import {CustomElement} from "elements/lib/element.js";
+import {CustomElement} from "./elements/element.js";
 import {createNode} from "../utils.js";
 import * as icons from "./icons.js";
 

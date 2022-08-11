@@ -2,16 +2,17 @@ import "./breadCrumbs.js";
 import "./messages.js";
 import "./search.js";
 import "./contextMenu.js";
-import "elements/lib/table.js";
-import "elements/lib/dialog.js";
+import "./elements/table.js";
+import "./elements/dialog.js";
 import { BreadCrumbs } from "./breadCrumbs.js";
 import { Directory, File } from "../files/base.js";
-import { AbstractTableData, Header, Row } from "elements/lib/table.js";
+import { AbstractTableData, Header, Row } from "./elements/table.js";
 import { CachedProxyDirectoryBase } from "../files/proxy.js";
-import { CustomElement } from "elements/lib/element.js";
+import { CustomElement } from "./elements/element.js";
 export declare class FileSizeTableData extends AbstractTableData<File | null> {
     private file;
-    data: File | null;
+    get data(): File | null;
+    set data(value: File | null);
     compare(dataElement: AbstractTableData<File | null>): number;
 }
 export declare class FileTableData extends AbstractTableData<File | null> {
@@ -21,12 +22,14 @@ export declare class FileTableData extends AbstractTableData<File | null> {
     private readonly iconContainer;
     static hoverImageClass: string;
     constructor();
-    data: File | null;
-    readonly css: string;
+    get data(): File | null;
+    set data(value: File | null);
+    get css(): string;
     compare(dataElement: AbstractTableData<File | null>): number;
 }
 export declare class PathTableData extends AbstractTableData<string[]> {
-    data: string[];
+    get data(): string[];
+    set data(value: string[]);
     compare(dataElement: AbstractTableData<string[]>): number;
 }
 export interface RowData {
@@ -84,19 +87,23 @@ export declare class FileBrowser extends CustomElement {
     private readonly cutAndCopyListener;
     private readonly pasteListener;
     constructor();
-    static readonly observedAttributes: string[];
-    rootDirectory: Directory;
-    readonly currentDirectory: Directory;
+    static get observedAttributes(): string[];
+    get rootDirectory(): Directory;
+    set rootDirectory(value: Directory);
+    get currentDirectory(): Directory;
     protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectoryBase<T>): void;
-    readonly files: File[];
-    readonly selectedFileRows: Row[];
-    readonly selectedRowData: RowData[];
-    readonly selectedFiles: File[];
-    readonly selectedPaths: string[][];
-    filePath: string[];
-    selectMultiple: boolean;
-    showHidden: boolean;
-    readonly css: string;
+    get files(): File[];
+    get selectedFileRows(): Row[];
+    get selectedRowData(): RowData[];
+    get selectedFiles(): File[];
+    get selectedPaths(): string[][];
+    get filePath(): string[];
+    set filePath(path: string[]);
+    get selectMultiple(): boolean;
+    set selectMultiple(value: boolean);
+    get showHidden(): boolean;
+    set showHidden(value: boolean);
+    get css(): string;
     connectedCallback(): void;
     disconnectedCallback(): void;
     updateFromAttributes(attributes: {

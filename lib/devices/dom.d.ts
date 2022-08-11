@@ -6,9 +6,9 @@ export declare abstract class AbstractElementFile extends files.BasicFile {
     lastModified: Date;
     protected readonly element: HTMLElement;
     protected constructor(element: HTMLElement);
-    readonly id: string;
-    readonly icon: string | null;
-    readonly url: string | null;
+    get id(): string;
+    get icon(): string | null;
+    get url(): string | null;
     delete(): Promise<void>;
     rename(newName: string): Promise<void>;
 }
@@ -22,10 +22,10 @@ export declare class DomElementDevice extends files.Directory {
     private readonly text;
     private readonly class;
     constructor(element: HTMLElement);
-    readonly id: string;
-    readonly name: string;
-    readonly size: number;
-    readonly icon: null;
+    get id(): string;
+    get name(): string;
+    get size(): number;
+    get icon(): null;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File>;
     addDirectory(name: string): Promise<files.Directory>;
     getChildren(): Promise<files.File[]>;

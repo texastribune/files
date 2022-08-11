@@ -1,4 +1,4 @@
-import { CustomElement } from "elements/lib/element.js";
+import { CustomElement } from "./elements/element.js";
 import { Directory } from "../files/base.js";
 /**
  * An custom element that represents a {@link Directory} instance. Can be added as a
