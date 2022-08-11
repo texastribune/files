@@ -3,8 +3,8 @@ import "./breadCrumbs.js";
 import "./messages.js";
 import "./search.js";
 import "./contextMenu.js";
-import ".elements/table";
-import ".elements/dialog";
+import "./elements/table";
+import "./elements/dialog";
 
 import {BreadCrumbs} from "./breadCrumbs.js";
 import {Message} from "./messages.js";
