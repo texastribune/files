@@ -1,4 +1,4 @@
-import { CustomElement } from "elements/lib/element.js";
+import { CustomElement } from "./elements/element.js";
 export declare class SearchBar extends CustomElement {
     private readonly input;
     private readonly container;
@@ -13,12 +13,13 @@ export declare class SearchBar extends CustomElement {
      */
     static DEFAULT_DEBOUNCE: number;
     constructor();
-    readonly css: string;
-    static readonly observedAttributes: string[];
+    get css(): string;
+    static get observedAttributes(): string[];
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
     private dispatchSearchEvent;
-    readonly value: string;
-    debounce: number | null;
+    get value(): string;
+    get debounce(): number | null;
+    set debounce(value: number | null);
 }

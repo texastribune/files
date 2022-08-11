@@ -6,10 +6,13 @@ export declare class RemoteDirectoryElement extends DirectoryElement {
     static nameAttribute: string;
     static rootIdAttribute: string;
     constructor();
-    static readonly observedAttributes: string[];
-    name: string;
-    url: string;
-    rootId: string;
+    static get observedAttributes(): string[];
+    get name(): string;
+    set name(value: string);
+    get url(): string;
+    set url(value: string);
+    get rootId(): string;
+    set rootId(value: string);
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;

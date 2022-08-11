@@ -1,4 +1,4 @@
-import {ConfirmDialog, Dialog} from "elements/lib/dialog.js";
+import {ConfirmDialog, Dialog} from "./elements/dialog.js";
 import {Directory, File} from "../files/base.js";
 import {fileToArrayBuffer} from "../utils.js";
 import {FileBrowser, RowData} from "./browser.js";
