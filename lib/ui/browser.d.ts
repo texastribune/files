@@ -20,6 +20,7 @@ export declare class FileTableData extends AbstractTableData<File | null> {
     private file;
     private readonly iconContainer;
     static hoverImageClass: string;
+    static docIconClass: string;
     constructor();
     data: File | null;
     readonly css: string;
