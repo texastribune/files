@@ -52,14 +52,15 @@ export class FileTableData extends AbstractTableData<File | null> {
   private readonly iconContainer : HTMLSpanElement;
 
   static hoverImageClass = 'hover-image';
+  static docIconClass = 'doc-and-folder-icon';
 
   constructor(){
     super();
     this.folderIcon = createNode(icons.folderIcon) as SVGSVGElement;
-    this.folderIcon.classList.add(FileBrowser.tableIconClass);
+    this.folderIcon.classList.add(FileTableData.docIconClass);
 
     this.documentIcon = createNode(icons.documentIcon) as SVGSVGElement;
-    this.documentIcon.classList.add(FileBrowser.tableIconClass);
+    this.documentIcon.classList.add(FileTableData.docIconClass);
 
     this.file = null;
     this.iconContainer = document.createElement('span');
@@ -125,7 +126,7 @@ export class FileTableData extends AbstractTableData<File | null> {
 
   get css(): string {
     // language=CSS
-    return super.css + `        
+    return super.css + `
        .${FileBrowser.tableIconClass} {
           display: inline-block;
           width: var(--icon-size, 22px);
@@ -133,6 +134,15 @@ export class FileTableData extends AbstractTableData<File | null> {
           vertical-align: middle;
           margin: 5px;
           fill: var(--icon-color, black);
+        }
+
+        .${FileTableData.docIconClass} {
+          display: inline-block;
+          width: var(--doc-icon-size, 22px);
+          height: var(--doc-icon-size, 22px);
+          vertical-align: middle;
+          margin: 5px;
+          fill: var(--doc-icon-color, black);
         }
         
         .${FileTableData.hoverImageClass} {
@@ -557,7 +567,6 @@ export class FileBrowser extends CustomElement {
             margin: auto;
         }
        
-
         .${FileBrowser.tableIconClass} {
           display: inline-block;
           width: var(--icon-size, 22px);
