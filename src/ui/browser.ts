@@ -148,8 +148,8 @@ export class FileTableData extends AbstractTableData<File | null> {
         .${FileTableData.hoverImageClass} {
           position: absolute;
           top: 50%;
-          transform: translate(0%, -50%);
-          max-height: 90%;
+          transform: translate(0%, -70%);
+          height: 400px;
           z-index: 99999;
           background-color: white;
           border: 1px solid black;
