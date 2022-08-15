@@ -220,7 +220,7 @@ export declare function DroppableMixin<T extends new (...args: any[]) => HTMLEle
         ondurationchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onemptied: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onended: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-        onerror: ErrorEventHandler;
+        onerror: OnErrorEventHandler;
         onfocus: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null;
         ongotpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
         oninput: ((this: GlobalEventHandlers, ev: Event) => any) | null;
@@ -490,7 +490,7 @@ export declare function DraggableMixin<T extends new (...args: any[]) => HTMLEle
         ondurationchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onemptied: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onended: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-        onerror: ErrorEventHandler;
+        onerror: OnErrorEventHandler;
         onfocus: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null;
         ongotpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
         oninput: ((this: GlobalEventHandlers, ev: Event) => any) | null;
