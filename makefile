@@ -3,20 +3,20 @@ build:
 	npm run build || npm run doc
 
 start:
-	make -j4 watchCode watchDoc serveDoc openDoc
+	make -j4 watch-code watch-doc serve-doc open-doc
 
-watchCode:
+watch-code:
 	# Builds to /src 
 	npm run dev
 
-watchDoc:
+watch-doc:
 	# Builds to /docs
 	npm run doc:watch
 
-serveDoc:
+serve-doc:
 	# Serves /docs
 	npm run serve:doc
 
-openDoc:
+open-doc:
 	sleep 1 # Added to let server start first.
 	open http://localhost:3000/UserInterfaceTutorial.html
