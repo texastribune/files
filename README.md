@@ -56,7 +56,9 @@ To serve the documentation locally, run `npm run serve:doc`. You can view a rend
 
 ## Styling
 
-Because of the way web components encapsulate CSS within the shadow DOM, you can't alter their styling using CSS selectors in the parent scope. The easiest way to re-style the Files app is by modifying CSS vars within the parent scope.
+Because of the way web components encapsulate CSS within the shadow DOM, you can't alter the styling of the elements inside them using traditional CSS selectors.
+
+The easiest way to re-style the Files app is by targeting the component and then modifying CSS vars used by elements inside it.
 
 Example usage:
 
@@ -64,9 +66,12 @@ Example usage:
 <head>
   <script src="https://texastribune.github.io/files/dist/bundle.js"></script>
   <style>
-    <!-- these CSS vars will change the magnifying icon glass icon to use a pink fill and to be 25 x 25px -->
-    --search-icon-size: 25px;
-    --search-icon-color: pink;
+    <!-- these CSS vars will bump the magnifying icon glass icon and its container to 25px. It will also restyle the icon with a pink fill  -->
+    file-browser {
+      --search-height: 25px;
+      --search-icon-size: 25px;
+      --search-icon-color: pink;
+    }
   </style>
 </head>
 
