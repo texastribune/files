@@ -85,13 +85,23 @@ Example usage:
 These are some of the main CSS variables that are available for modification:
 ```
   --icon-size
+  --icon-color
   --table-row-height
   --table-body-row-height
   --table-header-height
+  --table-header-color
+  --table-header-text-color
   --search-height
   --search-icon-size
   --dropdown-icon-size
   --dropdown-icon-color
   --doc-icon-width
   --doc-icon-height
+  --dialog-item-text-color
+  --body-text-color
+  --browser-background;
+  --button-color
+  --button-hover-color
+  --action-icon-color
 ```
+_Note: The list above may not reflect all CSS variables available for modification._
