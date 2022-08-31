@@ -250,7 +250,7 @@ export class Dialog extends Grabbable {
 
   connectedCallback() {
     super.connectedCallback();
-    this.style.position = 'fixed';
+    this.style.position = 'absolute';
 
     // Add to documentElement because in FireFox document click listeners fire on contextmenu events
     document.documentElement.addEventListener('click', this.documentClickListener);
