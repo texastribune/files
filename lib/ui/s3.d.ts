@@ -14,17 +14,12 @@ export declare class S3DirectoryElement extends DirectoryElement {
     static urlAttribute: string;
     static maxKeysAttribute: string;
     constructor();
-    static get observedAttributes(): string[];
-    get prefix(): string;
-    set prefix(value: string);
-    get bucketName(): string;
-    set bucketName(value: string);
-    get delimiter(): string;
-    set delimiter(value: string);
-    get url(): string | null;
-    set url(value: string | null);
-    get maxKeys(): number | null;
-    set maxKeys(value: number | null);
+    static readonly observedAttributes: string[];
+    prefix: string;
+    bucketName: string;
+    delimiter: string;
+    url: string | null;
+    maxKeys: number | null;
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;

@@ -4,9 +4,8 @@ export declare class NodeDirectoryElement extends DirectoryElement {
     directory: NodeDirectory;
     static pathAttribute: string;
     constructor();
-    static get observedAttributes(): string[];
-    get path(): string;
-    set path(value: string);
+    static readonly observedAttributes: string[];
+    path: string;
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;

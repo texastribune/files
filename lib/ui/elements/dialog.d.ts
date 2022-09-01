@@ -37,18 +37,15 @@ export declare class Dialog extends Grabbable {
     private readonly documentClickListener;
     private opened;
     constructor();
-    static get observedAttributes(): string[];
-    get css(): string;
-    get name(): string;
+    static readonly observedAttributes: string[];
+    readonly css: string;
     /**
-     *
-     * @param {string} value
-     */
-    set name(value: string);
-    get visible(): boolean;
-    set visible(value: boolean);
-    get expanded(): boolean;
-    set expanded(value: boolean);
+    *
+    * @param {string} value
+    */
+    name: string;
+    visible: boolean;
+    expanded: boolean;
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
@@ -70,12 +67,10 @@ export declare class ConfirmDialog extends Dialog {
     static disabledAttribute: string;
     private readonly confirmButton;
     constructor();
-    static get observedAttributes(): string[];
-    get css(): string;
-    get confirmationText(): string;
-    set confirmationText(value: string);
-    get disabled(): boolean;
-    set disabled(value: boolean);
+    static readonly observedAttributes: string[];
+    readonly css: string;
+    confirmationText: string;
+    disabled: boolean;
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;

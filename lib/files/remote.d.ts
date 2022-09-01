@@ -23,15 +23,15 @@ declare class RemoteFile extends files.BasicFile {
     constructor(parent: RemoteDirectory, fileData: FileData, apiUrl: URL, listenerMap: {
         [name: string]: Set<listener>;
     }, requester?: Requester);
-    get id(): string;
-    get name(): string;
-    get mimeType(): string;
-    get lastModified(): Date;
-    get created(): Date;
-    private get urlObject();
-    get url(): string;
-    get icon(): string | null;
-    get size(): number;
+    readonly id: string;
+    readonly name: string;
+    readonly mimeType: string;
+    readonly lastModified: Date;
+    readonly created: Date;
+    private readonly urlObject;
+    readonly url: string;
+    readonly icon: string | null;
+    readonly size: number;
     dispatchChangeEvent(): void;
     addOnChangeListener(listener: (file: File) => void): void;
     removeOnChangeListener(listener: (file: File) => void): void;
@@ -59,14 +59,14 @@ declare class RemoteDirectory extends files.Directory {
     constructor(parent: RemoteDirectory | null, fileData: FileData, apiUrl: URL, listenerMap: {
         [name: string]: Set<listener>;
     }, requester?: Requester);
-    get id(): string;
-    get name(): string;
-    get lastModified(): Date;
-    get created(): Date;
-    private get urlObject();
-    get url(): string;
-    get icon(): string | null;
-    get size(): number;
+    readonly id: string;
+    readonly name: string;
+    readonly lastModified: Date;
+    readonly created: Date;
+    private readonly urlObject;
+    readonly url: string;
+    readonly icon: string | null;
+    readonly size: number;
     dispatchChangeEvent(): void;
     addOnChangeListener(listener: (file: File) => void): void;
     removeOnChangeListener(listener: (file: File) => void): void;

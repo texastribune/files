@@ -11,10 +11,9 @@ export declare class BreadCrumbs extends CustomElement {
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
-    get css(): string;
-    get crumbs(): Iterable<HTMLAnchorElement>;
-    get path(): string[];
-    set path(value: string[]);
+    readonly css: string;
+    readonly crumbs: Iterable<HTMLAnchorElement>;
+    path: string[];
     buildCrumb(path: string[]): HTMLLIElement;
     buildDelimiter(char: string): HTMLElement;
 }

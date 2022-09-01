@@ -3,23 +3,23 @@ import "./breadCrumbs.js";
 import "./messages.js";
 import "./search.js";
 import "./contextMenu.js";
-import "./elements/table.js";
-import "./elements/dialog.js";
+import "./elements/table";
+import "./elements/dialog";
 
 import {BreadCrumbs} from "./breadCrumbs.js";
 import {Message} from "./messages.js";
 import {Directory, File, FileNotFoundError, SearchResult} from "../files/base.js";
 import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath} from "../utils.js";
 import * as icons from './icons.js';
-import {ConfirmDialog} from "./elements/dialog.js";
-import {TextData, TimeData, AbstractTableData, Header, Row, Table} from "./elements/table.js";
+import {ConfirmDialog} from "./elements/dialog";
+import {TextData, TimeData, AbstractTableData, Header, Row, Table} from "./elements/table";
 import {MemoryDirectory} from "../files/memory.js";
 import {CachedProxyRootDirectory, CachedProxyDirectoryBase} from "../files/proxy.js";
 import {SearchBar} from "./search.js";
 import {Process} from "../processes/base.js";
 import {ConsoleFile} from "../devices/console.js";
 import {ContextMenu} from "./contextMenu.js";
-import {CustomElement} from "./elements/element.js";
+import {CustomElement} from "./elements/element";
 
 
 export class FileSizeTableData extends AbstractTableData<File | null> {
@@ -52,14 +52,15 @@ export class FileTableData extends AbstractTableData<File | null> {
   private readonly iconContainer : HTMLSpanElement;
 
   static hoverImageClass = 'hover-image';
+  static docIconClass = 'doc-and-folder-icon';
 
   constructor(){
     super();
     this.folderIcon = createNode(icons.folderIcon) as SVGSVGElement;
-    this.folderIcon.classList.add(FileBrowser.tableIconClass);
+    this.folderIcon.classList.add(FileTableData.docIconClass);
 
     this.documentIcon = createNode(icons.documentIcon) as SVGSVGElement;
-    this.documentIcon.classList.add(FileBrowser.tableIconClass);
+    this.documentIcon.classList.add(FileTableData.docIconClass);
 
     this.file = null;
     this.iconContainer = document.createElement('span');
@@ -125,7 +126,7 @@ export class FileTableData extends AbstractTableData<File | null> {
 
   get css(): string {
     // language=CSS
-    return super.css + `        
+    return super.css + `
        .${FileBrowser.tableIconClass} {
           display: inline-block;
           width: var(--icon-size, 22px);
@@ -134,12 +135,21 @@ export class FileTableData extends AbstractTableData<File | null> {
           margin: 5px;
           fill: var(--icon-color, black);
         }
+
+        .${FileTableData.docIconClass} {
+          display: inline-block;
+          width: var(--doc-icon-width, 22px);
+          height: var(--doc-icon-height, 22px);
+          vertical-align: middle;
+          margin: 5px;
+          fill: var(--doc-icon-color, black);
+        }
         
         .${FileTableData.hoverImageClass} {
           position: absolute;
           top: 50%;
-          transform: translate(0%, -50%);
-          max-height: 90%;
+          transform: translate(0%, -70%);
+          height: 400px;
           z-index: 99999;
           background-color: white;
           border: 1px solid black;
@@ -226,6 +236,7 @@ export class FileBrowser extends CustomElement {
   // Class names
   static actionsContainerId = 'file-actions-container';
   static tableIconClass = 'icon';
+  static dropdownMenuIconClass = 'dropdown-icon';
   static activeAjaxClass = 'ajax-active';
   static messageContainerId = 'file-message-container';
   static menuContainerId = 'file-menu-container';
@@ -292,7 +303,7 @@ export class FileBrowser extends CustomElement {
     this.breadCrumbs = this.getNewBreadCrumbs();
 
     this.dropdownMenuIcon = createNode(icons.dropdownMenuIcon);
-    this.dropdownMenuIcon.classList.add(FileBrowser.tableIconClass);
+    this.dropdownMenuIcon.classList.add(FileBrowser.dropdownMenuIconClass);
 
     this.carrotIcon = createNode(icons.carrotIcon);
     this.carrotIcon.classList.add(FileBrowser.tableIconClass);
@@ -556,7 +567,6 @@ export class FileBrowser extends CustomElement {
             margin: auto;
         }
        
-
         .${FileBrowser.tableIconClass} {
           display: inline-block;
           width: var(--icon-size, 22px);
@@ -564,6 +574,15 @@ export class FileBrowser extends CustomElement {
           vertical-align: middle;
           margin: 5px;
           fill: var(--icon-color, black);
+        }
+
+        .${FileBrowser.dropdownMenuIconClass} {
+          display: inline-block;
+          width: var(--dropdown-icon-size, 22px);
+          height: var(--dropdown-icon-size, 22px);
+          vertical-align: middle;
+          margin: 5px;
+          fill: var(--dropdown-icon-color, black);
         }
 
         

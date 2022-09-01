@@ -6,9 +6,9 @@ export declare class DeviceDirectory extends files.Directory {
     readonly extra: {};
     private readonly extraChildren;
     constructor();
-    get name(): string;
-    get id(): string;
-    get icon(): null;
+    readonly name: string;
+    readonly id: string;
+    readonly icon: null;
     getChildren(): Promise<files.File[]>;
     addDirectory(name: string): Promise<files.Directory>;
     addFile(fileData: ArrayBuffer, filename: string, mimeType?: string): Promise<files.File>;
