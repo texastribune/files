@@ -119,7 +119,7 @@ export class ContextMenu extends Dialog {
     renameButton.onclick = () => {
       browser.logAndLoadWrapper(
         (async () => {
-          let newName = prompt("New Name");
+          let newName = prompt("New Name", selectedFile.name);
           if (newName !== null) {
             this.visible = false;
             await selectedFile.rename(newName);

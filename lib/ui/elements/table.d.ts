@@ -222,7 +222,7 @@ declare const Row_base: {
         ondurationchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onemptied: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onended: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-        onerror: OnErrorEventHandler;
+        onerror: ErrorEventHandler;
         onfocus: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null;
         ongotpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
         oninput: ((this: GlobalEventHandlers, ev: Event) => any) | null;
@@ -493,7 +493,7 @@ declare const Row_base: {
         ondurationchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onemptied: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onended: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-        onerror: OnErrorEventHandler;
+        onerror: ErrorEventHandler;
         onfocus: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null;
         ongotpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
         oninput: ((this: GlobalEventHandlers, ev: Event) => any) | null;
@@ -816,7 +816,7 @@ declare const Table_base: {
         ondurationchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onemptied: ((this: GlobalEventHandlers, ev: Event) => any) | null;
         onended: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-        onerror: OnErrorEventHandler;
+        onerror: ErrorEventHandler;
         onfocus: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null;
         ongotpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
         oninput: ((this: GlobalEventHandlers, ev: Event) => any) | null;
