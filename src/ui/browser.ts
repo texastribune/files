@@ -286,6 +286,7 @@ export class FileBrowser extends CustomElement {
 
   private readonly table: Table;
   private readonly dropdownMenuIcon: Element;
+  private readonly upLevelIcon: Element;
   private readonly carrotIcon: Element;
 
   private readonly cutAndCopyListener : (event: ClipboardEvent) => void;
@@ -304,6 +305,9 @@ export class FileBrowser extends CustomElement {
 
     this.dropdownMenuIcon = createNode(icons.dropdownMenuIcon);
     this.dropdownMenuIcon.classList.add(FileBrowser.dropdownMenuIconClass);
+
+    this.upLevelIcon = createNode(icons.upLevelIcon);
+    this.upLevelIcon.classList.add(FileBrowser.dropdownMenuIconClass);
 
     this.carrotIcon = createNode(icons.carrotIcon);
     this.carrotIcon.classList.add(FileBrowser.tableIconClass);
@@ -327,7 +331,15 @@ export class FileBrowser extends CustomElement {
       let rect = contextMenuButton.getBoundingClientRect();
       this.showContextMenu(rect.left, rect.bottom);
     };
+    let upLevelButton = document.createElement('div');
+    upLevelButton.className = FileBrowser.buttonClass;
+    upLevelButton.appendChild(this.upLevelIcon.cloneNode(true));
+    upLevelButton.onclick = (event) => {
+      event.stopPropagation();
+      this.upLevel();
+    }
     this.menusContainer.appendChild(contextMenuButton);
+    this.menusContainer.appendChild(upLevelButton);
 
     this.searchElement = document.createElement('search-bar') as SearchBar;
 
@@ -1108,6 +1120,11 @@ export class FileBrowser extends CustomElement {
       clientY: positionY
     });
     this.dispatchEvent(event);
+  }
+
+  upLevel() {
+    console.log('up level!', this.filePath);
+    this.filePath = this.filePath.slice(0, -1);
   }
 
   execute(path : string[]){
