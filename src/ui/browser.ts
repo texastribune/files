@@ -1123,7 +1123,10 @@ export class FileBrowser extends CustomElement {
   }
 
   upLevel() {
-    console.log('up level!', this.filePath);
+    // if at root, do nothing
+    if (this.filePath.length <= 1) {
+      return
+    }
     this.filePath = this.filePath.slice(0, -1);
   }
 
