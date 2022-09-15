@@ -127,7 +127,7 @@ export class FileTableData extends AbstractTableData<File | null> {
   get css(): string {
     // language=CSS
     return super.css + `
-       .${FileBrowser.tableIconClass} {
+        .${FileBrowser.tableIconClass} {
           display: inline-block;
           width: var(--icon-size, 22px);
           height: var(--icon-size, 22px);
@@ -312,7 +312,7 @@ export class FileBrowser extends CustomElement {
     this.upLevelIcon.classList.add(FileBrowser.upLevelIconClass);
 
     this.carrotIcon = createNode(icons.carrotIcon);
-    this.carrotIcon.classList.add(FileBrowser.tableIconClass, FileBrowser.carrotIconClass, 'small');
+    this.carrotIcon.classList.add(FileBrowser.carrotIconClass);
 
     // Actions container
     this.actionsContainer = document.createElement('div');
@@ -540,13 +540,24 @@ export class FileBrowser extends CustomElement {
     return super.css + `
         :host {
           --top-row-height: 30px;
-          
+          --icon-size: 22px;
+          --icon-size-small: 12px;
+          --icon-color: black;
+
           --focus-item-color: #c0d5e8;
-          
           --message-height: 24px;
           --search-height: var(--top-row-height);
           --search-icon-size: var(--icon-size);
           --search-icon-color: var(--icon-color);
+          --dropdown-icon-size: var(--icon-size);
+          --dropdown-icon-color: var(--icon-color);
+          --uplevel-icon-size: var(--icon-size);
+          --uplevel-icon-color: var(--icon-color);
+          --carrot-icon-size: var(--icon-size-small);
+          --carrot-icon-color: var(--icon-color);
+          --doc-icon-height: var(--icon-size);
+          --doc-icon-width: var(--icon-size);
+          --doc-icon-color: var(--icon-color);
           --table-body-text-color: var(--body-text-color);
           --dialog-header-height: 28px;
           --dialog-header-background-color: var(--focus-item-color);
@@ -591,8 +602,8 @@ export class FileBrowser extends CustomElement {
 
         .${FileBrowser.dropdownMenuIconClass} {
           display: inline-block;
-          width: var(--dropdown-icon-size, var(--icon-size, 22px));
-          height: var(--dropdown-icon-size, var(--icon-size, 22px));
+          width: var(--dropdown-icon-size);
+          height: var(--dropdown-icon-size);
           vertical-align: middle;
           margin: 5px;
           fill: var(--dropdown-icon-color, black);
@@ -600,8 +611,8 @@ export class FileBrowser extends CustomElement {
 
         .${FileBrowser.upLevelIconClass} {
           display: inline-block;
-          width: var(--uplevel-icon-size, var(--icon-size, 22px));
-          height: var(--uplevel-icon-size, var(--icon-size, 22px));
+          width: var(--uplevel-icon-size);
+          height: var(--uplevel-icon-size);
           vertical-align: middle;
           margin: 5px;
           fill: var(--uplevel-icon-color, black);
@@ -622,7 +633,12 @@ export class FileBrowser extends CustomElement {
         }
 
         .${FileBrowser.carrotIconClass} {
-          margin-left: -1px;
+          display: inline-block;
+          width: var(--carrot-icon-size);
+          height: var(--carrot-icon-size);
+          vertical-align: middle;
+          margin: 5px 5px 5px -1px;
+          fill: var(--carrot-icon-color, black);
         }
 
         .${FileBrowser.tableIconClass}.large {
