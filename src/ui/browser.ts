@@ -237,6 +237,7 @@ export class FileBrowser extends CustomElement {
   static actionsContainerId = 'file-actions-container';
   static tableIconClass = 'icon';
   static dropdownMenuIconClass = 'dropdown-icon';
+  static upLevelIconClass = 'uplevel-icon';
   static activeAjaxClass = 'ajax-active';
   static messageContainerId = 'file-message-container';
   static menuContainerId = 'file-menu-container';
@@ -308,7 +309,7 @@ export class FileBrowser extends CustomElement {
     this.dropdownMenuIcon.classList.add(FileBrowser.dropdownMenuIconClass);
 
     this.upLevelIcon = createNode(icons.upLevelIcon);
-    this.upLevelIcon.classList.add(FileBrowser.dropdownMenuIconClass);
+    this.upLevelIcon.classList.add(FileBrowser.upLevelIconClass);
 
     this.carrotIcon = createNode(icons.carrotIcon);
     this.carrotIcon.classList.add(FileBrowser.tableIconClass, FileBrowser.carrotIconClass, 'small');
@@ -590,13 +591,21 @@ export class FileBrowser extends CustomElement {
 
         .${FileBrowser.dropdownMenuIconClass} {
           display: inline-block;
-          width: var(--dropdown-icon-size, 22px);
-          height: var(--dropdown-icon-size, 22px);
+          width: var(--dropdown-icon-size, var(--icon-size, 22px));
+          height: var(--dropdown-icon-size, var(--icon-size, 22px));
           vertical-align: middle;
           margin: 5px;
           fill: var(--dropdown-icon-color, black);
         }
 
+        .${FileBrowser.upLevelIconClass} {
+          display: inline-block;
+          width: var(--uplevel-icon-size, var(--icon-size, 22px));
+          height: var(--uplevel-icon-size, var(--icon-size, 22px));
+          vertical-align: middle;
+          margin: 5px;
+          fill: var(--uplevel-icon-color, black);
+        }
         
         #${FileBrowser.actionsContainerId} {
             width: 100%;
