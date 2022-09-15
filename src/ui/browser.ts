@@ -245,6 +245,7 @@ export class FileBrowser extends CustomElement {
   static overlayId = 'overlay';
   static buttonClass = 'button';
   static gridItemClass = 'grid-item';
+  static carrotIconClass = 'carrot-icon';
 
   static dataTransferType = 'text/table-rows';
 
@@ -310,8 +311,7 @@ export class FileBrowser extends CustomElement {
     this.upLevelIcon.classList.add(FileBrowser.dropdownMenuIconClass);
 
     this.carrotIcon = createNode(icons.carrotIcon);
-    this.carrotIcon.classList.add(FileBrowser.tableIconClass);
-    this.carrotIcon.classList.add('small');
+    this.carrotIcon.classList.add(FileBrowser.tableIconClass, FileBrowser.carrotIconClass, 'small');
 
     // Actions container
     this.actionsContainer = document.createElement('div');
@@ -610,6 +610,10 @@ export class FileBrowser extends CustomElement {
         .${FileBrowser.tableIconClass}.small {
           width: var(--icon-size-small, 12px);
           height: var(--icon-size-small, 12px);
+        }
+
+        .${FileBrowser.carrotIconClass} {
+          margin-left: -1px;
         }
 
         .${FileBrowser.tableIconClass}.large {
