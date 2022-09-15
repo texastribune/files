@@ -238,6 +238,7 @@ export class FileBrowser extends CustomElement {
   static tableIconClass = 'icon';
   static dropdownMenuIconClass = 'dropdown-icon';
   static upLevelIconClass = 'uplevel-icon';
+  static leftSpaceClass = 'left-space';
   static activeAjaxClass = 'ajax-active';
   static messageContainerId = 'file-message-container';
   static menuContainerId = 'file-menu-container';
@@ -333,7 +334,7 @@ export class FileBrowser extends CustomElement {
       this.showContextMenu(rect.left, rect.bottom);
     };
     let upLevelButton = document.createElement('div');
-    upLevelButton.className = FileBrowser.buttonClass;
+    upLevelButton.classList.add(FileBrowser.buttonClass, FileBrowser.leftSpaceClass)
     upLevelButton.appendChild(this.upLevelIcon.cloneNode(true));
     upLevelButton.onclick = (event) => {
       event.stopPropagation();
@@ -660,6 +661,10 @@ export class FileBrowser extends CustomElement {
           background-color: var(--button-color);
           height: var(--button-height);
           line-height: var(--button-height);
+        }
+
+        .${FileBrowser.leftSpaceClass} {
+          margin-left: calc(var(--icon-size) / 7);
         }
         
         .${FileBrowser.buttonClass}:hover {

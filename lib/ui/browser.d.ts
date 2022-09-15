@@ -44,6 +44,7 @@ export declare class FileBrowser extends CustomElement {
     static tableIconClass: string;
     static dropdownMenuIconClass: string;
     static upLevelIconClass: string;
+    static leftSpaceClass: string;
     static activeAjaxClass: string;
     static messageContainerId: string;
     static menuContainerId: string;
