@@ -51,6 +51,7 @@ export declare class FileBrowser extends CustomElement {
     static overlayId: string;
     static buttonClass: string;
     static gridItemClass: string;
+    static carrotIconClass: string;
     static dataTransferType: string;
     static showHiddenAttribute: string;
     static selectMultipleAttribute: string;
@@ -82,6 +83,7 @@ export declare class FileBrowser extends CustomElement {
     private cachedCurrentDirectory;
     private readonly table;
     private readonly dropdownMenuIcon;
+    private readonly upLevelIcon;
     private readonly carrotIcon;
     private readonly cutAndCopyListener;
     private readonly pasteListener;
@@ -133,6 +135,7 @@ export declare class FileBrowser extends CustomElement {
     search(searchTerm: string): void;
     showVisibleColumnsDialog(positionX: number, positionY: number): void;
     showContextMenu(positionX: number, positionY: number): void;
+    upLevel(): void;
     execute(path: string[]): void;
     addMessage(message: Error | string, isError?: boolean): void;
     clearMessages(): void;
