@@ -11,8 +11,7 @@ import { CachedProxyDirectoryBase } from "../files/proxy.js";
 import { CustomElement } from "./elements/element";
 export declare class FileSizeTableData extends AbstractTableData<File | null> {
     private file;
-    get data(): File | null;
-    set data(value: File | null);
+    data: File | null;
     compare(dataElement: AbstractTableData<File | null>): number;
 }
 export declare class FileTableData extends AbstractTableData<File | null> {
@@ -23,14 +22,12 @@ export declare class FileTableData extends AbstractTableData<File | null> {
     static hoverImageClass: string;
     static docIconClass: string;
     constructor();
-    get data(): File | null;
-    set data(value: File | null);
-    get css(): string;
+    data: File | null;
+    readonly css: string;
     compare(dataElement: AbstractTableData<File | null>): number;
 }
 export declare class PathTableData extends AbstractTableData<string[]> {
-    get data(): string[];
-    set data(value: string[]);
+    data: string[];
     compare(dataElement: AbstractTableData<string[]>): number;
 }
 export interface RowData {
@@ -95,23 +92,19 @@ export declare class FileBrowser extends CustomElement {
     private readonly cutAndCopyListener;
     private readonly pasteListener;
     constructor();
-    static get observedAttributes(): string[];
-    get rootDirectory(): Directory;
-    set rootDirectory(value: Directory);
-    get currentDirectory(): Directory;
+    static readonly observedAttributes: string[];
+    rootDirectory: Directory;
+    readonly currentDirectory: Directory;
     protected setCurrentDirectory<T extends Directory>(value: CachedProxyDirectoryBase<T>): void;
-    get files(): File[];
-    get selectedFileRows(): Row[];
-    get selectedRowData(): RowData[];
-    get selectedFiles(): File[];
-    get selectedPaths(): string[][];
-    get filePath(): string[];
-    set filePath(path: string[]);
-    get selectMultiple(): boolean;
-    set selectMultiple(value: boolean);
-    get showHidden(): boolean;
-    set showHidden(value: boolean);
-    get css(): string;
+    readonly files: File[];
+    readonly selectedFileRows: Row[];
+    readonly selectedRowData: RowData[];
+    readonly selectedFiles: File[];
+    readonly selectedPaths: string[][];
+    filePath: string[];
+    selectMultiple: boolean;
+    showHidden: boolean;
+    readonly css: string;
     connectedCallback(): void;
     disconnectedCallback(): void;
     updateFromAttributes(attributes: {

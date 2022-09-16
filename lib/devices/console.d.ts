@@ -4,12 +4,12 @@ export declare class ConsoleFile extends files.BasicFile {
     readonly lastModified: Date;
     readonly extra: {};
     constructor();
-    get id(): string;
-    get name(): string;
-    get icon(): null;
-    get url(): null;
-    get mimeType(): string;
-    get size(): number;
+    readonly id: string;
+    readonly name: string;
+    readonly icon: null;
+    readonly url: null;
+    readonly mimeType: string;
+    readonly size: number;
     read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     delete(): Promise<void>;

@@ -11,7 +11,7 @@ declare class Database {
      * nothing.
      * @returns {function[]} - An array of functions the either can return nothing or a promise.
      */
-    get migrations(): ((db: IDBDatabase, transaction: IDBTransaction) => Promise<void>)[];
+    readonly migrations: ((db: IDBDatabase, transaction: IDBTransaction) => Promise<void>)[];
     getDB(): Promise<IDBDatabase>;
     close(): Promise<void>;
     clearAll(): Promise<void>;
@@ -31,7 +31,7 @@ declare class FileStore extends Database {
     private readonly objectStoreName;
     private readonly onFileChangeListeners;
     constructor(databaseName: string, storeName: string);
-    get migrations(): ((db: IDBDatabase, transaction: IDBTransaction) => Promise<void>)[];
+    readonly migrations: ((db: IDBDatabase, transaction: IDBTransaction) => Promise<void>)[];
     private onChange;
     addOnFilesChangedListener(listener: (id: number | null) => void): void;
     removeOnFilesChangedListener(listener: (id: number | null) => void): void;
@@ -61,10 +61,10 @@ export declare class LocalStorageFile extends files.BasicFile {
     readonly icon: null;
     extra: {};
     constructor(databaseData: FileData);
-    get id(): string;
-    get name(): string;
-    get lastModified(): Date;
-    get size(): number;
+    readonly id: string;
+    readonly name: string;
+    readonly lastModified: Date;
+    readonly size: number;
     addOnChangeListener(listener: (file: File) => void): void;
     removeOnChangeListener(listener: (file: File) => void): void;
     read(): Promise<ArrayBuffer>;
@@ -86,9 +86,9 @@ export declare class LocalStorageDirectory extends files.Directory {
     readonly icon: null;
     extra: {};
     constructor(databaseData: FileData);
-    get id(): string;
-    get name(): string;
-    get lastModified(): Date;
+    readonly id: string;
+    readonly name: string;
+    readonly lastModified: Date;
     addOnChangeListener(listener: (file: File) => void): void;
     removeOnChangeListener(listener: (file: File) => void): void;
     rename(newName: string): Promise<void>;
@@ -101,7 +101,6 @@ export declare class LocalStorageDirectory extends files.Directory {
 export declare class LocalStorageRoot extends LocalStorageDirectory {
     static id: string;
     constructor();
-    get name(): string;
-    set name(value: string);
+    name: string;
 }
 export {};

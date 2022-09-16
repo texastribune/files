@@ -58,7 +58,7 @@ export declare class PhotoshelterAPI {
     private readonly apiKey;
     private authToken;
     constructor(email: string, password: string, apikey: string);
-    static get url(): URL;
+    static readonly url: URL;
     _getAuthToken(): Promise<string>;
     getHeaders(): Promise<Headers>;
     private get;

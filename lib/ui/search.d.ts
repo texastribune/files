@@ -13,13 +13,12 @@ export declare class SearchBar extends CustomElement {
      */
     static DEFAULT_DEBOUNCE: number;
     constructor();
-    get css(): string;
-    static get observedAttributes(): string[];
+    readonly css: string;
+    static readonly observedAttributes: string[];
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;
     private dispatchSearchEvent;
-    get value(): string;
-    get debounce(): number | null;
-    set debounce(value: number | null);
+    readonly value: string;
+    debounce: number | null;
 }
