@@ -671,7 +671,7 @@ export class FileBrowser extends CustomElement {
         }
 
         .${FileBrowser.buttonClass}.${FileBrowser.disabledClass} {
-          opacity: 0.5;
+          opacity: 0.4;
           cursor: default;
         }
 
