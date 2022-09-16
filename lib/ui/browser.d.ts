@@ -52,6 +52,7 @@ export declare class FileBrowser extends CustomElement {
     static tableId: string;
     static overlayId: string;
     static buttonClass: string;
+    static disabledClass: string;
     static gridItemClass: string;
     static carrotIconClass: string;
     static dataTransferType: string;
@@ -86,6 +87,7 @@ export declare class FileBrowser extends CustomElement {
     private readonly table;
     private readonly dropdownMenuIcon;
     private readonly upLevelIcon;
+    private readonly upLevelButton;
     private readonly carrotIcon;
     private readonly cutAndCopyListener;
     private readonly pasteListener;
@@ -122,6 +124,7 @@ export declare class FileBrowser extends CustomElement {
     logAndLoadWrapper(promise: Promise<any>): Promise<void>;
     private copyUrl;
     private moveFiles;
+    private enableUpLevelButton;
     private copyFiles;
     handleDataTransfer(dataTransfer: DataTransfer): void;
     onOpen(rowData: RowData): void;
