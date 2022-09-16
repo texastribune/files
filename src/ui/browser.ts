@@ -246,6 +246,7 @@ export class FileBrowser extends CustomElement {
   static tableId = 'table';
   static overlayId = 'overlay';
   static buttonClass = 'button';
+  static disabledClass = 'disabled';
   static gridItemClass = 'grid-item';
   static carrotIconClass = 'carrot-icon';
 
@@ -290,6 +291,7 @@ export class FileBrowser extends CustomElement {
   private readonly table: Table;
   private readonly dropdownMenuIcon: Element;
   private readonly upLevelIcon: Element;
+  private readonly upLevelButton: HTMLElement;
   private readonly carrotIcon: Element;
 
   private readonly cutAndCopyListener : (event: ClipboardEvent) => void;
@@ -333,15 +335,15 @@ export class FileBrowser extends CustomElement {
       let rect = contextMenuButton.getBoundingClientRect();
       this.showContextMenu(rect.left, rect.bottom);
     };
-    let upLevelButton = document.createElement('div');
-    upLevelButton.classList.add(FileBrowser.buttonClass, FileBrowser.leftSpaceClass)
-    upLevelButton.appendChild(this.upLevelIcon.cloneNode(true));
-    upLevelButton.onclick = (event) => {
+    this.upLevelButton = document.createElement('div');
+    this.upLevelButton.classList.add(FileBrowser.buttonClass, FileBrowser.leftSpaceClass)
+    this.upLevelButton.appendChild(this.upLevelIcon.cloneNode(true));
+    this.upLevelButton.onclick = (event) => {
       event.stopPropagation();
       this.upLevel();
     }
     this.menusContainer.appendChild(contextMenuButton);
-    this.menusContainer.appendChild(upLevelButton);
+    this.menusContainer.appendChild(this.upLevelButton);
 
     this.searchElement = document.createElement('search-bar') as SearchBar;
 
@@ -453,7 +455,7 @@ export class FileBrowser extends CustomElement {
     });
     this.logAndLoadWrapper(this.refreshFiles());
     this.breadCrumbs.path = this.filePath;
-
+    this.enableUpLevelButton(this.filePath);
     let event = new Event(FileBrowser.EVENT_DIRECTORY_CHANGE, {bubbles: true});
     this.dispatchEvent(event);
   }
@@ -661,15 +663,23 @@ export class FileBrowser extends CustomElement {
           background-color: var(--button-color);
           height: var(--button-height);
           line-height: var(--button-height);
+          cursor: pointer;
+        }
+
+        .${FileBrowser.buttonClass}:not(.${FileBrowser.disabledClass}):hover {
+          background-color: var(--button-hover-color);
+        }
+
+        .${FileBrowser.buttonClass}.${FileBrowser.disabledClass} {
+          opacity: 0.5;
+          cursor: default;
         }
 
         .${FileBrowser.leftSpaceClass} {
           margin-left: calc(var(--icon-size) / 7);
         }
         
-        .${FileBrowser.buttonClass}:hover {
-            background-color: var(--button-hover-color);
-        }
+
         
         #${FileBrowser.bodyContainerId} {
             position: relative;
@@ -816,6 +826,18 @@ export class FileBrowser extends CustomElement {
     document.body.appendChild(moveConfirmDialog);
     moveConfirmDialog.visible = true;
     moveConfirmDialog.center();
+  }
+
+  private enableUpLevelButton(filepath: string[]) {
+    // add disabled styles if at root
+    if (filepath.length <= 1){
+      this.upLevelButton.classList.add(FileBrowser.disabledClass)
+      return
+    }
+    // otherwise remove disabled styles
+    if (this.upLevelButton.classList.contains(FileBrowser.disabledClass)){
+      this.upLevelButton.classList.remove(FileBrowser.disabledClass)
+    }
   }
 
   private copyFiles(files : File[]) {
