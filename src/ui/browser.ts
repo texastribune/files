@@ -127,7 +127,7 @@ export class FileTableData extends AbstractTableData<File | null> {
   get css(): string {
     // language=CSS
     return super.css + `
-       .${FileBrowser.tableIconClass} {
+        .${FileBrowser.tableIconClass} {
           display: inline-block;
           width: var(--icon-size, 22px);
           height: var(--icon-size, 22px);
@@ -237,6 +237,8 @@ export class FileBrowser extends CustomElement {
   static actionsContainerId = 'file-actions-container';
   static tableIconClass = 'icon';
   static dropdownMenuIconClass = 'dropdown-icon';
+  static upLevelIconClass = 'uplevel-icon';
+  static leftSpaceClass = 'left-space';
   static activeAjaxClass = 'ajax-active';
   static messageContainerId = 'file-message-container';
   static menuContainerId = 'file-menu-container';
@@ -244,7 +246,9 @@ export class FileBrowser extends CustomElement {
   static tableId = 'table';
   static overlayId = 'overlay';
   static buttonClass = 'button';
+  static disabledClass = 'disabled';
   static gridItemClass = 'grid-item';
+  static carrotIconClass = 'carrot-icon';
 
   static dataTransferType = 'text/table-rows';
 
@@ -286,6 +290,8 @@ export class FileBrowser extends CustomElement {
 
   private readonly table: Table;
   private readonly dropdownMenuIcon: Element;
+  private readonly upLevelIcon: Element;
+  private readonly upLevelButton: HTMLElement;
   private readonly carrotIcon: Element;
 
   private readonly cutAndCopyListener : (event: ClipboardEvent) => void;
@@ -305,9 +311,11 @@ export class FileBrowser extends CustomElement {
     this.dropdownMenuIcon = createNode(icons.dropdownMenuIcon);
     this.dropdownMenuIcon.classList.add(FileBrowser.dropdownMenuIconClass);
 
+    this.upLevelIcon = createNode(icons.upLevelIcon);
+    this.upLevelIcon.classList.add(FileBrowser.upLevelIconClass);
+
     this.carrotIcon = createNode(icons.carrotIcon);
-    this.carrotIcon.classList.add(FileBrowser.tableIconClass);
-    this.carrotIcon.classList.add('small');
+    this.carrotIcon.classList.add(FileBrowser.carrotIconClass);
 
     // Actions container
     this.actionsContainer = document.createElement('div');
@@ -327,7 +335,15 @@ export class FileBrowser extends CustomElement {
       let rect = contextMenuButton.getBoundingClientRect();
       this.showContextMenu(rect.left, rect.bottom);
     };
+    this.upLevelButton = document.createElement('div');
+    this.upLevelButton.classList.add(FileBrowser.buttonClass, FileBrowser.leftSpaceClass)
+    this.upLevelButton.appendChild(this.upLevelIcon.cloneNode(true));
+    this.upLevelButton.onclick = (event) => {
+      event.stopPropagation();
+      this.upLevel();
+    }
     this.menusContainer.appendChild(contextMenuButton);
+    this.menusContainer.appendChild(this.upLevelButton);
 
     this.searchElement = document.createElement('search-bar') as SearchBar;
 
@@ -439,7 +455,7 @@ export class FileBrowser extends CustomElement {
     });
     this.logAndLoadWrapper(this.refreshFiles());
     this.breadCrumbs.path = this.filePath;
-
+    this.enableUpLevelButton(this.filePath);
     let event = new Event(FileBrowser.EVENT_DIRECTORY_CHANGE, {bubbles: true});
     this.dispatchEvent(event);
   }
@@ -527,13 +543,24 @@ export class FileBrowser extends CustomElement {
     return super.css + `
         :host {
           --top-row-height: 30px;
-          
+          --icon-size: 22px;
+          --icon-size-small: 12px;
+          --icon-color: black;
+
           --focus-item-color: #c0d5e8;
-          
           --message-height: 24px;
           --search-height: var(--top-row-height);
           --search-icon-size: var(--icon-size);
           --search-icon-color: var(--icon-color);
+          --dropdown-icon-size: var(--icon-size);
+          --dropdown-icon-color: var(--icon-color);
+          --uplevel-icon-size: var(--icon-size);
+          --uplevel-icon-color: var(--icon-color);
+          --carrot-icon-size: var(--icon-size-small);
+          --carrot-icon-color: var(--icon-color);
+          --doc-icon-height: var(--icon-size);
+          --doc-icon-width: var(--icon-size);
+          --doc-icon-color: var(--icon-color);
           --table-body-text-color: var(--body-text-color);
           --dialog-header-height: 28px;
           --dialog-header-background-color: var(--focus-item-color);
@@ -578,13 +605,21 @@ export class FileBrowser extends CustomElement {
 
         .${FileBrowser.dropdownMenuIconClass} {
           display: inline-block;
-          width: var(--dropdown-icon-size, 22px);
-          height: var(--dropdown-icon-size, 22px);
+          width: var(--dropdown-icon-size);
+          height: var(--dropdown-icon-size);
           vertical-align: middle;
           margin: 5px;
           fill: var(--dropdown-icon-color, black);
         }
 
+        .${FileBrowser.upLevelIconClass} {
+          display: inline-block;
+          width: var(--uplevel-icon-size);
+          height: var(--uplevel-icon-size);
+          vertical-align: middle;
+          margin: 5px;
+          fill: var(--uplevel-icon-color, black);
+        }
         
         #${FileBrowser.actionsContainerId} {
             width: 100%;
@@ -598,6 +633,15 @@ export class FileBrowser extends CustomElement {
         .${FileBrowser.tableIconClass}.small {
           width: var(--icon-size-small, 12px);
           height: var(--icon-size-small, 12px);
+        }
+
+        .${FileBrowser.carrotIconClass} {
+          display: inline-block;
+          width: var(--carrot-icon-size);
+          height: var(--carrot-icon-size);
+          vertical-align: middle;
+          margin: 5px 5px 5px -1px;
+          fill: var(--carrot-icon-color, black);
         }
 
         .${FileBrowser.tableIconClass}.large {
@@ -619,11 +663,23 @@ export class FileBrowser extends CustomElement {
           background-color: var(--button-color);
           height: var(--button-height);
           line-height: var(--button-height);
+          cursor: pointer;
+        }
+
+        .${FileBrowser.buttonClass}:not(.${FileBrowser.disabledClass}):hover {
+          background-color: var(--button-hover-color);
+        }
+
+        .${FileBrowser.buttonClass}.${FileBrowser.disabledClass} {
+          opacity: 0.4;
+          cursor: default;
+        }
+
+        .${FileBrowser.leftSpaceClass} {
+          margin-left: calc(var(--icon-size) / 7);
         }
         
-        .${FileBrowser.buttonClass}:hover {
-            background-color: var(--button-hover-color);
-        }
+
         
         #${FileBrowser.bodyContainerId} {
             position: relative;
@@ -770,6 +826,18 @@ export class FileBrowser extends CustomElement {
     document.body.appendChild(moveConfirmDialog);
     moveConfirmDialog.visible = true;
     moveConfirmDialog.center();
+  }
+
+  private enableUpLevelButton(filepath: string[]) {
+    // add disabled styles if at root
+    if (filepath.length <= 1){
+      this.upLevelButton.classList.add(FileBrowser.disabledClass)
+      return
+    }
+    // otherwise remove disabled styles
+    if (this.upLevelButton.classList.contains(FileBrowser.disabledClass)){
+      this.upLevelButton.classList.remove(FileBrowser.disabledClass)
+    }
   }
 
   private copyFiles(files : File[]) {
@@ -1108,6 +1176,14 @@ export class FileBrowser extends CustomElement {
       clientY: positionY
     });
     this.dispatchEvent(event);
+  }
+
+  upLevel() {
+    // if at root, do nothing
+    if (this.filePath.length <= 1) {
+      return
+    }
+    this.filePath = this.filePath.slice(0, -1);
   }
 
   execute(path : string[]){

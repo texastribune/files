@@ -91,8 +91,6 @@ Example usage:
 
 These are some of the main CSS variables that are available for modification:
 ```
-  --icon-size
-  --icon-color
   --table-row-height
   --table-body-row-height
   --table-header-height
@@ -100,11 +98,20 @@ These are some of the main CSS variables that are available for modification:
   --table-header-text-color
   --search-height
   --search-icon-size
+  --search-icon-color
+  --icon-size
+  --icon-color
   --dropdown-icon-size
   --dropdown-icon-color
+  --carrot-icon-size
+  --carrot-icon-color
+  --uplevel-icon-size
+  --uplevel-icon-color
   --doc-icon-width
   --doc-icon-height
   --dialog-item-text-color
+  --dialog-header-height
+  --dialog-header-background-color
   --body-text-color
   --browser-background;
   --button-color

@@ -43,6 +43,8 @@ export declare class FileBrowser extends CustomElement {
     static actionsContainerId: string;
     static tableIconClass: string;
     static dropdownMenuIconClass: string;
+    static upLevelIconClass: string;
+    static leftSpaceClass: string;
     static activeAjaxClass: string;
     static messageContainerId: string;
     static menuContainerId: string;
@@ -50,7 +52,9 @@ export declare class FileBrowser extends CustomElement {
     static tableId: string;
     static overlayId: string;
     static buttonClass: string;
+    static disabledClass: string;
     static gridItemClass: string;
+    static carrotIconClass: string;
     static dataTransferType: string;
     static showHiddenAttribute: string;
     static selectMultipleAttribute: string;
@@ -82,6 +86,8 @@ export declare class FileBrowser extends CustomElement {
     private cachedCurrentDirectory;
     private readonly table;
     private readonly dropdownMenuIcon;
+    private readonly upLevelIcon;
+    private readonly upLevelButton;
     private readonly carrotIcon;
     private readonly cutAndCopyListener;
     private readonly pasteListener;
@@ -118,6 +124,7 @@ export declare class FileBrowser extends CustomElement {
     logAndLoadWrapper(promise: Promise<any>): Promise<void>;
     private copyUrl;
     private moveFiles;
+    private enableUpLevelButton;
     private copyFiles;
     handleDataTransfer(dataTransfer: DataTransfer): void;
     onOpen(rowData: RowData): void;
@@ -133,6 +140,7 @@ export declare class FileBrowser extends CustomElement {
     search(searchTerm: string): void;
     showVisibleColumnsDialog(positionX: number, positionY: number): void;
     showContextMenu(positionX: number, positionY: number): void;
+    upLevel(): void;
     execute(path: string[]): void;
     addMessage(message: Error | string, isError?: boolean): void;
     clearMessages(): void;
