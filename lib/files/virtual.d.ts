@@ -11,8 +11,8 @@ declare abstract class AbstractVirtualDirectory<T extends files.Directory> exten
 export declare class VirtualDirectory<T extends files.Directory> extends AbstractVirtualDirectory<T> {
     protected readonly parent: AbstractVirtualDirectory<files.Directory>;
     constructor(concreteDirectory: T, parent: AbstractVirtualDirectory<files.Directory>);
-    readonly virtualRoot: AbstractVirtualRootDirectory<files.Directory>;
-    readonly path: string[];
+    get virtualRoot(): AbstractVirtualRootDirectory<files.Directory>;
+    get path(): string[];
 }
 interface MountPointData {
     directory: files.Directory;
@@ -25,7 +25,7 @@ declare abstract class AbstractVirtualRootDirectory<T extends files.Directory> e
     protected constructor(concreteDirectory: T, mounts: {
         [id: string]: MountPointData;
     });
-    readonly virtualRoot: this;
+    get virtualRoot(): this;
     mountTo(mountPoint: AbstractVirtualDirectory<files.Directory>, file: files.Directory): void;
     unmountFrom(mountPoint: files.File): void;
     getMountedData(id: string): MountPointData | null;
@@ -36,13 +36,13 @@ export declare class VirtualRootDirectory<T extends files.Directory> extends Abs
     constructor(concreteDirectory: T, mounts: {
         [id: string]: MountPointData;
     }, mountPoint: files.File, parent: AbstractVirtualDirectory<files.Directory>);
-    readonly path: string[];
-    readonly name: string;
+    get path(): string[];
+    get name(): string;
     unmount(): void;
 }
 export declare class VirtualFS<T extends files.Directory> extends AbstractVirtualRootDirectory<T> {
     constructor(concreteDirectory: T);
-    readonly path: string[];
-    readonly name: string;
+    get path(): string[];
+    get name(): string;
 }
 export {};

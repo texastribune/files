@@ -12,9 +12,9 @@ export declare abstract class CustomElement extends HTMLElement implements HTMLE
     protected readonly styleElement: HTMLStyleElement;
     private needsRefresh;
     protected constructor();
-    static readonly observedAttributes: string[];
-    readonly css: string;
-    readonly html: string;
+    static get observedAttributes(): string[];
+    get css(): string;
+    get html(): string;
     connectedCallback(): void;
     disconnectedCallback(): void;
     attributeChangedCallback(name: string, oldValue: string | null, newValue: any): void;

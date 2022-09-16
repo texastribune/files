@@ -4,8 +4,8 @@ export declare class LocalStorageDirectoryElement extends DirectoryElement {
     readonly directory: LocalStorageRoot;
     static nameAttribute: string;
     constructor();
-    static readonly observedAttributes: string[];
-    readonly name: string;
+    static get observedAttributes(): string[];
+    get name(): string;
     updateFromAttributes(attributes: {
         [p: string]: string | null;
     }): void;

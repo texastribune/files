@@ -3,7 +3,7 @@ import { File } from "../files/base.js";
 import { FileBrowser, RowData } from "./browser.js";
 export declare class ContextMenu extends Dialog {
     constructor();
-    readonly css: string;
+    get css(): string;
     getItems(browser: FileBrowser, selectedRowData: RowData[]): HTMLDivElement[];
     createOpenButton(browser: FileBrowser, rowData: RowData): HTMLDivElement;
     createCopyUrlButton(url: string): HTMLDivElement;

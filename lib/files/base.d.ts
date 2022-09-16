@@ -103,7 +103,7 @@ export declare abstract class BasicFile implements File {
     dispatchChangeEvent(): void;
     addOnChangeListener(listener: (file: File) => void): void;
     removeOnChangeListener(listener: (file: File) => void): void;
-    readonly directory: boolean;
+    get directory(): boolean;
     abstract read(): Promise<ArrayBuffer>;
     abstract write(data: ArrayBuffer): Promise<ArrayBuffer>;
     abstract rename(newName: string): Promise<void>;
@@ -126,11 +126,11 @@ export declare abstract class BasicFile implements File {
  * An object representing a directory.
  */
 export declare abstract class Directory extends BasicFile {
-    static readonly mimeType: string;
-    readonly directory: boolean;
-    readonly mimeType: string;
-    readonly size: number;
-    readonly url: string | null;
+    static get mimeType(): string;
+    get directory(): boolean;
+    get mimeType(): string;
+    get size(): number;
+    get url(): string | null;
     read(): Promise<ArrayBuffer>;
     write(data: ArrayBuffer): Promise<ArrayBuffer>;
     copy(targetDirectory: Directory): Promise<void>;

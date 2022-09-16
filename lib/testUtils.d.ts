@@ -10,7 +10,7 @@ export declare class MockBackendDirectory extends MemoryDirectory {
     static moveFileName: string;
     static searchFileName: string;
     private readonly apiChildren;
-    readonly url: string;
+    get url(): string;
     private getDirChildById;
     getById(id: string): Promise<files.File>;
     getChildren(): Promise<files.File[]>;
