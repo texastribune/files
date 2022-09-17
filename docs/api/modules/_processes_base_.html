@@ -2438,7 +2438,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">syscall<wbr>Table<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/6a235d0/src/processes/base.ts#L7">processes/base.ts:7</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/9ca139b/src/processes/base.ts#L7">processes/base.ts:7</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -2648,7 +2648,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Async<wbr>Function<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> =&nbsp;Object.getPrototypeOf(async function(){}).constructor</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/6a235d0/src/processes/base.ts#L5">processes/base.ts:5</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/9ca139b/src/processes/base.ts#L5">processes/base.ts:5</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2658,7 +2658,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">file<wbr>Descriptor<wbr>Counter<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;0</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/6a235d0/src/processes/base.ts#L75">processes/base.ts:75</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/9ca139b/src/processes/base.ts#L75">processes/base.ts:75</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2668,7 +2668,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">script<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"// wrap onmessage setup in function so that variables created (id, calls, etc.)// aren&#x27;t in worker script scope.onmessage &#x3D; function () {const AsyncFunction &#x3D; Object.getPrototypeOf(async function(){}).constructor;let id &#x3D; 0;const calls &#x3D; {};const system &#x3D; new Proxy({}, {get: function (obj, sysCallName) {// Make a system call &quot;prop&quot;return (...args) &#x3D;&gt; {return new Promise((resolve, reject) &#x3D;&gt; {id ++;calls[id] &#x3D; resolve;postMessage([id, sysCallName].concat(args));});}}});function initialize(e) {let func &#x3D; new AsyncFunction(&#x27;system&#x27;, e.data);func.bind(this)(system).then(() &#x3D;&gt; {return system.exit(&quot;&quot;);}).catch((error) &#x3D;&gt; {system.error(error.toString());console.log(error);});messageHandler &#x3D; handleCallReturn;}function handleCallReturn(e) {let id &#x3D; e.data[0];let data &#x3D; e.data[1];let sysCall &#x3D; calls[id];if (sysCall){delete calls[id];sysCall(data);}}let messageHandler &#x3D; initialize;return messageHandler;}();"</span><span class="tsd-signature-symbol"> =&nbsp;&#x60;// wrap onmessage setup in function so that variables created (id, calls, etc.)// aren&#x27;t in worker script scope.onmessage &#x3D; function () {const AsyncFunction &#x3D; Object.getPrototypeOf(async function(){}).constructor;let id &#x3D; 0;const calls &#x3D; {};const system &#x3D; new Proxy({}, {get: function (obj, sysCallName) {// Make a system call &quot;prop&quot;return (...args) &#x3D;&gt; {return new Promise((resolve, reject) &#x3D;&gt; {id ++;calls[id] &#x3D; resolve;postMessage([id, sysCallName].concat(args));});}}});function initialize(e) {let func &#x3D; new AsyncFunction(&#x27;system&#x27;, e.data);func.bind(this)(system).then(() &#x3D;&gt; {return system.exit(&quot;&quot;);}).catch((error) &#x3D;&gt; {system.error(error.toString());console.log(error);});messageHandler &#x3D; handleCallReturn;}function handleCallReturn(e) {let id &#x3D; e.data[0];let data &#x3D; e.data[1];let sysCall &#x3D; calls[id];if (sysCall){delete calls[id];sysCall(data);}}let messageHandler &#x3D; initialize;return messageHandler;}();&#x60;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/texastribune/files/blob/6a235d0/src/processes/base.ts#L24">processes/base.ts:24</a></li>
+						<li>Defined in <a href="https://github.com/texastribune/files/blob/9ca139b/src/processes/base.ts#L24">processes/base.ts:24</a></li>
 					</ul>
 				</aside>
 			</section>
