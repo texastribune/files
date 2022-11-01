@@ -150,7 +150,6 @@ export function getFirstInPath<T extends HTMLElement>(event : Event, type : new 
 export function createWebSafeString(string : string) : string {
   const normalizedName = string.normalize('NFC')
   const webSafeName = removeAccents(normalizedName)
-  console.log(`Converted ${string} to ${webSafeName}`)
   return webSafeName
 }
 
