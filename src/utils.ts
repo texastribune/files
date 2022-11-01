@@ -1,4 +1,5 @@
 /** @module utils */
+import removeAccents from 'remove-accents'
 
 let units = ['KB', 'MB', 'GB', 'TB'];
 
@@ -141,6 +142,15 @@ export function getFirstInPath<T extends HTMLElement>(event : Event, type : new 
     }
   }
   return null;
+}
+
+/**
+ * Convert a string to a web-safe string by removing accents.
+ */
+export function createWebSafeString(string : string) : string {
+  const normalizedName = string.normalize('NFC')
+  const webSafeName = removeAccents(normalizedName)
+  return webSafeName
 }
 
 

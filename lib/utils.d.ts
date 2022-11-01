@@ -1,4 +1,3 @@
-/** @module utils */
 export declare function convertBytesToReadable(numBytes: number): string;
 export declare function compareStrings(string1: string, string2: string): number;
 export declare function compareNumbers(number1: number, number2: number): number;
@@ -38,6 +37,10 @@ export declare function createNode(htmlString: string): Element;
  * Get the first element of a certain type in the event composedPath
  */
 export declare function getFirstInPath<T extends HTMLElement>(event: Event, type: new () => T): T | null;
+/**
+ * Convert a string to a web-safe string by removing accents.
+ */
+export declare function createWebSafeString(string: string): string;
 export declare function getCookie(name: string): string | null;
 export declare function isCrossDomain(url: URL): boolean;
 export interface Requester {
