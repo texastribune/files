@@ -1,3 +1,6 @@
+const accents = require('remove-accents');
+// import removeAccents from 'remove-accents'
+
 // import modules to define custom elements
 import "./breadCrumbs.js";
 import "./messages.js";
@@ -877,7 +880,10 @@ export class FileBrowser extends CustomElement {
 
     for (let file of dataTransfer.files) {
       promises.push(fileToArrayBuffer(file).then((buffer) => {
-          return this.currentDirectory.addFile(buffer, file.name, file.type);
+          // remove accents from file name
+          const normalizedName = file.name.normalize('NFC')
+          const webSafeName = accents.remove(normalizedName)
+          return this.currentDirectory.addFile(buffer, webSafeName, file.type);
         })
       );
     }
