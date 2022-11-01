@@ -881,8 +881,10 @@ export class FileBrowser extends CustomElement {
     for (let file of dataTransfer.files) {
       promises.push(fileToArrayBuffer(file).then((buffer) => {
           // remove accents from file name
+          console.log('name',file.name)
           const normalizedName = file.name.normalize('NFC')
           const webSafeName = accents.remove(normalizedName)
+          console.log('webSafeName',webSafeName)
           return this.currentDirectory.addFile(buffer, webSafeName, file.type);
         })
       );
