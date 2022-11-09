@@ -9,7 +9,7 @@ import "./elements/dialog";
 import {BreadCrumbs} from "./breadCrumbs.js";
 import {Message} from "./messages.js";
 import {Directory, File, FileNotFoundError, SearchResult} from "../files/base.js";
-import {convertBytesToReadable, createNode, fileToArrayBuffer, getFirstInPath} from "../utils.js";
+import {convertBytesToReadable, createNode, createWebSafeString, fileToArrayBuffer, getFirstInPath} from "../utils.js";
 import * as icons from './icons.js';
 import {ConfirmDialog} from "./elements/dialog";
 import {TextData, TimeData, AbstractTableData, Header, Row, Table} from "./elements/table";
@@ -877,7 +877,8 @@ export class FileBrowser extends CustomElement {
 
     for (let file of dataTransfer.files) {
       promises.push(fileToArrayBuffer(file).then((buffer) => {
-          return this.currentDirectory.addFile(buffer, file.name, file.type);
+          const webSafeName = createWebSafeString(file.name)
+          return this.currentDirectory.addFile(buffer, webSafeName, file.type);
         })
       );
     }
